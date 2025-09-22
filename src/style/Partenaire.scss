@@ -1,0 +1,278 @@
+/* Styles pour la page Partenaires - AF Boxing Club */
+
+.partners-hero {
+  background: linear-gradient(135deg, var(--primary-black), var(--primary-orange));
+  color: white;
+  padding: var(--spacing-xxl) 0;
+  text-align: center;
+
+  .hero-content {
+    max-width: 800px;
+    margin: 0 auto;
+
+    h1 {
+      font-size: 3rem;
+      margin-bottom: var(--spacing-md);
+      color: white;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+
+      @media (max-width: 768px) {
+        font-size: 2.5rem;
+      }
+    }
+
+    p {
+      font-size: 1.3rem;
+      opacity: 0.9;
+      line-height: 1.6;
+    }
+  }
+}
+
+.partners-main {
+  padding: var(--spacing-xxl) 0;
+  background: var(--secondary-gray);
+
+  h2 {
+    text-align: center;
+    color: var(--primary-black);
+    margin-bottom: var(--spacing-xl);
+    position: relative;
+
+    &::after {
+      content: '';
+      position: absolute;
+      bottom: -10px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 80px;
+      height: 4px;
+      background: linear-gradient(90deg, var(--primary-red), var(--primary-orange));
+      border-radius: 2px;
+    }
+  }
+
+  .partners-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: var(--spacing-xl);
+
+    @media (max-width: 768px) {
+      grid-template-columns: 1fr;
+    }
+
+    .partner-card {
+      background: white;
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: var(--shadow-md);
+      transition: all var(--transition-normal);
+
+      &:hover {
+        transform: translateY(-8px);
+        box-shadow: var(--shadow-lg);
+      }
+
+      .partner-logo {
+        position: relative;
+        height: 150px;
+        background: var(--secondary-gray);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+
+        img {
+          max-width: 120px;
+          max-height: 80px;
+          width: auto;
+          height: auto;
+          object-fit: contain;
+          transition: all var(--transition-normal);
+          filter: grayscale(20%) brightness(1.1);
+        }
+
+        .logo-overlay {
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background: rgba(230, 0, 0, 0.8);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          opacity: 0;
+          transition: all var(--transition-normal);
+
+          svg {
+            font-size: 2rem;
+            color: white;
+          }
+        }
+
+        &:hover {
+          .logo-overlay {
+            opacity: 1;
+          }
+
+          img {
+            transform: scale(1.1);
+          }
+        }
+      }
+
+      .partner-info {
+        padding: var(--spacing-xl);
+
+        .partner-type {
+          display: inline-block;
+          padding: var(--spacing-xs) var(--spacing-sm);
+          border-radius: 12px;
+          color: white;
+          font-size: 0.8rem;
+          font-weight: 600;
+          text-transform: uppercase;
+          margin-bottom: var(--spacing-md);
+        }
+
+        h3 {
+          color: var(--primary-black);
+          margin-bottom: var(--spacing-md);
+          font-size: 1.3rem;
+        }
+
+        p {
+          color: var(--text-light);
+          line-height: 1.6;
+          margin-bottom: var(--spacing-lg);
+          font-size: 0.95rem;
+        }
+
+        .partner-link {
+          display: inline-flex;
+          align-items: center;
+          gap: var(--spacing-xs);
+          color: var(--primary-red);
+          text-decoration: none;
+          font-weight: 600;
+          transition: all var(--transition-normal);
+
+          &:hover {
+            color: var(--primary-orange);
+            transform: translateX(5px);
+          }
+
+          svg {
+            font-size: 0.9rem;
+          }
+        }
+      }
+    }
+  }
+}
+
+.partners-values {
+  padding: var(--spacing-xxl) 0;
+  background: white;
+
+  .values-content {
+    h2 {
+      text-align: center;
+      color: var(--primary-black);
+      margin-bottom: var(--spacing-xl);
+      position: relative;
+
+      &::after {
+        content: '';
+        position: absolute;
+        bottom: -10px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 80px;
+        height: 4px;
+        background: linear-gradient(90deg, var(--primary-red), var(--primary-orange));
+        border-radius: 2px;
+      }
+    }
+
+    .values-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: var(--spacing-xl);
+
+      .value-item {
+        text-align: center;
+        padding: var(--spacing-xl);
+        background: var(--secondary-gray);
+        border-radius: 16px;
+        transition: all var(--transition-normal);
+
+        &:hover {
+          transform: translateY(-5px);
+          box-shadow: var(--shadow-md);
+        }
+
+        .value-icon {
+          font-size: 3rem;
+          color: var(--primary-red);
+          margin-bottom: var(--spacing-md);
+        }
+
+        h3 {
+          color: var(--primary-black);
+          margin-bottom: var(--spacing-md);
+          font-size: 1.4rem;
+        }
+
+        p {
+          color: var(--text-light);
+          line-height: 1.6;
+          margin: 0;
+        }
+      }
+    }
+  }
+}
+
+.partners-cta {
+  padding: var(--spacing-xxl) 0;
+  background: var(--secondary-gray);
+
+  .cta-content {
+    text-align: center;
+    max-width: 600px;
+    margin: 0 auto;
+
+    h2 {
+      color: var(--primary-black);
+      margin-bottom: var(--spacing-md);
+    }
+
+    p {
+      color: var(--text-light);
+      line-height: 1.6;
+      margin-bottom: var(--spacing-xl);
+      font-size: 1.1rem;
+    }
+
+    .btn {
+      padding: var(--spacing-md) var(--spacing-xl);
+      font-size: 1.1rem;
+      display: inline-flex;
+      align-items: center;
+      gap: var(--spacing-sm);
+    }
+  }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .partners-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .values-grid {
+    grid-template-columns: 1fr;
+  }
+}

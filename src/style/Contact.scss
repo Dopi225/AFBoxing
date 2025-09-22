@@ -1,0 +1,283 @@
+/* Styles pour la page Contact - AF Boxing Club */
+/* Design moderne basé sur le système unifié */
+
+/* Contact Items */
+.contact-items {
+  .contact-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    padding: 1.5rem;
+    background: var(--secondary-gray);
+    border-radius: var(--border-radius-lg);
+    border: 1px solid #e9ecef;
+    transition: all var(--transition-normal);
+    
+    &:hover {
+      background: white;
+      border-color: rgba(230, 0, 0, 0.2);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+    }
+    
+    &:last-child {
+      margin-bottom: 0;
+    }
+    
+    .contact-icon {
+      font-size: 1.5rem;
+      color: var(--primary-red);
+      margin-top: 0.2rem;
+      flex-shrink: 0;
+    }
+    
+    div {
+      h4 {
+        color: var(--primary-black);
+        margin: 0 0 0.5rem 0;
+        font-size: 1.1rem;
+        font-weight: 600;
+      }
+      
+      p {
+        color: var(--text-light);
+        margin: 0;
+        line-height: 1.5;
+      }
+      
+      a {
+        color: var(--primary-red);
+        text-decoration: none;
+        font-weight: 500;
+        transition: color var(--transition-fast);
+        
+        &:hover {
+          color: var(--primary-orange);
+          text-decoration: underline;
+        }
+      }
+    }
+  }
+}
+
+/* Social Links */
+.social-links {
+  margin-top: 2rem;
+  padding-top: 2rem;
+  border-top: 1px solid #e9ecef;
+  
+  h4 {
+    color: var(--primary-black);
+    margin: 0 0 1rem 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+  }
+  
+  .social-icons {
+    display: flex;
+    gap: 1rem;
+    
+    .social-link {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.8rem 1.2rem;
+      background: var(--gradient-primary);
+      color: white;
+      text-decoration: none;
+      border-radius: var(--border-radius-md);
+      font-weight: 500;
+      transition: all var(--transition-normal);
+      box-shadow: 0 4px 12px rgba(230, 0, 0, 0.3);
+      
+      &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(230, 0, 0, 0.4);
+      }
+      
+      svg {
+        font-size: 1.2rem;
+      }
+      
+      span {
+        font-size: 0.9rem;
+      }
+    }
+  }
+}
+
+/* Formulaire de contact */
+.contact-form {
+  .form-group {
+    margin-bottom: 1.5rem;
+    
+    .input-container {
+      position: relative;
+      display: flex;
+      align-items: center;
+      
+      .input-icon {
+        position: absolute;
+        left: 1rem;
+        color: var(--primary-red);
+        font-size: 1.1rem;
+        z-index: 2;
+      }
+      
+      .form-input {
+        width: 100%;
+        padding: 1rem 1rem 1rem 3rem;
+        border: 2px solid #e9ecef;
+        border-radius: var(--border-radius-md);
+        font-size: 1rem;
+        background: white;
+        transition: all var(--transition-normal);
+        
+        &:focus {
+          outline: none;
+          border-color: var(--primary-red);
+          box-shadow: 0 0 0 3px rgba(230, 0, 0, 0.1);
+        }
+        
+        &::placeholder {
+          color: var(--text-muted);
+        }
+        
+        &.form-textarea {
+          min-height: 120px;
+          resize: vertical;
+          padding-top: 1rem;
+        }
+      }
+    }
+  }
+  
+  .form-submit {
+    width: 100%;
+    padding: 1.2rem 2rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    
+    svg {
+      font-size: 1.2rem;
+    }
+  }
+}
+
+/* Cartes spécialisées */
+.contact-info-card,
+.contact-form-card {
+  .card-header {
+    margin-bottom: 2rem;
+    text-align: center;
+    
+    .card-icon {
+      font-size: 3rem;
+      color: var(--primary-red);
+      margin-bottom: 1rem;
+      filter: drop-shadow(0 4px 8px rgba(230, 0, 0, 0.3));
+    }
+    
+    h3 {
+      color: var(--primary-black);
+      margin: 0;
+      font-size: 1.6rem;
+      font-weight: 700;
+    }
+  }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .contact-items {
+    .contact-item {
+      padding: 1rem;
+      margin-bottom: 1.5rem;
+      
+      .contact-icon {
+        font-size: 1.3rem;
+      }
+      
+      div {
+        h4 {
+          font-size: 1rem;
+        }
+      }
+    }
+  }
+  
+  .social-links {
+    .social-icons {
+      flex-direction: column;
+      
+      .social-link {
+        justify-content: center;
+        padding: 1rem;
+      }
+    }
+  }
+  
+  .contact-form {
+    .form-group {
+      margin-bottom: 1.2rem;
+      
+      .input-container {
+        .form-input {
+          padding: 0.9rem 0.9rem 0.9rem 2.8rem;
+          font-size: 0.95rem;
+        }
+      }
+    }
+    
+    .form-submit {
+      padding: 1rem 1.5rem;
+      font-size: 1rem;
+    }
+  }
+  
+  .contact-info-card,
+  .contact-form-card {
+    .card-header {
+      margin-bottom: 1.5rem;
+      
+      .card-icon {
+        font-size: 2.5rem;
+      }
+      
+      h3 {
+        font-size: 1.4rem;
+      }
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .contact-items {
+    .contact-item {
+      flex-direction: column;
+      text-align: center;
+      gap: 0.8rem;
+      
+      .contact-icon {
+        align-self: center;
+      }
+    }
+  }
+  
+  .contact-form {
+    .form-group {
+      .input-container {
+        .input-icon {
+          left: 0.8rem;
+        }
+        
+        .form-input {
+          padding: 0.8rem 0.8rem 0.8rem 2.5rem;
+        }
+      }
+    }
+  }
+}

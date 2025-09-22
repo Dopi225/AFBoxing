@@ -1,0 +1,266 @@
+@charset "UTF-8";
+/* Styles pour la page Équipe - AF Boxing Club */
+.team-hero {
+  background: linear-gradient(135deg, var(--primary-black), var(--primary-red));
+  color: white;
+  padding: var(--spacing-xxl) 0;
+  text-align: center;
+}
+.team-hero .hero-content {
+  max-width: 800px;
+  margin: 0 auto;
+}
+.team-hero .hero-content h1 {
+  font-size: 3rem;
+  margin-bottom: var(--spacing-md);
+  color: white;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+@media (max-width: 768px) {
+  .team-hero .hero-content h1 {
+    font-size: 2.5rem;
+  }
+}
+.team-hero .hero-content p {
+  font-size: 1.3rem;
+  opacity: 0.9;
+  line-height: 1.6;
+}
+
+.team-main {
+  padding: var(--spacing-xxl) 0;
+  background: var(--secondary-gray);
+}
+.team-main h2 {
+  text-align: center;
+  color: var(--primary-black);
+  margin-bottom: var(--spacing-xl);
+  position: relative;
+}
+.team-main h2::after {
+  content: "";
+  position: absolute;
+  bottom: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80px;
+  height: 4px;
+  background: linear-gradient(90deg, var(--primary-red), var(--primary-orange));
+  border-radius: 2px;
+}
+.team-main .team-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: var(--spacing-xl);
+}
+@media (max-width: 768px) {
+  .team-main .team-grid {
+    grid-template-columns: 1fr;
+  }
+}
+.team-main .team-grid .member-card {
+  background: white;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: var(--shadow-md);
+  transition: all var(--transition-normal);
+}
+.team-main .team-grid .member-card:hover {
+  transform: translateY(-8px);
+  box-shadow: var(--shadow-lg);
+}
+.team-main .team-grid .member-card .member-photo {
+  position: relative;
+  height: 250px;
+  overflow: hidden;
+}
+.team-main .team-grid .member-card .member-photo img {
+  width: 100%;
+  height: 100%;
+  -o-object-fit: cover;
+     object-fit: cover;
+  transition: all var(--transition-normal);
+}
+.team-main .team-grid .member-card .member-photo .photo-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(230, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: all var(--transition-normal);
+}
+.team-main .team-grid .member-card .member-photo .photo-overlay svg {
+  font-size: 3rem;
+  color: white;
+}
+.team-main .team-grid .member-card .member-photo:hover .photo-overlay {
+  opacity: 1;
+}
+.team-main .team-grid .member-card .member-photo:hover img {
+  transform: scale(1.1);
+}
+.team-main .team-grid .member-card .member-info {
+  padding: var(--spacing-xl);
+}
+.team-main .team-grid .member-card .member-info h3 {
+  color: var(--primary-black);
+  margin-bottom: var(--spacing-xs);
+  font-size: 1.4rem;
+}
+.team-main .team-grid .member-card .member-info h4 {
+  color: var(--primary-red);
+  margin-bottom: var(--spacing-md);
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+.team-main .team-grid .member-card .member-info .description {
+  color: var(--text-light);
+  line-height: 1.6;
+  margin-bottom: var(--spacing-lg);
+}
+.team-main .team-grid .member-card .member-info .member-details {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-lg);
+}
+.team-main .team-grid .member-card .member-info .member-details .detail-item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm);
+  background: var(--secondary-gray);
+  border-radius: 8px;
+}
+.team-main .team-grid .member-card .member-info .member-details .detail-item svg {
+  color: var(--primary-red);
+  font-size: 1.1rem;
+}
+.team-main .team-grid .member-card .member-info .member-details .detail-item span {
+  color: var(--text-dark);
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+.team-main .team-grid .member-card .member-info .certifications h5 {
+  color: var(--primary-black);
+  margin-bottom: var(--spacing-sm);
+  font-size: 1rem;
+}
+.team-main .team-grid .member-card .member-info .certifications ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.team-main .team-grid .member-card .member-info .certifications ul li {
+  color: var(--text-light);
+  font-size: 0.9rem;
+  padding: var(--spacing-xs) 0;
+  border-bottom: 1px solid var(--secondary-gray);
+}
+.team-main .team-grid .member-card .member-info .certifications ul li:last-child {
+  border-bottom: none;
+}
+.team-main .team-grid .member-card .member-info .certifications ul li::before {
+  content: "✓";
+  color: var(--primary-red);
+  font-weight: bold;
+  margin-right: var(--spacing-sm);
+}
+
+.team-values {
+  padding: var(--spacing-xxl) 0;
+  background: white;
+}
+.team-values .values-content h2 {
+  text-align: center;
+  color: var(--primary-black);
+  margin-bottom: var(--spacing-xl);
+  position: relative;
+}
+.team-values .values-content h2::after {
+  content: "";
+  position: absolute;
+  bottom: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80px;
+  height: 4px;
+  background: linear-gradient(90deg, var(--primary-red), var(--primary-orange));
+  border-radius: 2px;
+}
+.team-values .values-content .values-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: var(--spacing-xl);
+}
+.team-values .values-content .values-grid .value-item {
+  text-align: center;
+  padding: var(--spacing-xl);
+  background: var(--secondary-gray);
+  border-radius: 16px;
+  transition: all var(--transition-normal);
+}
+.team-values .values-content .values-grid .value-item:hover {
+  transform: translateY(-5px);
+  box-shadow: var(--shadow-md);
+}
+.team-values .values-content .values-grid .value-item .value-icon {
+  font-size: 3rem;
+  color: var(--primary-red);
+  margin-bottom: var(--spacing-md);
+}
+.team-values .values-content .values-grid .value-item h3 {
+  color: var(--primary-black);
+  margin-bottom: var(--spacing-md);
+  font-size: 1.4rem;
+}
+.team-values .values-content .values-grid .value-item p {
+  color: var(--text-light);
+  line-height: 1.6;
+  margin: 0;
+}
+
+.team-cta {
+  padding: var(--spacing-xxl) 0;
+  background: var(--secondary-gray);
+}
+.team-cta .cta-content {
+  text-align: center;
+  max-width: 600px;
+  margin: 0 auto;
+}
+.team-cta .cta-content h2 {
+  color: var(--primary-black);
+  margin-bottom: var(--spacing-md);
+}
+.team-cta .cta-content p {
+  color: var(--text-light);
+  line-height: 1.6;
+  margin-bottom: var(--spacing-xl);
+  font-size: 1.1rem;
+}
+.team-cta .cta-content .btn {
+  padding: var(--spacing-md) var(--spacing-xl);
+  font-size: 1.1rem;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .team-grid {
+    grid-template-columns: 1fr;
+  }
+  .values-grid {
+    grid-template-columns: 1fr;
+  }
+  .member-details .detail-item {
+    font-size: 0.85rem;
+  }
+}/*# sourceMappingURL=Equipe.css.map */

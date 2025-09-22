@@ -1,0 +1,185 @@
+/* Styles pour la page NewsPage - AF Boxing Club */
+.news-hero {
+  background: linear-gradient(135deg, var(--primary-black), var(--primary-red));
+  color: white;
+  padding: var(--spacing-xxl) 0;
+  text-align: center;
+}
+.news-hero .hero-content {
+  max-width: 800px;
+  margin: 0 auto;
+}
+.news-hero .hero-content .back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  background: rgba(255, 255, 255, 0.1);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: 25px;
+  text-decoration: none;
+  font-weight: 500;
+  transition: all var(--transition-normal);
+  margin-bottom: var(--spacing-lg);
+}
+.news-hero .hero-content .back-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.5);
+  transform: translateY(-2px);
+}
+.news-hero .hero-content .back-btn svg {
+  font-size: 0.9rem;
+}
+.news-hero .hero-content h1 {
+  font-size: 3rem;
+  margin-bottom: var(--spacing-md);
+  color: white;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+@media (max-width: 768px) {
+  .news-hero .hero-content h1 {
+    font-size: 2.5rem;
+  }
+}
+.news-hero .hero-content p {
+  font-size: 1.3rem;
+  opacity: 0.9;
+  line-height: 1.6;
+}
+
+.news-main {
+  padding: var(--spacing-xxl) 0;
+  background: var(--secondary-gray);
+}
+.news-main .news-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: var(--spacing-xl);
+}
+@media (max-width: 768px) {
+  .news-main .news-grid {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-lg);
+  }
+}
+.news-main .news-grid .news-card {
+  background: white;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: var(--shadow-md);
+  transition: all var(--transition-normal);
+}
+.news-main .news-grid .news-card:hover {
+  transform: translateY(-8px);
+  box-shadow: var(--shadow-lg);
+}
+.news-main .news-grid .news-card .news-image {
+  position: relative;
+  height: 200px;
+  overflow: hidden;
+}
+.news-main .news-grid .news-card .news-image img {
+  width: 100%;
+  height: 100%;
+  -o-object-fit: cover;
+     object-fit: cover;
+  transition: all var(--transition-normal);
+}
+.news-main .news-grid .news-card .news-image .news-date {
+  position: absolute;
+  top: var(--spacing-md);
+  right: var(--spacing-md);
+  background: rgba(230, 0, 0, 0.9);
+  color: white;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: 15px;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+.news-main .news-grid .news-card .news-image .news-date svg {
+  font-size: 0.8rem;
+}
+.news-main .news-grid .news-card .news-image:hover img {
+  transform: scale(1.1);
+}
+.news-main .news-grid .news-card .news-content {
+  padding: var(--spacing-xl);
+}
+.news-main .news-grid .news-card .news-content h3 {
+  color: var(--primary-black);
+  margin-bottom: var(--spacing-md);
+  font-size: 1.4rem;
+  line-height: 1.3;
+}
+.news-main .news-grid .news-card .news-content .summary {
+  color: var(--primary-red);
+  font-weight: 600;
+  font-size: 1rem;
+  margin-bottom: var(--spacing-md);
+  line-height: 1.5;
+}
+.news-main .news-grid .news-card .news-content .description {
+  color: var(--text-light);
+  line-height: 1.6;
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+.news-cta {
+  padding: var(--spacing-xxl) 0;
+  background: white;
+}
+.news-cta .cta-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: var(--spacing-xl);
+}
+.news-cta .cta-grid .cta-card {
+  background: var(--secondary-gray);
+  padding: var(--spacing-xl);
+  border-radius: 16px;
+  text-align: center;
+  box-shadow: var(--shadow-md);
+  transition: all var(--transition-normal);
+}
+.news-cta .cta-grid .cta-card:hover {
+  transform: translateY(-5px);
+  box-shadow: var(--shadow-lg);
+}
+.news-cta .cta-grid .cta-card .cta-icon {
+  font-size: 3rem;
+  color: var(--primary-red);
+  margin-bottom: var(--spacing-md);
+}
+.news-cta .cta-grid .cta-card h3 {
+  color: var(--primary-black);
+  margin-bottom: var(--spacing-md);
+  font-size: 1.4rem;
+}
+.news-cta .cta-grid .cta-card p {
+  color: var(--text-light);
+  line-height: 1.6;
+  margin-bottom: var(--spacing-lg);
+}
+.news-cta .cta-grid .cta-card .btn {
+  width: 100%;
+  padding: var(--spacing-md);
+  font-size: 1.1rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .news-grid {
+    grid-template-columns: 1fr;
+  }
+  .cta-grid {
+    grid-template-columns: 1fr;
+  }
+  .news-image {
+    height: 180px;
+  }
+}/*# sourceMappingURL=NewsPage.css.map */

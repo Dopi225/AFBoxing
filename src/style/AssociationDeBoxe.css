@@ -1,0 +1,732 @@
+/* Styles pour la page d'accueil - AF Boxing Club */
+.btn-outline2 {
+  border: 2px solid #000;
+  padding: 10px 20px;
+  margin-top: 15px;
+  display: inline-block;
+  text-decoration: none;
+  color: red;
+  font-weight: 700;
+  border-radius: 3px;
+  background-color: #111;
+  opacity: 70%;
+}
+.btn-outline2:hover {
+  color: white;
+}
+
+body {
+  font-family: "Segoe UI", sans-serif;
+  color: #111;
+  background: #fff;
+  line-height: 1.6;
+}
+
+h2 {
+  font-size: 1.9em;
+  padding: 5px;
+  margin-bottom: 5px;
+}
+
+.container {
+  max-width: 1100px;
+  margin: auto;
+  padding: 20px;
+  box-shadow: 0 7px rgba(247, 2, 2, 0.1);
+}
+
+header {
+  background: #000;
+  color: #fff;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.logo img {
+  width: 8em;
+}
+
+nav ul.nav-menu {
+  display: flex;
+  list-style: none;
+  gap: 20px;
+  position: relative;
+}
+
+nav a {
+  color: white;
+  text-decoration: none;
+  font-size: 0.95em;
+  position: relative;
+}
+
+nav .btn {
+  background: red;
+  padding: 8px 12px;
+  border-radius: 4px;
+}
+nav .btn:hover {
+  color: black;
+}
+
+.dropdown {
+  position: relative;
+}
+
+.submenu {
+  position: absolute;
+  background: #100f0f;
+  top: 100%;
+  left: 0;
+  display: none;
+  flex-direction: column;
+  min-width: 160px;
+  padding: 10px 0;
+  z-index: 100;
+}
+
+.submenu li {
+  padding: 5px 15px;
+  border: none !important;
+  text-align: center;
+}
+
+.submenu li a {
+  color: white;
+  font-size: 0.95em;
+  text-align: center;
+}
+
+.dropdown:hover .submenu {
+  display: flex;
+}
+
+@media (max-width: 768px) {
+  nav ul.nav-menu {
+    flex-direction: column;
+    gap: 10px;
+  }
+  .submenu {
+    position: static;
+    display: none;
+    background: none;
+  }
+  .dropdown:hover .submenu {
+    display: block;
+  }
+}
+.cta-intro {
+  text-align: center;
+  margin: 3rem auto;
+}
+.cta-intro h2 {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+  color: #e60000;
+}
+.cta-intro p {
+  font-size: 1.1rem;
+  color: #444;
+}
+
+.contact-map {
+  flex: 1;
+  min-width: 320px;
+}
+.contact-map h3 {
+  margin-bottom: 1rem;
+  font-size: 1.6rem;
+  gap: 20px;
+}
+.contact-map iframe {
+  width: 100%;
+  height: 320px;
+  border-radius: 15px;
+  border: none;
+  box-shadow: 0 4px 20px rgba(230, 0, 0, 0.5);
+}
+
+.entete {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 2rem;
+  padding: 9rem 1.8rem 9rem;
+  box-shadow: 0 7px rgba(247, 2, 2, 0.1);
+}
+.entete .photo {
+  flex: 1;
+  height: 100%;
+  min-height: 600px;
+  background: url("../assets/club.jpeg") center center/cover no-repeat;
+  opacity: 0.95;
+  border-radius: 8px;
+  box-shadow: -1px 14px 37px rgba(0, 0, 0, 0.75);
+  transition: transform 0.5s ease-in-out;
+  margin-top: 0;
+}
+.entete .photo:hover {
+  transform: scale(1.03);
+}
+.entete .texte {
+  flex: 1;
+  max-width: 800px;
+  text-align: center;
+  margin-top: 0;
+  padding: 2rem;
+  background-color: rgba(255, 255, 255, 0.1960784314);
+  border-radius: 8px;
+}
+.entete .anglaise,
+.entete .socio {
+  margin-top: 1.5rem;
+}
+.entete .anglaise a,
+.entete .socio a {
+  display: block;
+  width: 100%;
+  max-width: 300px;
+  margin: 0 auto;
+}
+.entete .left-btn,
+.entete .right-btn, .entete .center-btn {
+  display: block;
+  width: 100%;
+  text-align: center;
+  padding: 1rem;
+  border-radius: 20px;
+  font-weight: bold;
+  color: white;
+  transition: background-color 0.3s;
+}
+.entete .left-btn:hover,
+.entete .right-btn:hover, .entete .center-btn:hover {
+  background-color: #fff;
+}
+.entete .left-btn {
+  background: red;
+}
+.entete .left-btn:hover {
+  color: black !important;
+}
+.entete .right-btn {
+  background: #111;
+}
+.entete .right-btn:hover {
+  color: black !important;
+}
+.entete .center-btn {
+  background: #ed5508;
+}
+.entete .center-btn:hover {
+  color: black !important;
+}
+
+@media (max-width: 768px) {
+  .hero {
+    height: 100vh;
+    padding: 0 var(--spacing-sm);
+  }
+  .hero .content {
+    padding: var(--spacing-lg);
+    margin: var(--spacing-sm);
+  }
+  .hero .content h2 {
+    font-size: 1.8rem;
+    margin-bottom: var(--spacing-md);
+  }
+  .hero .content .btn-group {
+    flex-direction: column;
+    gap: var(--spacing-sm);
+  }
+  .hero .content .btn-group a {
+    min-width: auto;
+    width: 100%;
+    padding: var(--spacing-sm) var(--spacing-md);
+    font-size: 1rem;
+  }
+  .news {
+    padding: var(--spacing-xl) 0;
+  }
+  .news .news-grid {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-md);
+    padding: 0 var(--spacing-sm);
+  }
+  .news .news-item .news-content {
+    padding: var(--spacing-md);
+  }
+  .news .news-item .news-content h3 {
+    font-size: 1.2rem;
+  }
+  .news .news-item .news-content p {
+    font-size: 0.9rem;
+  }
+  .contact-map {
+    margin-top: var(--spacing-xl);
+  }
+  .contact-map iframe {
+    height: 250px;
+  }
+}
+.hero {
+  position: relative;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 var(--spacing-md);
+  text-align: center;
+  z-index: 2;
+  overflow: hidden;
+}
+.hero .background-video {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  -o-object-fit: cover;
+     object-fit: cover;
+  z-index: 1;
+  opacity: 0.7;
+}
+.hero .content {
+  position: relative;
+  z-index: 2;
+  max-width: 900px;
+  padding: var(--spacing-xxl);
+  background: linear-gradient(135deg, rgba(0, 0, 0, 0.8), rgba(230, 0, 0, 0.1));
+  color: white;
+  border-radius: 20px;
+  -webkit-backdrop-filter: blur(10px);
+          backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: var(--shadow-lg);
+}
+@media (max-width: 768px) {
+  .hero .content {
+    padding: var(--spacing-lg);
+    margin: var(--spacing-sm);
+  }
+}
+.hero .content h2 {
+  font-size: 2.5rem;
+  margin-bottom: var(--spacing-lg);
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+  font-weight: 700;
+}
+@media (max-width: 768px) {
+  .hero .content h2 {
+    font-size: 2rem;
+  }
+}
+.hero .content .btn-group {
+  margin-top: var(--spacing-xl);
+  display: flex;
+  gap: var(--spacing-md);
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.hero .content .btn-group a {
+  padding: var(--spacing-md) var(--spacing-lg);
+  text-decoration: none;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 1.1rem;
+  transition: all var(--transition-normal);
+  min-width: 200px;
+  text-align: center;
+  box-shadow: var(--shadow-md);
+}
+.hero .content .btn-group a:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-lg);
+}
+.hero .content .btn-group .left-btn {
+  background: linear-gradient(135deg, var(--primary-red), #b30000);
+  color: white;
+}
+.hero .content .btn-group .left-btn:hover {
+  background: linear-gradient(135deg, #b30000, #8a0000);
+}
+.hero .content .btn-group .right-btn {
+  background: linear-gradient(135deg, var(--primary-black), #333);
+  color: white;
+}
+.hero .content .btn-group .right-btn:hover {
+  background: linear-gradient(135deg, #333, #555);
+}
+.hero .content .btn-group .center-btn {
+  background: linear-gradient(135deg, var(--primary-orange), #d44a00);
+  color: white;
+}
+.hero .content .btn-group .center-btn:hover {
+  background: linear-gradient(135deg, #d44a00, #b83d00);
+}
+
+.content {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+}
+.content .mil {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.content .mil img {
+  width: 8em;
+  height: 8em;
+}
+
+.split {
+  max-width: 100%;
+  width: 100%;
+  margin: 0 auto;
+  display: flex;
+  gap: 5px;
+  flex-wrap: nowrap;
+  justify-content: space-around;
+}
+@media (max-width: 768px) {
+  .split {
+    flex-direction: column;
+    gap: 9px !important;
+  }
+  .split .socio,
+  .split .anglaise {
+    width: 100% !important;
+    height: 28.9em !important;
+  }
+  .split .content1, .split .content2, .split .palmar {
+    height: 21em !important;
+    width: 95% !important;
+    margin: 0 auto;
+  }
+}
+.split .card-content {
+  max-width: 50em;
+}
+.split .card-content .content1,
+.split .card-content .content2 {
+  height: 40em;
+  width: 28em;
+  justify-content: center;
+  align-items: end;
+  display: flex;
+  position: relative;
+  z-index: 2;
+}
+.split .card-content .content1 .left-btn,
+.split .card-content .content1 .right-btn,
+.split .card-content .content2 .left-btn,
+.split .card-content .content2 .right-btn {
+  margin-bottom: 15px;
+  opacity: 80%;
+}
+.split .card-content .content1 {
+  position: relative;
+  z-index: 2;
+}
+.split .card-content .content1::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: url("../assets/Boxing-bro.png") center/cover no-repeat;
+  opacity: 0.92;
+  z-index: -1;
+  border-radius: 8px;
+  box-shadow: -1px 14px 37px rgba(0, 0, 0, 0.75);
+  transition: transform 0.5s ease-in-out;
+}
+.split .card-content .content1:hover::before {
+  transform: scale(0.95);
+}
+.split .card-content .content2::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: url("../assets/s2.png") center/cover no-repeat;
+  opacity: 0.92;
+  z-index: -1;
+  border-radius: 8px;
+  box-shadow: -1px 14px 37px 0px rgba(0, 0, 0, 0.75);
+  -webkit-box-shadow: -1px 14px 37px 0px rgba(0, 0, 0, 0.75);
+  -moz-box-shadow: -1px 14px 37px 0px rgba(0, 0, 0, 0.75);
+  transition: transform 0.5s ease-in-out;
+}
+.split .card-content .content2:hover::before {
+  transform: scale(1.05);
+}
+.split .socio,
+.split .anglaise {
+  height: 40em;
+  width: 50%;
+  justify-content: center;
+  align-items: center;
+  display: flex;
+  position: relative;
+  z-index: 2;
+}
+.split .socio {
+  position: relative;
+  z-index: 2;
+}
+.split .socio::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: url("../assets/s2.png") center/cover no-repeat;
+  z-index: -1;
+  border-radius: 8px;
+  box-shadow: -1px 14px 37px rgba(0, 0, 0, 0.75);
+  transition: transform 0.5s ease-in-out;
+}
+.split .socio:hover::before {
+  transform: scale(0.95);
+}
+.split .anglaise::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: url("../assets/Boxing-bro.png") center/cover no-repeat;
+  z-index: -1;
+  border-radius: 8px;
+  box-shadow: -1px 14px 37px 0px rgba(0, 0, 0, 0.75);
+  -webkit-box-shadow: -1px 14px 37px 0px rgba(0, 0, 0, 0.75);
+  -moz-box-shadow: -1px 14px 37px 0px rgba(0, 0, 0, 0.75);
+  transition: transform 0.5s ease-in-out;
+}
+.split .anglaise:hover::before {
+  transform: scale(0.95);
+}
+.split .left-btn,
+.split .right-btn {
+  color: white;
+  width: -moz-max-content;
+  width: max-content;
+  min-width: 15em;
+  min-height: 4.5em;
+  height: -moz-max-content;
+  height: max-content;
+  margin: 0 auto;
+  text-align: center;
+  font-weight: bold;
+  padding: 20px 0;
+  border-radius: 20px;
+  z-index: 10;
+}
+.split .left-btn:hover,
+.split .right-btn:hover {
+  background-color: #fff;
+}
+.split .left-btn {
+  background: red;
+}
+.split .left-btn:hover {
+  color: black !important;
+}
+.split .right-btn {
+  background: #111;
+}
+.split .right-btn:hover {
+  color: black !important;
+}
+
+.about {
+  text-align: center;
+  margin-top: 50px;
+  box-shadow: 0 7px rgba(159, 2, 2, 0.1);
+}
+
+.btn-outline {
+  border: 2px solid #000;
+  padding: 10px 20px;
+  margin-top: 15px;
+  display: inline-block;
+  text-decoration: none;
+  color: #000;
+  font-size: large;
+}
+
+.news {
+  padding: var(--spacing-xxl) 0;
+  background: linear-gradient(135deg, var(--secondary-gray), #fafafa);
+  margin-top: var(--spacing-xxl);
+}
+.news h2 {
+  text-align: center;
+  margin-bottom: var(--spacing-xl);
+  color: var(--primary-black);
+  position: relative;
+}
+.news h2::after {
+  content: "";
+  position: absolute;
+  bottom: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80px;
+  height: 4px;
+  background: linear-gradient(90deg, var(--primary-red), var(--primary-orange));
+  border-radius: 2px;
+}
+
+.news-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: var(--spacing-lg);
+  margin-top: var(--spacing-xl);
+  padding: 0 var(--spacing-md);
+}
+
+.news-item {
+  background: white;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: var(--shadow-md);
+  transition: all var(--transition-normal);
+  cursor: pointer;
+}
+.news-item:hover {
+  transform: translateY(-8px);
+  box-shadow: var(--shadow-lg);
+}
+.news-item img {
+  width: 100%;
+  height: 200px;
+  -o-object-fit: cover;
+     object-fit: cover;
+  transition: transform var(--transition-slow);
+}
+.news-item:hover img {
+  transform: scale(1.05);
+}
+.news-item .news-content {
+  padding: var(--spacing-lg);
+}
+.news-item .news-content .date {
+  font-size: 0.9rem;
+  color: var(--primary-red);
+  font-weight: 600;
+  margin-bottom: var(--spacing-sm);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.news-item .news-content h3 {
+  font-size: 1.3rem;
+  margin-bottom: var(--spacing-sm);
+  color: var(--primary-black);
+  line-height: 1.3;
+}
+.news-item .news-content p {
+  color: var(--text-light);
+  line-height: 1.6;
+  font-size: 0.95rem;
+}
+
+.btn-outline {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  margin-top: var(--spacing-xl);
+  padding: var(--spacing-md) var(--spacing-xl);
+  border: 2px solid var(--primary-red);
+  color: var(--primary-red);
+  text-decoration: none;
+  border-radius: 50px;
+  font-weight: 600;
+  transition: all var(--transition-normal);
+}
+.btn-outline:hover {
+  background-color: var(--primary-red);
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-red);
+}
+
+.partners {
+  margin-top: 50px;
+  text-align: center;
+}
+
+.partner-logos {
+  display: flex;
+  justify-content: center;
+  gap: 30px;
+  flex-wrap: wrap;
+  margin-top: 20px;
+}
+
+.partner-logos img {
+  height: 50px;
+}
+
+.cta {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 20px;
+  flex-wrap: wrap;
+  margin: 0 auto;
+  margin-top: 7em;
+}
+.cta a:hover {
+  color: black;
+}
+
+.icon {
+  font-size: 2em;
+  display: block;
+  width: 100%;
+}
+
+.cta-btn {
+  background: red;
+  color: white;
+  width: 10em;
+  height: 8em;
+  margin: 0 auto;
+  text-decoration: none;
+  border-radius: 5px;
+  font-weight: bold;
+  text-align: center;
+  align-items: center;
+  gap: 10px;
+  font-size: 1.3em;
+  line-height: 1.3em;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  transition: transform 0.2s ease-in-out;
+}
+
+footer {
+  background: #000;
+  color: #fff;
+}
+
+.footer .socials a {
+  color: white;
+  margin-left: 10px;
+  font-size: 1.2em;
+}/*# sourceMappingURL=AssociationDeBoxe.css.map */

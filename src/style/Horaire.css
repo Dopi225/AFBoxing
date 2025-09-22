@@ -1,0 +1,210 @@
+/* Styles pour la page Horaires - AF Boxing Club */
+.schedule-hero {
+  background: linear-gradient(135deg, var(--primary-black), var(--primary-red));
+  color: white;
+  padding: var(--spacing-xxl) 0;
+  text-align: center;
+}
+.schedule-hero .hero-content {
+  max-width: 800px;
+  margin: 0 auto;
+}
+.schedule-hero .hero-content h1 {
+  font-size: 3rem;
+  margin-bottom: var(--spacing-md);
+  color: white;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+@media (max-width: 768px) {
+  .schedule-hero .hero-content h1 {
+    font-size: 2.5rem;
+  }
+}
+.schedule-hero .hero-content p {
+  font-size: 1.3rem;
+  opacity: 0.9;
+  line-height: 1.6;
+}
+
+.schedule-main {
+  padding: var(--spacing-xxl) 0;
+  background: var(--secondary-gray);
+}
+.schedule-main h2 {
+  text-align: center;
+  color: var(--primary-black);
+  margin-bottom: var(--spacing-xl);
+  position: relative;
+}
+.schedule-main h2::after {
+  content: "";
+  position: absolute;
+  bottom: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80px;
+  height: 4px;
+  background: linear-gradient(90deg, var(--primary-red), var(--primary-orange));
+  border-radius: 2px;
+}
+.schedule-main .schedule-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: var(--spacing-lg);
+}
+@media (max-width: 768px) {
+  .schedule-main .schedule-grid {
+    grid-template-columns: 1fr;
+  }
+}
+.schedule-main .schedule-grid .day-card {
+  background: white;
+  border-radius: 16px;
+  padding: var(--spacing-lg);
+  box-shadow: var(--shadow-md);
+  transition: all var(--transition-normal);
+}
+.schedule-main .schedule-grid .day-card:hover {
+  transform: translateY(-5px);
+  box-shadow: var(--shadow-lg);
+}
+.schedule-main .schedule-grid .day-card .day-header {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-lg);
+  padding-bottom: var(--spacing-md);
+  border-bottom: 2px solid var(--secondary-gray);
+}
+.schedule-main .schedule-grid .day-card .day-header .day-icon {
+  font-size: 1.5rem;
+  color: var(--primary-red);
+}
+.schedule-main .schedule-grid .day-card .day-header h3 {
+  color: var(--primary-black);
+  margin: 0;
+  font-size: 1.4rem;
+}
+.schedule-main .schedule-grid .day-card .activities-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+.schedule-main .schedule-grid .day-card .activities-list .activity-slot {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  padding: var(--spacing-md);
+  background: var(--secondary-gray);
+  border-radius: 12px;
+  transition: all var(--transition-normal);
+}
+.schedule-main .schedule-grid .day-card .activities-list .activity-slot:hover {
+  background: rgba(230, 0, 0, 0.1);
+  transform: translateX(5px);
+}
+.schedule-main .schedule-grid .day-card .activities-list .activity-slot .time-slot {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  min-width: 100px;
+  font-weight: 600;
+  color: var(--primary-red);
+  font-size: 0.9rem;
+}
+.schedule-main .schedule-grid .day-card .activities-list .activity-slot .time-slot svg {
+  font-size: 1rem;
+}
+.schedule-main .schedule-grid .day-card .activities-list .activity-slot .activity-details {
+  flex: 1;
+}
+.schedule-main .schedule-grid .day-card .activities-list .activity-slot .activity-details .activity-info {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+.schedule-main .schedule-grid .day-card .activities-list .activity-slot .activity-details .activity-info .activity-icon {
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+.schedule-main .schedule-grid .day-card .activities-list .activity-slot .activity-details .activity-info div h4 {
+  color: var(--primary-black);
+  margin: 0 0 var(--spacing-xs) 0;
+  font-size: 1.1rem;
+}
+.schedule-main .schedule-grid .day-card .activities-list .activity-slot .activity-details .activity-info div .level {
+  color: var(--text-light);
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.schedule-info {
+  padding: var(--spacing-xxl) 0;
+  background: white;
+}
+.schedule-info .info-content h2 {
+  text-align: center;
+  color: var(--primary-black);
+  margin-bottom: var(--spacing-xl);
+  position: relative;
+}
+.schedule-info .info-content h2::after {
+  content: "";
+  position: absolute;
+  bottom: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80px;
+  height: 4px;
+  background: linear-gradient(90deg, var(--primary-red), var(--primary-orange));
+  border-radius: 2px;
+}
+.schedule-info .info-content .info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: var(--spacing-xl);
+}
+.schedule-info .info-content .info-grid .info-card {
+  text-align: center;
+  padding: var(--spacing-xl);
+  background: var(--secondary-gray);
+  border-radius: 16px;
+  transition: all var(--transition-normal);
+}
+.schedule-info .info-content .info-grid .info-card:hover {
+  transform: translateY(-5px);
+  box-shadow: var(--shadow-md);
+}
+.schedule-info .info-content .info-grid .info-card .info-icon {
+  font-size: 3rem;
+  color: var(--primary-red);
+  margin-bottom: var(--spacing-md);
+}
+.schedule-info .info-content .info-grid .info-card h3 {
+  color: var(--primary-black);
+  margin-bottom: var(--spacing-md);
+  font-size: 1.4rem;
+}
+.schedule-info .info-content .info-grid .info-card p {
+  color: var(--text-light);
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .schedule-grid {
+    grid-template-columns: 1fr;
+  }
+  .activity-slot {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-sm);
+  }
+  .activity-slot .time-slot {
+    min-width: auto;
+  }
+  .info-grid {
+    grid-template-columns: 1fr;
+  }
+}/*# sourceMappingURL=Horaire.css.map */

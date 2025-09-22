@@ -1,0 +1,275 @@
+/* Styles pour la page Activités - AF Boxing Club */
+
+.activities-hero {
+  background: linear-gradient(135deg, var(--primary-red), var(--primary-orange));
+  color: white;
+  padding: var(--spacing-xxl) 0;
+  text-align: center;
+
+  .hero-content {
+    max-width: 800px;
+    margin: 0 auto;
+
+    h1 {
+      font-size: 3rem;
+      margin-bottom: var(--spacing-md);
+      color: white;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+
+      @media (max-width: 768px) {
+        font-size: 2.5rem;
+      }
+    }
+
+    p {
+      font-size: 1.3rem;
+      opacity: 0.9;
+      line-height: 1.6;
+    }
+  }
+}
+
+.activities-main {
+  padding: var(--spacing-xxl) 0;
+  background: var(--secondary-gray);
+
+  h2 {
+    text-align: center;
+    color: var(--primary-black);
+    margin-bottom: var(--spacing-xl);
+    position: relative;
+
+    &::after {
+      content: '';
+      position: absolute;
+      bottom: -10px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 80px;
+      height: 4px;
+      background: linear-gradient(90deg, var(--primary-red), var(--primary-orange));
+      border-radius: 2px;
+    }
+  }
+
+  .activities-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: var(--spacing-xl);
+
+    @media (max-width: 768px) {
+      grid-template-columns: 1fr;
+      gap: var(--spacing-lg);
+    }
+
+    .activity-card {
+      background: white;
+      border-radius: 20px;
+      padding: var(--spacing-xl);
+      box-shadow: var(--shadow-md);
+      transition: all var(--transition-normal);
+      cursor: pointer;
+      border: 3px solid transparent;
+
+      &:hover {
+        transform: translateY(-8px);
+        box-shadow: var(--shadow-lg);
+        border-color: var(--primary-red);
+      }
+
+      .card-header {
+        text-align: center;
+        margin-bottom: var(--spacing-lg);
+
+        .activity-icon {
+          font-size: 3rem;
+          margin-bottom: var(--spacing-md);
+        }
+
+        h3 {
+          color: var(--primary-black);
+          margin: 0;
+          font-size: 1.5rem;
+        }
+      }
+
+      .card-content {
+        margin-bottom: var(--spacing-lg);
+
+        p {
+          color: var(--text-light);
+          line-height: 1.6;
+          margin-bottom: var(--spacing-md);
+        }
+
+        .activity-info {
+          display: flex;
+          justify-content: space-between;
+          gap: var(--spacing-md);
+
+          .info-item {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-xs);
+            padding: var(--spacing-sm) var(--spacing-md);
+            background: var(--secondary-gray);
+            border-radius: 20px;
+            font-size: 0.9rem;
+            color: var(--text-dark);
+            font-weight: 500;
+
+            svg {
+              color: var(--primary-red);
+            }
+          }
+        }
+      }
+
+      .card-footer {
+        .btn {
+          width: 100%;
+          padding: var(--spacing-md);
+          font-size: 1.1rem;
+        }
+      }
+    }
+  }
+}
+
+.schedule-section {
+  padding: var(--spacing-xxl) 0;
+  background: white;
+
+  .schedule-content {
+    text-align: center;
+    max-width: 800px;
+    margin: 0 auto;
+
+    h2 {
+      color: var(--primary-black);
+      margin-bottom: var(--spacing-xl);
+      position: relative;
+
+      &::after {
+        content: '';
+        position: absolute;
+        bottom: -10px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 80px;
+        height: 4px;
+        background: linear-gradient(90deg, var(--primary-red), var(--primary-orange));
+        border-radius: 2px;
+      }
+    }
+
+    .schedule-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: var(--spacing-lg);
+      margin-bottom: var(--spacing-xl);
+
+      .schedule-item {
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-md);
+        padding: var(--spacing-lg);
+        background: var(--secondary-gray);
+        border-radius: 16px;
+        text-align: left;
+
+        .schedule-icon {
+          font-size: 2rem;
+          color: var(--primary-red);
+          flex-shrink: 0;
+        }
+
+        h4 {
+          color: var(--primary-black);
+          margin: 0 0 var(--spacing-xs) 0;
+          font-size: 1.2rem;
+        }
+
+        p {
+          color: var(--text-light);
+          margin: 0;
+          font-weight: 500;
+        }
+      }
+    }
+
+    .btn {
+      padding: var(--spacing-md) var(--spacing-xl);
+      font-size: 1.1rem;
+    }
+  }
+}
+
+.activities-cta {
+  padding: var(--spacing-xxl) 0;
+  background: var(--secondary-gray);
+
+  .cta-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: var(--spacing-xl);
+
+    .cta-card {
+      background: white;
+      padding: var(--spacing-xl);
+      border-radius: 16px;
+      text-align: center;
+      box-shadow: var(--shadow-md);
+      transition: all var(--transition-normal);
+
+      &:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--shadow-lg);
+      }
+
+      .cta-icon {
+        font-size: 3rem;
+        color: var(--primary-red);
+        margin-bottom: var(--spacing-md);
+      }
+
+      h3 {
+        color: var(--primary-black);
+        margin-bottom: var(--spacing-md);
+        font-size: 1.4rem;
+      }
+
+      p {
+        color: var(--text-light);
+        line-height: 1.6;
+        margin-bottom: var(--spacing-lg);
+      }
+
+      .btn {
+        width: 100%;
+        padding: var(--spacing-md);
+        font-size: 1.1rem;
+      }
+    }
+  }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .activities-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .schedule-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .cta-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .activity-info {
+    flex-direction: column;
+    gap: var(--spacing-sm);
+  }
+}

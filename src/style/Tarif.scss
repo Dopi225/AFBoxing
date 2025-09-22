@@ -1,0 +1,354 @@
+/* Styles pour la page Tarifs - AF Boxing Club */
+
+.pricing-hero {
+  background: linear-gradient(135deg, var(--primary-red), var(--primary-orange));
+  color: white;
+  padding: var(--spacing-xxl) 0;
+  text-align: center;
+
+  .hero-content {
+    max-width: 800px;
+    margin: 0 auto;
+
+    h1 {
+      font-size: 3rem;
+      margin-bottom: var(--spacing-md);
+      color: white;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+
+      @media (max-width: 768px) {
+        font-size: 2.5rem;
+      }
+    }
+
+    p {
+      font-size: 1.3rem;
+      opacity: 0.9;
+      line-height: 1.6;
+    }
+  }
+}
+
+.pricing-section {
+  padding: var(--spacing-xxl) 0;
+  background: var(--secondary-gray);
+
+  h2 {
+    text-align: center;
+    margin-bottom: var(--spacing-md);
+    color: var(--primary-black);
+    position: relative;
+
+    &::after {
+      content: '';
+      position: absolute;
+      bottom: -10px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 80px;
+      height: 4px;
+      background: linear-gradient(90deg, var(--primary-red), var(--primary-orange));
+      border-radius: 2px;
+    }
+  }
+
+  .section-subtitle {
+    text-align: center;
+    font-size: 1.2rem;
+    color: var(--text-light);
+    margin-bottom: var(--spacing-xl);
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .pricing-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: var(--spacing-xl);
+    margin-top: var(--spacing-xl);
+
+    @media (max-width: 768px) {
+      grid-template-columns: 1fr;
+      gap: var(--spacing-lg);
+    }
+
+    .main-card {
+      background: white;
+      border-radius: 20px;
+      padding: var(--spacing-xl);
+      box-shadow: var(--shadow-md);
+      transition: all var(--transition-normal);
+      cursor: pointer;
+      border: 3px solid transparent;
+
+      &:hover {
+        transform: translateY(-8px);
+        box-shadow: var(--shadow-lg);
+        border-color: var(--primary-red);
+      }
+
+      .card-header {
+        text-align: center;
+        margin-bottom: var(--spacing-lg);
+
+        .card-icon {
+          font-size: 3rem;
+          color: var(--primary-red);
+          margin-bottom: var(--spacing-md);
+        }
+
+        h3 {
+          font-size: 1.8rem;
+          color: var(--primary-black);
+          margin: 0;
+        }
+      }
+
+      .card-content {
+        .price-highlight {
+          text-align: center;
+          margin-bottom: var(--spacing-lg);
+
+          .price-from {
+            display: block;
+            font-size: 0.9rem;
+            color: var(--text-light);
+            margin-bottom: var(--spacing-xs);
+          }
+
+          .price {
+            font-size: 3rem;
+            font-weight: 700;
+            color: var(--primary-red);
+            line-height: 1;
+
+            span {
+              font-size: 1.2rem;
+              color: var(--text-light);
+              font-weight: 400;
+            }
+          }
+        }
+
+        .features-list {
+          list-style: none;
+          padding: 0;
+          margin: 0;
+
+          li {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            padding: var(--spacing-sm) 0;
+            color: var(--text-dark);
+            font-size: 1rem;
+
+            .fa-check-circle {
+              color: var(--primary-red);
+              font-size: 1.1rem;
+            }
+          }
+        }
+      }
+
+      .card-footer {
+        margin-top: var(--spacing-lg);
+        text-align: center;
+
+        .btn {
+          width: 100%;
+          padding: var(--spacing-md);
+          font-size: 1.1rem;
+        }
+      }
+    }
+  }
+}
+
+.info-section {
+  padding: var(--spacing-xxl) 0;
+  background: white;
+
+  .info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: var(--spacing-xl);
+
+    .info-card {
+      text-align: center;
+      padding: var(--spacing-xl);
+      border-radius: 16px;
+      background: var(--secondary-gray);
+      transition: all var(--transition-normal);
+
+      &:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--shadow-md);
+      }
+
+      .info-icon {
+        font-size: 3rem;
+        color: var(--primary-red);
+        margin-bottom: var(--spacing-md);
+      }
+
+      h3 {
+        color: var(--primary-black);
+        margin-bottom: var(--spacing-md);
+        font-size: 1.4rem;
+      }
+
+      p {
+        color: var(--text-light);
+        line-height: 1.6;
+        margin: 0;
+      }
+    }
+  }
+}
+
+/* Styles pour les modales */
+.modal-content {
+  .pricing-section {
+    margin-bottom: var(--spacing-xl);
+
+    h3 {
+      color: var(--primary-black);
+      margin-bottom: var(--spacing-lg);
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-sm);
+      font-size: 1.5rem;
+
+      .fa-fist-raised,
+      .fa-graduation-cap {
+        color: var(--primary-red);
+      }
+    }
+
+    .pricing-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: var(--spacing-md);
+      margin-bottom: var(--spacing-lg);
+
+      .pricing-card {
+        background: var(--secondary-gray);
+        padding: var(--spacing-lg);
+        border-radius: 12px;
+        text-align: center;
+        border: 2px solid transparent;
+        transition: all var(--transition-normal);
+
+        &.featured {
+          border-color: var(--primary-red);
+          background: rgba(230, 0, 0, 0.05);
+        }
+
+        h4 {
+          color: var(--primary-black);
+          margin-bottom: var(--spacing-sm);
+          font-size: 1.2rem;
+        }
+
+        .price {
+          font-size: 2rem;
+          font-weight: 700;
+          color: var(--primary-red);
+          margin-bottom: var(--spacing-xs);
+
+          span {
+            font-size: 1rem;
+            color: var(--text-light);
+            font-weight: 400;
+          }
+        }
+
+        p {
+          color: var(--text-light);
+          font-size: 0.9rem;
+          margin: 0;
+        }
+      }
+    }
+
+    .pricing-note {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-sm);
+      padding: var(--spacing-md);
+      background: rgba(230, 0, 0, 0.1);
+      border-radius: 8px;
+      color: var(--primary-black);
+      font-weight: 500;
+
+      .fa-check-circle {
+        color: var(--primary-red);
+      }
+    }
+  }
+
+  .documents-section {
+    h3 {
+      color: var(--primary-black);
+      margin-bottom: var(--spacing-lg);
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-sm);
+      font-size: 1.5rem;
+
+      .fa-file-alt {
+        color: var(--primary-red);
+      }
+    }
+
+    .documents-list {
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-md);
+
+      .document-link {
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-sm);
+        padding: var(--spacing-md);
+        background: var(--secondary-gray);
+        border-radius: 8px;
+        text-decoration: none;
+        color: var(--text-dark);
+        transition: all var(--transition-normal);
+
+        &:hover {
+          background: var(--primary-red);
+          color: white;
+          transform: translateX(5px);
+        }
+
+        .fa-download {
+          color: var(--primary-red);
+          font-size: 1.1rem;
+        }
+
+        &:hover .fa-download {
+          color: white;
+        }
+      }
+
+      .document-item {
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-sm);
+        padding: var(--spacing-md);
+        background: rgba(230, 0, 0, 0.1);
+        border-radius: 8px;
+        color: var(--primary-black);
+        font-weight: 500;
+
+        .fa-check-circle {
+          color: var(--primary-red);
+        }
+      }
+    }
+  }
+}
