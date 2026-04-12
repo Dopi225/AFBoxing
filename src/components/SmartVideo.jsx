@@ -95,7 +95,8 @@ const SmartVideo = ({
   // Afficher la vidéo optimisée
   return (
     <video 
-      autoPlay 
+      // On évite l'autoplay sur mobile ou connexion lente pour économiser les ressources
+      autoPlay={!(isMobile || isSlowConnection)}
       muted 
       loop 
       playsInline 
@@ -106,6 +107,7 @@ const SmartVideo = ({
       onCanPlay={handleVideoLoad}
       onError={handleVideoError}
       onLoadStart={() => console.log('Smart video loading started')}
+      controls={isMobile || isSlowConnection}
     >
       <source src={videoSource} type="video/mp4" />
       Votre navigateur ne supporte pas la lecture vidéo.

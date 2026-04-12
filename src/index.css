@@ -1,18 +1,18 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300..800;1,300..800&family=Playfair+Display:ital,wght@0,400..700;1,400..700&display=swap');
 
 :root {
   /* Couleurs principales */
   --primary-red: #e60000;
+  --primary-red-dark: #b30000;
   --primary-black: #111111;
-  --primary-orange: #ed5508;
   --secondary-gray: #f5f5f5;
   --text-dark: #333333;
   --text-light: #666666;
   --white: #ffffff;
   
   /* Typographie */
-  --font-primary: 'Inter', system-ui, sans-serif;
-  --font-display: 'Playfair Display', serif;
+  --font-primary: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  --font-display: 'Playfair Display', Georgia, 'Times New Roman', serif;
   
   /* Espacements */
   --spacing-xs: 0.5rem;
@@ -47,9 +47,10 @@ html {
 
 body {
   font-family: var(--font-primary);
-  line-height: 1.6;
+  line-height: 1.65;
+  letter-spacing: -0.01em;
   color: var(--text-dark);
-  background-color: var(--white);
+  background-color: var(--surface-base, #f7f7f8);
   overflow-x: hidden;
 }
 
@@ -63,7 +64,8 @@ body {
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-display);
   font-weight: 600;
-  line-height: 1.2;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
   margin-bottom: var(--spacing-sm);
 }
 
@@ -139,7 +141,7 @@ a:hover {
 
 /* Utilitaires */
 .container {
-  max-width: 1200px;
+  max-width: 1280px;
   margin: 0 auto;
   padding: 0 var(--spacing-md);
 }
@@ -225,7 +227,7 @@ a:hover {
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, var(--primary-red), var(--primary-orange));
+  background: linear-gradient(135deg, var(--primary-red), var(--primary-red-dark));
   color: white;
   box-shadow: 0 4px 15px rgba(230, 0, 0, 0.3);
 }
@@ -294,12 +296,12 @@ a:hover {
 
 .modal-box {
   background: white;
-  border-radius: 20px;
+  border-radius: 24px;
   max-width: 90vw;
   max-height: 90vh;
   overflow-y: auto;
   position: relative;
-  box-shadow: var(--shadow-lg);
+  box-shadow: 0 25px 80px rgba(0, 0, 0, 0.22), 0 0 0 1px rgba(0, 0, 0, 0.04);
 }
 
 .modal-close {

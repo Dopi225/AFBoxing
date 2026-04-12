@@ -32,11 +32,13 @@
     margin: 0 auto;
 
     h1 {
+      font-family: var(--font-display), Georgia, serif;
       font-size: 3rem;
       margin-bottom: var(--spacing-md);
       color: white;
       text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
       font-weight: 700;
+      letter-spacing: -0.03em;
 
       @media (max-width: 768px) {
         font-size: 2.5rem;
@@ -61,7 +63,7 @@
 }
 
 .page-main {
-  background: var(--secondary-gray);
+  background: linear-gradient(180deg, var(--secondary-gray) 0%, var(--surface-base, #f7f7f8) 100%);
   min-height: 60vh;
 }
 
@@ -97,7 +99,7 @@
       transform: translateX(-50%);
       width: 80px;
       height: 4px;
-      background: linear-gradient(90deg, var(--primary-red), var(--primary-orange));
+      background: var(--gradient-primary);
       border-radius: 2px;
     }
   }
@@ -133,7 +135,7 @@
   &:hover {
     transform: translateY(-8px);
     box-shadow: var(--shadow-lg);
-    border-color: var(--primary-orange);
+    border-color: var(--primary-red);
   }
 
   .card-header {

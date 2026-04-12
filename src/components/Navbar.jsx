@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faBars, faTimes, faChevronDown, faChevronUp } from '@fortawesome/free-solid-svg-icons';
+import { faBars, faTimes, faChevronDown } from '@fortawesome/free-solid-svg-icons';
 import image2 from '../assets/logo-removeb.png';
 
 const Navbar = () => {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [clubOpen, setClubOpen] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
 
   // Gérer scroll et classes CSS en fonction de l'ouverture du menu mobile
   useEffect(() => {
@@ -21,54 +23,23 @@ const Navbar = () => {
     };
   }, [menuOpen]);
 
-  // Fermer les dropdowns quand on clique ailleurs
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (!event.target.closest('.dropdown')) {
-        closeDropdowns();
-      }
-    };
-
-    document.addEventListener('click', handleClickOutside);
-    return () => {
-      document.removeEventListener('click', handleClickOutside);
-    };
-  }, []);
-
-  // Fonction pour fermer tous les dropdowns
-  const closeDropdowns = () => {
-    document.querySelectorAll('.dropdown.open').forEach((el) => {
-      el.classList.remove('open');
-    });
-  };
-
   // Fonction utilitaire pour naviguer et tout fermer
   const handleNavigate = (path) => {
     navigate(path);
     setMenuOpen(false);
-    closeDropdowns();
   };
 
-  // Gestion du toggle des dropdowns (desktop et mobile)
-  const handleDropdownToggle = (e) => {
-    e.preventDefault();
-    const parent = e.currentTarget.parentNode;
-    const isOpen = parent.classList.contains('open');
-    
-    // Fermer tous les autres dropdowns
-    closeDropdowns();
-    
-    // Ouvrir/fermer le dropdown actuel
-    if (!isOpen) {
-      parent.classList.add('open');
-    }
-  };
+  // Fermer le menu mobile quand on change de page (navigation externe, boutons, etc.)
+  useEffect(() => {
+    setMenuOpen(false);
+    setClubOpen(false);
+  }, [location.pathname]);
 
   return (
     <header>
       <nav className="navbar" id="navbar">
         <div className="logo" onClick={() => handleNavigate('/')}>
-          <img src={image2} alt="logo" />
+          <img src={image2} alt="logo" loading="lazy" />
         </div>
 
         <div
@@ -82,50 +53,53 @@ const Navbar = () => {
         </div>
 
         <ul className={`nav-menu ${menuOpen ? 'active' : ''}`}>
-          {/* Mobile logo option */}
-          {/* {menuOpen && (
-            <li className="nav-mobile-logo">
-              <img src={image2} alt="logo mobile" />
-            </li>
-          )} */}
+          <li>
+            <NavLink to="/" onClick={() => setMenuOpen(false)}>Accueil</NavLink>
+          </li>
 
-          <li><a onClick={() => handleNavigate('/')}>Accueil</a></li>
-          <li><a onClick={() => handleNavigate('/apropos')}>Le club</a></li>
-
-          <li className="dropdown">
-            <span onClick={handleDropdownToggle}>
-              Pratiquer
-              <FontAwesomeIcon icon={faChevronDown} className="dropdown-icon" />
-            </span>
-            <ul className="submenu">
-              <li><a onClick={() => handleNavigate('/info/educative')}>Boxe Éducative</a></li>
-              <li><a onClick={() => handleNavigate('/info/loisir')}>Boxe Loisir</a></li>
-              <li><a onClick={() => handleNavigate('/info/amateur')}>Boxe Amateur</a></li>
-              <li><a onClick={() => handleNavigate('/info/handiboxe')}>Handiboxe</a></li>
-              <li><a onClick={() => handleNavigate('/info/aeroboxe')}>Aeroboxe</a></li>
-              <li><a onClick={() => handleNavigate('/info/therapie')}>Boxe Thérapie</a></li>
+          <li className={`nav-dropdown ${clubOpen ? 'open' : ''}`}>
+            <button
+              type="button"
+              className="nav-dropdown__toggle"
+              aria-haspopup="menu"
+              aria-expanded={clubOpen}
+              onClick={() => setClubOpen((v) => !v)}
+            >
+              Le club <FontAwesomeIcon icon={faChevronDown} className="dropdown-icon" />
+            </button>
+            <ul className="nav-submenu" role="menu">
+              <li role="none">
+                <NavLink role="menuitem" to="/apropos" onClick={() => setMenuOpen(false)}>À propos</NavLink>
+              </li>
+              <li role="none">
+                <NavLink role="menuitem" to="/equipe" onClick={() => setMenuOpen(false)}>Équipe</NavLink>
+              </li>
+              <li role="none">
+                <NavLink role="menuitem" to="/actualite" onClick={() => setMenuOpen(false)}>Socio-éducatif</NavLink>
+              </li>
+              <li role="none">
+                <NavLink role="menuitem" to="/news" onClick={() => setMenuOpen(false)}>Actualités</NavLink>
+              </li>
+              <li role="none">
+                <NavLink role="menuitem" to="/palmares" onClick={() => setMenuOpen(false)}>Palmarès</NavLink>
+              </li>
+              <li role="none">
+                <NavLink role="menuitem" to="/partenaire" onClick={() => setMenuOpen(false)}>Partenaires</NavLink>
+              </li>
             </ul>
           </li>
 
-          <li className="dropdown">
-            <span onClick={handleDropdownToggle}>
-              Socio-éducatif
-              <FontAwesomeIcon icon={faChevronDown} className="dropdown-icon" />
-            </span>
-            <ul className="submenu">
-              <li><a onClick={() => handleNavigate('/info/aide-devoirs')}>Aide aux devoirs</a></li>
-              <li><a onClick={() => handleNavigate('/info/accompagnement-scolaire')}>Accompagnement scolaire</a></li>
-              <li><a onClick={() => handleNavigate('/info/orientation')}>Orientation professionnelle</a></li>
-              <li><a onClick={() => handleNavigate('/info/sorties-pedagogiques')}>Sorties pédagogiques</a></li>
-              <li><a onClick={() => handleNavigate('/info/sorties-familiales')}>Sorties familiales</a></li>
-            </ul>
+          <li>
+            <NavLink to="/activite" onClick={() => setMenuOpen(false)}>Activités</NavLink>
           </li>
-
-          <li><a onClick={() => handleNavigate('/galerie')}>Galerie</a></li>
-          <li><a onClick={() => handleNavigate('/partenaire')}>Nos partenaires</a></li>
-          <li><a onClick={() => handleNavigate('/contact')}>Contact</a></li>
-          <li onClick={() => handleNavigate('/tarif')} className="nav-btn-red">
-            <a>Inscription</a>
+          <li>
+            <NavLink to="/galerie" onClick={() => setMenuOpen(false)}>Galerie</NavLink>
+          </li>
+          <li>
+            <NavLink to="/contact" onClick={() => setMenuOpen(false)}>Contact</NavLink>
+          </li>
+          <li className="nav-btn-red">
+            <NavLink to="/tarif" onClick={() => setMenuOpen(false)}>Tarifs / S'inscrire</NavLink>
           </li>
         </ul>
       </nav>

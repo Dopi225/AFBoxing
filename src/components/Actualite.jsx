@@ -1,106 +1,83 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faGraduationCap, faUsers, faLightbulb, faMapMarkerAlt, faHome, faEnvelope, faFileSignature } from '@fortawesome/free-solid-svg-icons';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
+import { activitiesApi } from '../services/apiService';
+import SectionHeader from './SectionHeader';
+import socialBg from '../assets/social.jpg';
+
+const iconMap = {
+  faGraduationCap,
+  faUsers,
+  faLightbulb,
+  faMapMarkerAlt,
+  faHome
+};
 
 const Actualite = () => {
   const navigate = useNavigate();
+  const [socialActivities, setSocialActivities] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
-  const socialActivities = [
-    {
-      id: 'aide-devoirs',
-      title: 'Aide aux devoirs',
-      icon: faGraduationCap,
-      description: 'Encadrement bienveillant pour soutenir les enfants dans leurs devoirs après l\'école.',
-      details: 'Nos animateurs qualifiés accompagnent les enfants dans leurs devoirs dans un cadre bienveillant et structuré. L\'aide aux devoirs se déroule après l\'école pour permettre aux enfants de rentrer chez eux avec leurs devoirs terminés.',
-      schedule: 'Lundi au Vendredi 16h30-18h00',
-      age: '6-16 ans'
-    },
-    {
-      id: 'accompagnement-scolaire',
-      title: 'Accompagnement scolaire',
-      icon: faUsers,
-      description: 'Un suivi régulier avec des animateurs qualifiés pour progresser à l\'école.',
-      details: 'Accompagnement personnalisé pour les enfants en difficulté scolaire. Nos éducateurs travaillent en collaboration avec les familles et les enseignants pour assurer un suivi cohérent.',
-      schedule: 'Sur rendez-vous',
-      age: '6-18 ans'
-    },
-    {
-      id: 'orientation',
-      title: 'Orientation professionnelle',
-      icon: faLightbulb,
-      description: 'Des ateliers pour aider les jeunes à s\'orienter dans leur parcours scolaire ou professionnel.',
-      details: 'Ateliers d\'orientation et de découverte des métiers. Rencontres avec des professionnels, visites d\'entreprises et accompagnement dans les démarches d\'orientation.',
-      schedule: 'Mercredi 14h-16h',
-      age: '14-25 ans'
-    },
-    {
-      id: 'sorties-pedagogiques',
-      title: 'Sorties pédagogiques',
-      icon: faMapMarkerAlt,
-      description: 'Sorties culturelles et éducatives pour découvrir le monde autrement.',
-      details: 'Visites de musées, parcs naturels, entreprises locales. Ces sorties permettent aux enfants de découvrir leur environnement et d\'enrichir leurs connaissances.',
-      schedule: 'Pendant les vacances scolaires',
-      age: '6-16 ans'
-    },
-    {
-      id: 'sorties-familiales',
-      title: 'Sorties familiales',
-      icon: faHome,
-      description: 'Moments de partage entre familles pour renforcer les liens et créer des souvenirs.',
-      details: 'Sorties en famille pour favoriser les échanges et renforcer les liens familiaux. Pique-niques, visites, activités sportives en famille.',
-      schedule: 'Un dimanche par mois',
-      age: 'Toute la famille'
-    }
-  ];
+  useEffect(() => {
+    const loadActivities = async () => {
+      setLoading(true);
+      try {
+        const data = await activitiesApi.list();
+        const social = data
+          .filter(a => a.kind === 'social' && a.enabled)
+          .map(a => {
+            const icon = a.icon && iconMap[a.icon] ? iconMap[a.icon] : faGraduationCap;
+            return {
+              id: a.id,
+              title: a.title,
+              icon: icon,
+              description: a.subtitle,
+              details: (a.sections || []).map(s => 
+                [...(s.paragraphs || []), ...(s.bullets || [])].join(' ')
+              ).join(' '),
+              schedule: a.meta?.scheduleText || 'Sur demande',
+              age: a.meta?.age || 'Tous âges'
+            };
+          });
+        setSocialActivities(social);
+      } catch (err) {
+        // console.error('Error loading social activities:', err);
+        setError(err.message || 'Impossible de charger les activités sociales.');
+        // Fallback sur données par défaut
+        // setSocialActivities([
+        //   {
+        //     id: 'aide-devoirs',
+        //     title: 'Aide aux devoirs',
+        //     icon: faGraduationCap,
+        //     description: 'Encadrement bienveillant pour soutenir les enfants dans leurs devoirs après l\'école.',
+        //     details: 'Nos animateurs qualifiés accompagnent les enfants dans leurs devoirs dans un cadre bienveillant et structuré.',
+        //     schedule: 'Lundi au Vendredi 16h30-18h00',
+        //     age: '6-16 ans'
+        //   }
+        // ]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadActivities();
+  }, []); 
 
   return (
     <div className="container-fluid">
-      {/* Hero Section Moderne */}
-      <section className="hero-section">
-        <div className="container">
-          <motion.div 
-            className="hero-content"
-            initial={{ opacity: 0, y: 50 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-          >
-            <motion.div 
-              className="hero-icon-container"
-              initial={{ scale: 0, rotate: -180 }}
-              animate={{ scale: 1, rotate: 0 }}
-              transition={{ duration: 1, delay: 0.2, ease: "easeOut" }}
-            >
-              <FontAwesomeIcon icon={faGraduationCap} className="hero-icon" />
-            </motion.div>
-            <motion.h1 
-              className="hero-title"
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.4 }}
-            >
-              Programme Socio-éducatif
-            </motion.h1>
-            <motion.p 
-              className="hero-description"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.6 }}
-            >
-              Nos actions sociales et éducatives pour renforcer l'inclusion et la réussite de tous
-            </motion.p>
-            <motion.div 
-              className="hero-badge"
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.6, delay: 0.8 }}
-            >
-              <span className="badge-text">Éducation & Inclusion</span>
-            </motion.div>
-          </motion.div>
-        </div>
-      </section>
+      <SectionHeader
+        title="Pôle socio-éducatif"
+        subtitle="Accompagner, encourager, créer du lien : des actions concrètes pour soutenir les jeunes et les familles, au-delà du sport."
+        eyebrow="Humain • Solidaire • Inclusif"
+        image={socialBg}
+        actions={[
+          { label: "Tarifs", to: "/tarif", className: "btn-primary", icon: <FontAwesomeIcon icon={faFileSignature} /> },
+          { label: "Contact", to: "/contact", className: "btn-outline", icon: <FontAwesomeIcon icon={faEnvelope} /> },
+        ]}
+      />
 
       {/* Activities Section Moderne */}
       <section className="content-section">
@@ -115,8 +92,13 @@ const Actualite = () => {
             Nos Activités Socio-éducatives
           </motion.h2>
           
-          <div className="modern-grid grid-3">
-            {socialActivities.map((activity, index) => (
+          {loading ? (
+            <p style={{ textAlign: 'center', padding: '2rem' }}>Chargement des activités...</p>
+          ) : socialActivities.length === 0 ? (
+            <p style={{ textAlign: 'center', padding: '2rem' }}>Aucune activité socio-éducative pour le moment.</p>
+          ) : (
+            <div className="modern-grid grid-3">
+              {socialActivities.map((activity, index) => (
               <motion.div
                 key={activity.id}
                 className="modern-card activity-card"
@@ -135,7 +117,7 @@ const Actualite = () => {
                   <p className="description">{activity.description}</p>
                   
                   <div className="activity-info">
-                    <div className="info-item">
+                    <div className="info-item"> 
                       <FontAwesomeIcon icon={faUsers} />
                       <span>{activity.age}</span>
                     </div>
@@ -159,8 +141,9 @@ const Actualite = () => {
                   </button>
                 </div>
               </motion.div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 
@@ -177,9 +160,9 @@ const Actualite = () => {
             >
               <FontAwesomeIcon icon={faEnvelope} className="cta-icon" />
               <h3>Nous contacter</h3>
-              <p>Pour plus d'informations sur nos activités socio-éducatives.</p>
+              <p>Pour connaître les créneaux, les modalités et l’accompagnement possible.</p>
               <button className="btn btn-primary" onClick={() => navigate('/contact')}>
-                Contactez-nous
+                Nous écrire
               </button>
             </motion.div>
 
@@ -192,7 +175,7 @@ const Actualite = () => {
             >
               <FontAwesomeIcon icon={faFileSignature} className="cta-icon" />
               <h3>Inscription</h3>
-              <p>Inscrivez votre enfant à nos activités socio-éducatives.</p>
+              <p>Retrouvez les tarifs et les documents utiles.</p>
               <button className="btn btn-secondary" onClick={() => navigate('/tarif')}>
                 S'inscrire
               </button>

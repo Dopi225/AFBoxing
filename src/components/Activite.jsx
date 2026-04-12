@@ -1,115 +1,123 @@
-import React from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faFistRaised, faGraduationCap, faHeart, faMusic, faBrain, faWheelchair, faCalendarAlt, faTrophy, faClock, faUsers } from '@fortawesome/free-solid-svg-icons';
+// eslint-disable-next-line no-unused-vars
 import { motion } from 'framer-motion';
+import { scheduleApi, activitiesApi } from '../services/apiService';
+import SectionHeader from './SectionHeader';
+import pratique from '../assets/pratique.jpg'; 
+
+const iconMap = {
+  faFistRaised,
+  faGraduationCap,
+  faHeart,
+  faMusic,
+  faBrain,
+  faWheelchair,
+  faUsers
+};
 
 const Activite = () => {
   const navigate = useNavigate(); 
+  const [scheduleLoading, setScheduleLoading] = useState(false);
+  const [scheduleError, setScheduleError] = useState('');
+  const [scheduleItems, setScheduleItems] = useState([]);
+  const [activities, setActivities] = useState([]);
+  const [error, setError] = useState('');
 
-  const activities = [
-    {
-      id: 'educative',
-      title: 'Boxe Éducative',
-      icon: faGraduationCap,
-      description: 'Adaptée aux jeunes de 8 à 17 ans, axée sur la technique sans contact, apprentissage et valeurs citoyennes.',
-      age: '8-17 ans',
-      level: 'Débutant',
-      color: 'var(--primary-red)'
-    },
-    {
-      id: 'loisir',
-      title: 'Boxe Loisir',
-      icon: faHeart,
-      description: 'Pour tous âges, entraînement sans compétition, plaisir du sport, cardio et technique.',
-      age: 'Tous âges',
-      level: 'Tous niveaux',
-      color: 'var(--primary-orange)'
-    },
-    {
-      id: 'amateur',
-      title: 'Boxe Amateur',
-      icon: faFistRaised,
-      description: 'Pour les plus engagés, participation aux compétitions officielles encadrées par la FFB.',
-      age: '16+ ans',
-      level: 'Avancé',
-      color: 'var(--primary-black)'
-    },
-    {
-      id: 'handiboxe',
-      title: 'Handiboxe',
-      icon: faWheelchair,
-      description: 'Adaptée aux personnes en situation de handicap. Une pratique inclusive et dynamique.',
-      age: 'Tous âges',
-      level: 'Adapté',
-      color: 'var(--primary-red)'
-    },
-    {
-      id: 'aeroboxe',
-      title: 'Aeroboxe',
-      icon: faMusic,
-      description: 'Boxe sans contact avec musique, pour travailler le cardio, la coordination et le rythme.',
-      age: 'Tous âges',
-      level: 'Tous niveaux',
-      color: 'var(--primary-orange)'
-    },
-    {
-      id: 'therapie',
-      title: 'Boxe Thérapie',
-      icon: faBrain,
-      description: 'Utilisation de la boxe dans une démarche de bien-être mental, gestion du stress et résilience.',
-      age: 'Tous âges',
-      level: 'Thérapeutique',
-      color: 'var(--primary-black)'
-    }
-  ];
+  useEffect(() => {
+    const loadSchedule = async () => {
+      setScheduleLoading(true);
+      setScheduleError('');
+      try {
+        const data = await scheduleApi.list();
+        const list = Array.isArray(data) ? data : (data?.data || []);
+        setScheduleItems(list);
+      } catch (err) {
+        setScheduleError(err.message || "Impossible de charger le planning depuis l'API.");
+        setScheduleItems([]);
+      } finally {
+        setScheduleLoading(false);
+      }
+    };
+
+    const loadActivities = async () => {
+      try {
+        const data = await activitiesApi.list();
+        
+        // Filtrer UNIQUEMENT les activités de boxe
+        const boxingActivities = data
+          .filter(a => a.kind === 'boxing' && a.enabled)
+          .map(a => ({
+            id: a.id,
+            title: a.title,
+            icon: a.icon && iconMap[a.icon] ? iconMap[a.icon] : faFistRaised,
+            description: a.subtitle,
+            age: a.meta?.age || 'Tous âges',
+            level: 'Tous niveaux',
+            color: 'var(--primary-red)'
+          }));
+          setActivities(boxingActivities);
+        
+        // setActivities(boxingActivities.length > 0 ? boxingActivities : [
+        //   {
+        //     id: 'educative',
+        //     title: 'Boxe Éducative',
+        //     icon: faGraduationCap,
+        //     description: 'Adaptée aux jeunes de 8 à 17 ans, axée sur la technique sans contact, apprentissage et valeurs citoyennes.',
+        //     age: '8-17 ans',
+        //     level: 'Débutant',
+        //     color: 'var(--primary-red)'
+        //   }
+        // ]);
+      } catch (err) {
+        // console.error('Error loading activities:', err);
+        setError(err.message || 'Impossible de charger les activités sportives.');
+        // Fallback sur données par défaut si l'API échoue
+        // setActivities([
+        //   {
+        //     id: 'educative',
+        //     title: 'Boxe Éducative',
+        //     icon: faGraduationCap,
+        //     description: 'Adaptée aux jeunes de 8 à 17 ans, axée sur la technique sans contact, apprentissage et valeurs citoyennes.',
+        //     age: '8-17 ans',
+        //     level: 'Débutant',
+        //     color: 'var(--primary-red)'
+        //   }
+        // ]);
+      }
+    };
+
+    loadSchedule();
+    loadActivities();
+  }, []);
+
+  const nextSessions = useMemo(() => {
+    const DAY_ORDER = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
+    const items = (scheduleItems || []).slice().sort((a, b) => {
+      const da = DAY_ORDER.indexOf(a?.day || '');
+      const db = DAY_ORDER.indexOf(b?.day || '');
+      if (da !== db) return da - db;
+      return String(a?.time || '').localeCompare(String(b?.time || ''));
+    });
+    return items.slice(0, 3);
+  }, [scheduleItems]);
+
 
   return (
     <div className="container-fluid">
-      {/* Hero Section Moderne */}
-      <section className="hero-section">
-        <div className="container">
-          <motion.div 
-            className="hero-content"
-            initial={{ opacity: 0, y: 50 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-          >
-            <motion.div 
-              className="hero-icon-container"
-              initial={{ scale: 0, rotate: -180 }}
-              animate={{ scale: 1, rotate: 0 }}
-              transition={{ duration: 1, delay: 0.2, ease: "easeOut" }}
-            >
-              <FontAwesomeIcon icon={faFistRaised} className="hero-icon" />
-            </motion.div>
-            <motion.h1 
-              className="hero-title"
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.4 }}
-            >
-              Nos Activités
-            </motion.h1>
-            <motion.p 
-              className="hero-description"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.6 }}
-            >
-              Découvrez toutes les formes de pratique de la boxe proposées par l'AF Boxing Club 86
-            </motion.p>
-            <motion.div 
-              className="hero-badge"
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.6, delay: 0.8 }}
-            >
-              <span className="badge-text">Boxe & Éducation</span>
-            </motion.div>
-          </motion.div>
-        </div>
-      </section>
+      <SectionHeader
+        title="Activités"
+        subtitle="Des séances pour tous les profils : jeunes, adultes, compétition, cardio, inclusion et bien-être — avec un encadrement progressif."
+        eyebrow="Boxe • Santé • Inclusion"
+        image={pratique}
+        actions={[
+          { label: "Horaires", to: "/horaire", className: "btn-primary", icon: <FontAwesomeIcon icon={faCalendarAlt} /> },
+          { label: "Tarifs / S'inscrire", to: "/tarif", className: "btn-secondary", icon: <FontAwesomeIcon icon={faFistRaised} /> },
+          { label: "Socio-éducatif", to: "/actualite", className: "btn-outline", icon: <FontAwesomeIcon icon={faGraduationCap} /> },
+        ]}
+      />
 
       {/* Activities Grid Moderne */}
       <section className="content-section">
@@ -123,6 +131,10 @@ const Activite = () => {
           >
             Choisissez votre pratique
           </motion.h2>
+          
+          <p className="section-subtitle" style={{ textAlign: 'center', marginBottom: '2rem', color: 'var(--text-light, #555)' }}>
+            Activités de boxe anglaise pour tous les niveaux et tous les âges
+          </p>
           
           <div className="modern-grid grid-3">
             {activities.map((activity, index) => (
@@ -175,7 +187,7 @@ const Activite = () => {
         </div>
       </section>
 
-      {/* Schedule Section Moderne */}
+      {/* Schedule Section (données API) */}
       <section className="content-section section-white">
         <div className="container">
           <motion.h2
@@ -188,53 +200,36 @@ const Activite = () => {
             Horaires d'entraînement
           </motion.h2>
           
-          <div className="modern-grid grid-2">
-            <motion.div 
-              className="modern-card schedule-card"
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.1 }}
-              viewport={{ once: true }}
-            >
-              <div className="card-header">
-                <FontAwesomeIcon icon={faClock} className="card-icon" />
-                <h3>Lundi - Vendredi</h3>
-              </div>
-              <div className="card-content">
-                <p>18h00 - 21h00</p>
-                <p>Entraînements pour tous les niveaux</p>
-              </div>
-            </motion.div>
-            
-            <motion.div 
-              className="modern-card schedule-card"
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.2 }}
-              viewport={{ once: true }}
-            >
-              <div className="card-header">
-                <FontAwesomeIcon icon={faClock} className="card-icon" />
-                <h3>Samedi</h3>
-              </div>
-              <div className="card-content">
-                <p>10h00 - 12h00</p>
-                <p>Séances spéciales et compétitions</p>
-              </div>
-            </motion.div>
+          <div className="modern-card">
+            <div className="card-header" style={{ textAlign: 'center' }}>
+              <FontAwesomeIcon icon={faClock} className="card-icon" />
+              <h3>Prochains créneaux (API)</h3>
+            </div>
+            <div className="card-content">
+              {scheduleLoading && <p>Chargement…</p>}
+              {!scheduleLoading && scheduleError && <p>{scheduleError}</p>}
+              {!scheduleLoading && !scheduleError && nextSessions.length === 0 && (
+                <p>Planning non renseigné pour le moment.</p>
+              )}
+              {!scheduleLoading && !scheduleError && nextSessions.length > 0 && (
+                <p style={{ margin: 0 }}>
+                  {nextSessions.map((s, idx) => (
+                    <span key={`${s.day}-${s.time}-${idx}`}>
+                      {idx === 0 ? '' : <br />}
+                      <strong>{s.day}</strong> — {s.time} — {s.activity}{s.level ? ` (${s.level})` : ''}
+                    </span>
+                  ))}
+                </p>
+              )}
+            </div>
+            <div className="card-footer" style={{ textAlign: 'center' }}>
+              <button className="btn btn-primary" onClick={() => navigate('/horaire')}>
+                <FontAwesomeIcon icon={faCalendarAlt} />
+                Voir le planning complet
+              </button>
+            </div>
           </div>
           
-          <div className="text-center" style={{ marginTop: '3rem' }}>
-            <motion.button 
-              className="btn btn-primary"
-              onClick={() => navigate('/horaire')}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              <FontAwesomeIcon icon={faCalendarAlt} />
-              Voir le planning complet
-            </motion.button>
-          </div>
         </div>
       </section>
 
@@ -271,7 +266,7 @@ const Activite = () => {
                 <FontAwesomeIcon icon={faTrophy} className="cta-icon" />
               </div>
               <h3>Palmarès</h3>
-              <p>Découvrez les succès de nos boxeurs en compétition.</p>
+              <p>Résultats, événements et moments marquants du club.</p>
               <button className="btn btn-secondary" onClick={() => navigate('/palmares')}>
                 <FontAwesomeIcon icon={faTrophy} />
                 Voir le palmarès

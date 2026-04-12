@@ -1,5 +1,72 @@
 /* Styles pour la page InfoPage - AF Boxing Club - Design Moderne et Attrayant */
 
+/* Variante SectionHeader dédiée à InfoPage (sans impacter les autres pages) */
+.section-header.info-page-header {
+  /* Neutralise toute éventuelle image injectée via la variable du SectionHeader global */
+  --section-header-image: none ;
+  min-height: clamp(320px, 44vh, 520px);
+  padding: calc(var(--spacing-xxl) - 0.25rem) 0;
+
+  /* Fond plus “premium” (pas d’image, uniquement dégradés) */
+  background-image: /* !important pour surcharger le fond global de `SectionHeader.scss` */
+    radial-gradient(circle at 18% 22%, rgba(230, 0, 0, 0.38) 0%, transparent 58%),
+    radial-gradient(circle at 82% 78%, rgba(179, 0, 0, 0.32) 0%, transparent 60%),
+    radial-gradient(circle at 50% 10%, rgba(255, 255, 255, 0.06) 0%, transparent 40%),
+    linear-gradient(135deg, rgba(0, 0, 0, 0.86), rgba(10, 10, 10, 0.6)) !important;
+
+  &::after {
+    opacity: 0.28; /* texture plus discrète sur InfoPage */
+  }
+  .container {
+    height: 431px !important;
+  }
+  .section-header__content {
+    max-width: 920px;
+    padding: 1.6rem 1.8rem;
+    border-radius: 22px;
+    background: rgba(0, 0, 0, 0.32);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    backdrop-filter: blur(14px);
+    box-shadow: 0 22px 55px rgba(0, 0, 0, 0.35);
+  }
+
+  .section-header__eyebrow {
+    background: rgba(255, 255, 255, 0.10);
+    border-color: rgba(255, 255, 255, 0.18);
+  }
+
+  .section-header__title {
+    text-shadow: 0 16px 40px rgba(0, 0, 0, 0.55);
+  }
+
+  .section-header__subtitle {
+    max-width: 64ch;
+    color: rgba(255, 255, 255, 0.92);
+  }
+
+  .section-header__actions {
+    margin-top: 0.75rem;
+
+    .btn {
+      min-width: 200px;
+      border-radius: 16px;
+    }
+  }
+
+  @media (max-width: 768px) {
+    min-height: clamp(300px, 42vh, 500px);
+
+    .section-header__content {
+      padding: 1.25rem 1.1rem;
+      border-radius: 18px;
+    }
+
+    .section-header__actions .btn {
+      min-width: 0;
+    }
+  }
+}
+
 /* Hero Section - Design Dynamique */
 .info-hero {
   position: relative;
@@ -18,7 +85,7 @@
     bottom: 0;
     background: 
       radial-gradient(circle at 20% 20%, rgba(230, 0, 0, 0.3) 0%, transparent 50%),
-      radial-gradient(circle at 80% 80%, rgba(237, 85, 8, 0.3) 0%, transparent 50%),
+      radial-gradient(circle at 80% 80%, rgba(179, 0, 0, 0.26) 0%, transparent 50%),
       radial-gradient(circle at 40% 60%, rgba(230, 0, 0, 0.1) 0%, transparent 50%);
     animation: heroGlow 8s ease-in-out infinite alternate;
   }
@@ -58,7 +125,7 @@
         transform: translate(-50%, -50%);
         width: 120px;
         height: 120px;
-        background: linear-gradient(45deg, var(--primary-red), var(--primary-orange));
+        background: var(--gradient-primary);
         border-radius: 50%;
         opacity: 0.2;
         animation: iconPulse 3s ease-in-out infinite;
@@ -181,7 +248,7 @@
         left: 0;
         right: 0;
         height: 6px;
-        background: linear-gradient(90deg, var(--primary-red), var(--primary-orange), var(--primary-red));
+        background: var(--gradient-primary);
         background-size: 200% 100%;
         animation: borderFlow 3s ease-in-out infinite;
       }
@@ -190,7 +257,7 @@
         margin-bottom: 2.5rem;
         position: relative;
         
-        h2 {
+            h2 {
           font-size: 2.2rem;
           color: var(--primary-black);
           margin-bottom: 1rem;
@@ -204,7 +271,7 @@
             left: 0;
             width: 60px;
             height: 4px;
-            background: linear-gradient(90deg, var(--primary-red), var(--primary-orange));
+            background: var(--gradient-primary);
             border-radius: 2px;
           }
         }
@@ -219,6 +286,12 @@
       }
       
       .content-text {
+        h3 {
+          font-size: 1.35rem;
+          font-weight: 900;
+          color: var(--primary-black);
+        }
+
         p {
           font-size: 1.1rem;
           line-height: 1.8;
@@ -238,6 +311,31 @@
           
           &:last-child {
             margin-bottom: 0;
+          }
+        }
+
+        .info-bullets {
+          margin: 0.75rem 0 0;
+          padding: 0 0 0 1.25rem;
+          list-style: none;
+          display: grid;
+          gap: 0.5rem;
+
+          li {
+            position: relative;
+            padding-left: 1.1rem;
+            color: #2c3e50;
+            line-height: 1.6;
+            font-weight: 500;
+
+            &::before {
+              content: '•';
+              position: absolute;
+              left: 0;
+              top: 0;
+              color: var(--primary-red);
+              font-weight: 900;
+            }
           }
         }
       }
@@ -264,7 +362,7 @@
         left: 0;
         right: 0;
         height: 6px;
-        background: linear-gradient(90deg, var(--primary-orange), var(--primary-red));
+        background: var(--gradient-primary);
       }
       
       .info-card-header {
@@ -293,7 +391,7 @@
         .info-card-icon {
           width: 45px;
           height: 45px;
-          background: linear-gradient(135deg, var(--primary-red), var(--primary-orange));
+          background: var(--gradient-primary);
           border-radius: 12px;
           display: flex;
           align-items: center;
@@ -330,11 +428,11 @@
           }
           
           &.price-section {
-            background: linear-gradient(135deg, rgba(230, 0, 0, 0.05), rgba(237, 85, 8, 0.05));
+            background: linear-gradient(135deg, rgba(230, 0, 0, 0.05), rgba(230, 0, 0, 0.02));
             border-color: rgba(230, 0, 0, 0.2);
             
             &:hover {
-              background: linear-gradient(135deg, rgba(230, 0, 0, 0.1), rgba(237, 85, 8, 0.1));
+              background: linear-gradient(135deg, rgba(230, 0, 0, 0.1), rgba(230, 0, 0, 0.05));
               border-color: rgba(230, 0, 0, 0.3);
             }
           }
@@ -344,6 +442,8 @@
             align-items: center;
             gap: 1rem;
             margin-bottom: 0.8rem;
+            background-image: none !important;
+            min-height: clamp(26px,0vh,60px) !important;
             
             .section-icon {
               width: 40px;
@@ -367,7 +467,7 @@
               }
               
               &.price-icon {
-                background: linear-gradient(135deg, var(--primary-red), var(--primary-orange));
+                background: var(--gradient-primary);
                 box-shadow: 0 4px 12px rgba(230, 0, 0, 0.3);
               }
               
@@ -401,7 +501,7 @@
               .price-value {
                 font-size: 1.4rem;
                 font-weight: 700;
-                background: linear-gradient(45deg, var(--primary-red), var(--primary-orange));
+                background: var(--gradient-primary);
                 -webkit-background-clip: text;
                 -webkit-text-fill-color: transparent;
                 background-clip: text;
@@ -428,7 +528,7 @@
           justify-content: center;
           gap: 0.8rem;
           padding: 1rem 1.5rem;
-          background: linear-gradient(135deg, var(--primary-red), var(--primary-orange));
+          background: var(--gradient-primary);
           color: white;
           border: none;
           border-radius: 12px;
@@ -468,7 +568,7 @@
     bottom: 0;
     background: 
       radial-gradient(circle at 30% 30%, rgba(230, 0, 0, 0.2) 0%, transparent 50%),
-      radial-gradient(circle at 70% 70%, rgba(237, 85, 8, 0.2) 0%, transparent 50%);
+      radial-gradient(circle at 70% 70%, rgba(179, 0, 0, 0.18) 0%, transparent 50%);
     animation: ctaGlow 6s ease-in-out infinite alternate;
   }
   
@@ -533,7 +633,7 @@
       left: 0;
       right: 0;
       bottom: 0;
-      background: linear-gradient(135deg, rgba(230, 0, 0, 0.1), rgba(237, 85, 8, 0.1));
+      background: linear-gradient(135deg, rgba(230, 0, 0, 0.12), rgba(179, 0, 0, 0.08));
       opacity: 0;
       transition: opacity 0.4s ease;
     }
@@ -549,14 +649,14 @@
       }
     }
     
-    .cta-card-header {
+      .cta-card-header {
       margin-bottom: 2rem;
       position: relative;
       
-      .cta-icon-container {
+        .cta-icon-container {
         width: 80px;
         height: 80px;
-        background: linear-gradient(135deg, var(--primary-red), var(--primary-orange));
+        background: var(--gradient-primary);
         border-radius: 50%;
         display: flex;
         align-items: center;
@@ -572,7 +672,7 @@
           left: -5px;
           right: -5px;
           bottom: -5px;
-          background: linear-gradient(135deg, var(--primary-red), var(--primary-orange));
+          background: var(--gradient-primary);
           border-radius: 50%;
           opacity: 0.3;
           animation: iconGlow 2s ease-in-out infinite alternate;
@@ -633,7 +733,7 @@
       }
       
       &.btn-primary {
-        background: linear-gradient(135deg, var(--primary-red), var(--primary-orange));
+        background: var(--gradient-primary);
         color: white;
         box-shadow: 0 8px 25px rgba(230, 0, 0, 0.3);
         

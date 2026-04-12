@@ -1,76 +1,107 @@
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEnvelope, faMapMarkerAlt, faPhoneAlt, faClock, faUser, faMessage, faPaperPlane } from '@fortawesome/free-solid-svg-icons';
 import { faFacebookSquare, faInstagram } from '@fortawesome/free-brands-svg-icons';
 import { motion } from 'framer-motion';
+import { contactsApi, scheduleApi } from '../services/apiService';
+import { useNavigate } from 'react-router-dom';
+import { useSettings } from '../hooks/useSettings';
+import SectionHeader from './SectionHeader';
+import contactBg from '../assets/club.jpeg';
 
 const Contact = () => {
+  const navigate = useNavigate();
+  const { settings, loading: settingsLoading } = useSettings();
   const [formData, setFormData] = useState({
     username: '',
     email: '',
     phone: '',
     message: ''
   });
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+
+  const [scheduleLoading, setScheduleLoading] = useState(false);
+  const [scheduleError, setScheduleError] = useState('');
+  const [scheduleItems, setScheduleItems] = useState([]);
+
+  useEffect(() => {
+    const load = async () => {
+      setScheduleLoading(true);
+      setScheduleError('');
+      try {
+        const data = await scheduleApi.list();
+        const list = Array.isArray(data) ? data : (data?.data || []);
+        setScheduleItems(list);
+      } catch (err) {
+        setScheduleError(err.message || "Impossible de charger le planning depuis l'API.");
+        setScheduleItems([]);
+      } finally {
+        setScheduleLoading(false);
+      }
+    };
+    load();
+  }, []);
+
+  const nextSessions = useMemo(() => {
+    const DAY_ORDER = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
+    const items = (scheduleItems || []).slice().sort((a, b) => {
+      const da = DAY_ORDER.indexOf(a?.day || '');
+      const db = DAY_ORDER.indexOf(b?.day || '');
+      if (da !== db) return da - db;
+      return String(a?.time || '').localeCompare(String(b?.time || ''));
+    });
+    return items.slice(0, 3);
+  }, [scheduleItems]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Ici logique d'envoi ou traitement
-    console.log(formData);
-    alert('Message envoyé ! Nous vous répondrons rapidement.');
-    setFormData({ username: '', email: '', phone: '', message: '' });
+    setError('');
+    setSuccess('');
+    setSubmitting(true);
+
+    try {
+      await contactsApi.submit({
+        name: formData.username,
+        email: formData.email,
+        message: `${formData.message}\n\nTéléphone: ${formData.phone || 'Non renseigné'}`
+      });
+      setSuccess('Message envoyé ! Nous vous répondrons rapidement.');
+      setFormData({ username: '', email: '', phone: '', message: '' });
+    } catch (err) {
+      // Gestion spécifique des erreurs
+      if (err.status === 429) {
+        setError('Trop de messages envoyés. Veuillez patienter avant de réessayer.');
+      } else if (err.status === 422 && err.data?.errors) {
+        // Erreurs de validation
+        const errorMessages = Object.values(err.data.errors).join(', ');
+        setError(`Erreur de validation : ${errorMessages}`);
+      } else {
+        setError(err.message || 'Une erreur est survenue lors de l\'envoi du message.');
+      }
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
     <div className="container-fluid">
-      {/* Hero Section Moderne */}
-      <section className="hero-section">
-        <div className="container">
-          <motion.div 
-            className="hero-content"
-            initial={{ opacity: 0, y: 50 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-          >
-            <motion.div 
-              className="hero-icon-container"
-              initial={{ scale: 0, rotate: -180 }}
-              animate={{ scale: 1, rotate: 0 }}
-              transition={{ duration: 1, delay: 0.2, ease: "easeOut" }}
-            >
-              <FontAwesomeIcon icon={faEnvelope} className="hero-icon" />
-            </motion.div>
-            <motion.h1 
-              className="hero-title"
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.4 }}
-            >
-              Contactez-nous
-            </motion.h1>
-            <motion.p 
-              className="hero-description"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.6 }}
-            >
-              Que ce soit pour un essai, une inscription ou toute question, nous sommes à votre écoute.
-            </motion.p>
-            <motion.div 
-              className="hero-badge"
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.6, delay: 0.8 }}
-            >
-              <span className="badge-text">Nous répondons rapidement</span>
-            </motion.div>
-          </motion.div>
-        </div>
-      </section>
+      <SectionHeader
+        title="Contact"
+        subtitle="Essai, inscription ou question : on vous répond rapidement. Retrouvez aussi l’adresse, les réseaux et un aperçu des prochains créneaux."
+        eyebrow="Club & Association"
+        image={contactBg}
+        actions={[
+          { label: "Horaires", to: "/horaire", className: "btn-primary", icon: <FontAwesomeIcon icon={faClock} /> },
+          { label: "Tarifs / S'inscrire", to: "/tarif", className: "btn-secondary", icon: <FontAwesomeIcon icon={faPaperPlane} /> },
+        ]}
+      />
 
       <section className="content-section" id="contact">
 
@@ -100,7 +131,7 @@ const Contact = () => {
                   <FontAwesomeIcon icon={faMapMarkerAlt} className="contact-icon" />
                   <div>
                     <h4>Adresse</h4>
-                    <p>2 rue Gabriel Morain<br />86000 Poitiers</p>
+                    <p>{settingsLoading ? 'Chargement...' : settings.contact.address}</p>
                   </div>
                 </motion.div>
 
@@ -114,7 +145,11 @@ const Contact = () => {
                   <FontAwesomeIcon icon={faPhoneAlt} className="contact-icon" />
                   <div>
                     <h4>Téléphone</h4>
-                    <a href="tel:0637232698">06 37 23 26 98</a>
+                    {settingsLoading ? (
+                      <span>Chargement...</span>
+                    ) : (
+                      <a href={`tel:${settings.contact.phone.replace(/\s/g, '')}`}>{settings.contact.phone}</a>
+                    )}
                   </div>
                 </motion.div>
 
@@ -128,7 +163,11 @@ const Contact = () => {
                   <FontAwesomeIcon icon={faEnvelope} className="contact-icon" />
                   <div>
                     <h4>Email</h4>
-                    <a href="mailto:afboxingclub86@gmail.com">afboxingclub86@gmail.com</a>
+                    {settingsLoading ? (
+                      <span>Chargement...</span>
+                    ) : (
+                      <a href={`mailto:${settings.contact.email}`}>{settings.contact.email}</a>
+                    )}
                   </div>
                 </motion.div>
 
@@ -141,8 +180,25 @@ const Contact = () => {
                 >
                   <FontAwesomeIcon icon={faClock} className="contact-icon" />
                   <div>
-                    <h4>Horaires</h4>
-                    <p>Lun-Ven: 18h-21h<br />Sam: 10h-12h</p>
+                    <h4>Prochains créneaux (API)</h4>
+                    {scheduleLoading && <p>Chargement…</p>}
+                    {!scheduleLoading && scheduleError && <p>{scheduleError}</p>}
+                    {!scheduleLoading && !scheduleError && nextSessions.length === 0 && (
+                      <p>Planning non renseigné pour le moment.</p>
+                    )}
+                    {!scheduleLoading && !scheduleError && nextSessions.length > 0 && (
+                      <p>
+                        {nextSessions.map((s, idx) => (
+                          <span key={`${s.day}-${s.time}-${idx}`}>
+                            {idx === 0 ? '' : <br />}
+                            <strong>{s.day}</strong> — {s.time} — {s.activity}{s.level ? ` (${s.level})` : ''}
+                          </span>
+                        ))}
+                      </p>
+                    )}
+                    <button type="button" className="btn btn-outline" onClick={() => navigate('/horaire')}>
+                      Voir le planning complet
+                    </button>
                   </div>
                 </motion.div>
 
@@ -155,14 +211,24 @@ const Contact = () => {
                 >
                   <h4>Suivez-nous</h4>
                   <div className="social-icons">
-                    <a href="https://www.facebook.com/afboxingclub86" target="_blank" rel="noopener noreferrer" className="social-link">
-                      <FontAwesomeIcon icon={faFacebookSquare} />
-                      <span>Facebook</span>
-                    </a>
-                    <a href="https://www.instagram.com/afboxingclub86" target="_blank" rel="noopener noreferrer" className="social-link">
-                      <FontAwesomeIcon icon={faInstagram} />
-                      <span>Instagram</span>
-                    </a>
+                    {settingsLoading ? (
+                      <p>Chargement des réseaux sociaux...</p>
+                    ) : (
+                      <>
+                        {settings.social.facebook && (
+                          <a href={settings.social.facebook} target="_blank" rel="noopener noreferrer" className="social-link">
+                            <FontAwesomeIcon icon={faFacebookSquare} />
+                            <span>Facebook</span>
+                          </a>
+                        )}
+                        {settings.social.instagram && (
+                          <a href={settings.social.instagram} target="_blank" rel="noopener noreferrer" className="social-link">
+                            <FontAwesomeIcon icon={faInstagram} />
+                            <span>Instagram</span>
+                          </a>
+                        )}
+                      </>
+                    )}
                   </div>
                 </motion.div>
               </div>
@@ -182,6 +248,26 @@ const Contact = () => {
               </div>
               
               <form className="contact-form" onSubmit={handleSubmit}>
+                {error && (
+                  <motion.p 
+                    className="form-error"
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    {error}
+                  </motion.p>
+                )}
+                {success && (
+                  <motion.p 
+                    className="form-success"
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    {success}
+                  </motion.p>
+                )}
                 <motion.div 
                   className="form-group"
                   initial={{ opacity: 0, y: 20 }}
@@ -197,8 +283,9 @@ const Contact = () => {
                       className="form-input"
                       value={formData.username}
                       onChange={handleChange}
-                      placeholder="Votre nom complet"
+                      placeholder="Nom et prénom (ex. Alex Dupont)"
                       required
+                      disabled={submitting}
                     />
                   </div>
                 </motion.div>
@@ -218,8 +305,9 @@ const Contact = () => {
                       className="form-input"
                       value={formData.email}
                       onChange={handleChange}
-                      placeholder="Votre email"
+                      placeholder="Email (ex. alex.dupont@email.com)"
                       required
+                      disabled={submitting}
                     />
                   </div>
                 </motion.div>
@@ -239,8 +327,9 @@ const Contact = () => {
                       className="form-input"
                       value={formData.phone}
                       onChange={handleChange}
-                      placeholder="Votre téléphone"
+                      placeholder="Téléphone (ex. 06 00 00 00 00)"
                       required
+                      disabled={submitting}
                     />
                   </div>
                 </motion.div>
@@ -259,9 +348,10 @@ const Contact = () => {
                       className="form-input form-textarea"
                       value={formData.message}
                       onChange={handleChange}
-                      placeholder="Votre message"
+                      placeholder="Votre message (ex. âge, activité souhaitée, disponibilité, question…)"
                       rows="5"
                       required
+                      disabled={submitting}
                     />
                   </div>
                 </motion.div>
@@ -273,11 +363,12 @@ const Contact = () => {
                   whileInView={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.4, delay: 0.5 }}
                   viewport={{ once: true }}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
+                  whileHover={!submitting ? { scale: 1.02, y: -2 } : {}}
+                  whileTap={!submitting ? { scale: 0.98 } : {}}
+                  disabled={submitting}
                 >
-                  <FontAwesomeIcon icon={faPaperPlane} />
-                  Envoyer le message
+                  {!submitting && <FontAwesomeIcon icon={faPaperPlane} />}
+                  {submitting ? 'Envoi en cours...' : 'Envoyer le message'}
                 </motion.button>
               </form>
             </motion.div>

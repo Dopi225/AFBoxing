@@ -1,7 +1,7 @@
 /* Styles pour la page Tarifs - AF Boxing Club */
 
 .pricing-hero {
-  background: linear-gradient(135deg, var(--primary-red), var(--primary-orange));
+  background: var(--gradient-hero);
   color: white;
   padding: var(--spacing-xxl) 0;
   text-align: center;
@@ -47,7 +47,7 @@
       transform: translateX(-50%);
       width: 80px;
       height: 4px;
-      background: linear-gradient(90deg, var(--primary-red), var(--primary-orange));
+      background: var(--gradient-primary);
       border-radius: 2px;
     }
   }

@@ -62,6 +62,7 @@ export default function NewsCarousel() {
         src={src}
         alt={`Image ${i + 1}`}
         className="news-carousel__image"
+        loading="lazy"
       />
     ))}
   </div>

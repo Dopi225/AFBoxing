@@ -1,0 +1,124 @@
+.notification-container {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  z-index: 10000;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  max-width: 400px;
+  pointer-events: none;
+
+  @media (max-width: 768px) {
+    top: 0.5rem;
+    right: 0.5rem;
+    left: 0.5rem;
+    max-width: none;
+  }
+}
+
+.notification {
+  background: white;
+  border-radius: var(--border-radius-md, 12px);
+  padding: 1rem 1.25rem;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  pointer-events: auto;
+  border-left: 4px solid;
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: currentColor;
+    opacity: 0.3;
+  }
+
+  &--success {
+    border-left-color: #0a5;
+    color: #0a5;
+
+    .notification__icon {
+      color: #0a5;
+    }
+  }
+
+  &--error {
+    border-left-color: var(--primary-red, #e60000);
+    color: var(--primary-red, #e60000);
+
+    .notification__icon {
+      color: var(--primary-red, #e60000);
+    }
+  }
+
+  &--warning {
+    border-left-color: #f90;
+    color: #f90;
+
+    .notification__icon {
+      color: #f90;
+    }
+  }
+
+  &--info {
+    border-left-color: #09f;
+    color: #09f;
+
+    .notification__icon {
+      color: #09f;
+    }
+  }
+
+  .notification__icon {
+    font-size: 1.25rem;
+    flex-shrink: 0;
+    margin-top: 0.1rem;
+  }
+
+  .notification__content {
+    flex: 1;
+    min-width: 0;
+
+    p {
+      margin: 0;
+      font-size: 0.95rem;
+      line-height: 1.5;
+      color: var(--text-dark, #111);
+      font-weight: 500;
+    }
+  }
+
+  .notification__close {
+    background: none;
+    border: none;
+    color: var(--text-muted, #888);
+    cursor: pointer;
+    padding: 0.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    transition: all var(--transition-fast, 0.15s ease);
+    flex-shrink: 0;
+    width: 24px;
+    height: 24px;
+
+    &:hover {
+      background: rgba(0, 0, 0, 0.05);
+      color: var(--text-dark, #111);
+    }
+
+    svg {
+      font-size: 0.875rem;
+    }
+  }
+}
+

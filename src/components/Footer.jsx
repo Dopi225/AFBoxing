@@ -4,11 +4,15 @@ import { faPhoneAlt, faEnvelope, faMapMarkerAlt, faChevronDown, faChevronUp } fr
 import { faFacebookF, faInstagram } from '@fortawesome/free-brands-svg-icons';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { useSettings } from '../hooks/useSettings';
 import image2 from '../assets/logo-removeb.png';
 
 const Footer = () => {
+  const { settings } = useSettings();
   const [showNav, setShowNav] = useState(false);
   const [showContact, setShowContact] = useState(false);
+  // const [showActivite, setShowActivite] = useState(false);
+  // const [showSocio, setShowSocio] = useState(false);
   const navigate = useNavigate();
 
   const isMobile = typeof window !== "undefined" && window.innerWidth < 778;
@@ -28,7 +32,7 @@ const Footer = () => {
           viewport={{ once: true }}
         >
           <div className='logo' onClick={() => handleNavigate('/')}>
-            <img src={image2} alt="AF Boxing Club 86" />
+            <img src={image2} alt="AF Boxing Club 86" loading="lazy" />
           </div>
           <p>Boxer pour mieux vivre ensemble à Poitiers.</p>
         </motion.div>
@@ -46,22 +50,18 @@ const Footer = () => {
           </h4>
           {(showNav || !isMobile) && (
             <ul>
-              <li><a onClick={() => handleNavigate('/apropos')}>À propos</a></li>
+              <li><a onClick={() => handleNavigate('/')}>Accueil</a></li>
+              <li><a onClick={() => handleNavigate('/apropos')}>Le Club</a></li>
               <li><a onClick={() => handleNavigate('/activite')}>Activités</a></li>
-              <li><a onClick={() => handleNavigate('/actualite')}>Socio-éducatif</a></li>
-              <li><a onClick={() => handleNavigate('/equipe')}>Équipe</a></li>
               <li><a onClick={() => handleNavigate('/horaire')}>Horaires</a></li>
-              <li><a onClick={() => handleNavigate('/galerie')}>Galerie</a></li>
-              <li><a onClick={() => handleNavigate('/palmares')}>Palmarès</a></li>
-              <li><a onClick={() => handleNavigate('/partenaire')}>Partenaires</a></li>
               <li><a onClick={() => handleNavigate('/contact')}>Contact</a></li>
-              <li><a onClick={() => handleNavigate('/tarif')}>Tarifs</a></li>
+              <li><a onClick={() => handleNavigate('/tarif')}>Tarifs / S'inscrire</a></li>
             </ul>
           )}
         </motion.div>
 
         {/* Activités */}
-        <motion.div 
+        {/* <motion.div 
           className="footer-col"
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -76,8 +76,27 @@ const Footer = () => {
             <li><a onClick={() => handleNavigate('/info/handiboxe')}>Handiboxe</a></li>
             <li><a onClick={() => handleNavigate('/info/aeroboxe')}>Aeroboxe</a></li>
             <li><a onClick={() => handleNavigate('/info/therapie')}>Boxe Thérapie</a></li>
+            <li><a onClick={() => handleNavigate('/actualite')}>Pôle socio-éducatif</a></li>
           </ul>
-        </motion.div>
+        </motion.div> */}
+
+        {/* Socio-éducatif */}
+        {/* <motion.div
+          className="footer-col"
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.25 }}
+          viewport={{ once: true }}
+        >
+          <h4>Socio-éducatif</h4>
+          <ul>
+            <li><a onClick={() => handleNavigate('/info/aide-devoirs')}>Aide aux devoirs</a></li>
+            <li><a onClick={() => handleNavigate('/info/accompagnement-scolaire')}>Accompagnement scolaire</a></li>
+            <li><a onClick={() => handleNavigate('/info/orientation')}>Orientation & projet</a></li>
+            <li><a onClick={() => handleNavigate('/info/sorties-pedagogiques')}>Sorties pédagogiques</a></li>
+            <li><a onClick={() => handleNavigate('/info/sorties-familiales')}>Sorties familiales</a></li>
+          </ul>
+        </motion.div> */}
 
         {/* Contact */}
         <motion.div 
@@ -92,9 +111,17 @@ const Footer = () => {
           </h4>
           {(showContact || !isMobile) && (
             <ul>
-              <li><FontAwesomeIcon icon={faPhoneAlt} /> <a href="tel:0637232698">06 37 23 26 98</a></li>
-              <li><FontAwesomeIcon icon={faEnvelope} /> <a href="mailto:afboxingclub86@gmail.com">afboxingclub86@gmail.com</a></li>
-              <li><FontAwesomeIcon icon={faMapMarkerAlt} /> 2 rue Gabriel Morain, 86000 Poitiers</li>
+              <li>
+                <FontAwesomeIcon icon={faPhoneAlt} />{' '}
+                <a href={`tel:${settings.contact.phone.replace(/\s/g, '')}`}>{settings.contact.phone}</a>
+              </li>
+              <li>
+                <FontAwesomeIcon icon={faEnvelope} />{' '}
+                <a href={`mailto:${settings.contact.email}`}>{settings.contact.email}</a>
+              </li>
+              <li>
+                <FontAwesomeIcon icon={faMapMarkerAlt} /> {settings.contact.address}
+              </li>
             </ul>
           )}
         </motion.div>
@@ -109,12 +136,16 @@ const Footer = () => {
         >
           <h4>Suivez-nous</h4>
           <div className="social-icons">
-            <a href="https://www.facebook.com/afboxingclub86" target="_blank" rel="noopener noreferrer">
-              <FontAwesomeIcon icon={faFacebookF} />
-            </a>
-            <a href="https://www.instagram.com/afboxingclub86" target="_blank" rel="noopener noreferrer">
-              <FontAwesomeIcon icon={faInstagram} />
-            </a>
+            {settings.social.facebook && (
+              <a href={settings.social.facebook} target="_blank" rel="noopener noreferrer">
+                <FontAwesomeIcon icon={faFacebookF} />
+              </a>
+            )}
+            {settings.social.instagram && (
+              <a href={settings.social.instagram} target="_blank" rel="noopener noreferrer">
+                <FontAwesomeIcon icon={faInstagram} />
+              </a>
+            )}
           </div>
         </motion.div>
       </div>

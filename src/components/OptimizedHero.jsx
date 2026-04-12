@@ -54,7 +54,8 @@ const OptimizedHero = () => {
         />
       ) : (
         <video 
-          autoPlay 
+          // On évite l'autoplay sur mobile ou connexion lente
+          autoPlay={!(isMobile || isSlowConnection)} 
           muted 
           loop 
           playsInline 
@@ -63,6 +64,7 @@ const OptimizedHero = () => {
           preload="metadata"
           onLoadedData={() => setVideoLoaded(true)}
           onCanPlay={() => setVideoLoaded(true)}
+          controls={isMobile || isSlowConnection}
         >
           <source src={videaste} type="video/mp4" />
           Votre navigateur ne supporte pas la lecture vidéo.
@@ -83,7 +85,7 @@ const OptimizedHero = () => {
             transition={{ duration: 1, delay: 0.2, ease: "easeOut" }}
           >
             <div className="mil">
-              <img src={logo} alt="AF Boxing Club 86" />
+              <img src={logo} alt="AF Boxing Club 86" loading="lazy" />
             </div>
           </motion.div>
           

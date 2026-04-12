@@ -4,46 +4,47 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faFistRaised, faGraduationCap, faHeart, faTrophy, faUsers, faEnvelope } from '@fortawesome/free-solid-svg-icons';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
+import SectionHeader from './SectionHeader';
 
-import coach1 from '../assets/squat.jpg';
-import coach2 from '../assets/squat.jpg';
+import coach1 from '../assets/coach1.jpg';
+import coach2 from '../assets/coach2.jpg';
 
 const equipeData = [
   {
-    name: "Jean-Pierre Martin",
-    role: "Coach Principal & Fondateur",
-    description: "Fondateur du club, passionné de boxe anglaise depuis plus de 20 ans. Diplômé d'État en boxe anglaise et formateur d'éducateurs sportifs.",
+    name: "Encadrement boxe anglaise",
+    role: "Coach principal",
+    description: "Encadrement des séances (technique, sécurité, progression) et suivi des pratiquants du débutant au confirmé, dans le respect du cadre fédéral.",
     image: coach1,
-    experience: "20+ ans d'expérience",
-    speciality: "Boxe anglaise, formation des jeunes",
-    certifications: ["DEJEPS Boxe Anglaise", "Formateur FFB"]
+    experience: "Encadrement diplômé",
+    speciality: "Technique, progression, sécurité",
+    certifications: ["Encadrement fédéral", "Formation continue"]
   },
   {
-    name: "Marie Dubois",
-    role: "Éducatrice Sportive",
-    description: "Spécialiste de la condition physique et de l'encadrement des jeunes. Elle encadre les entraînements techniques et cardio avec passion.",
+    name: "Encadrement jeunes",
+    role: "Éducateur / éducatrice",
+    description: "Organisation des groupes jeunes : apprentissage des bases, respect, confiance et progression, avec des contenus adaptés à l’âge et au niveau.",
     image: coach2,
-    experience: "8 ans d'expérience",
-    speciality: "Préparation physique, boxe éducative",
-    certifications: ["BPJEPS Activités Physiques", "Handiboxe"]
+    experience: "Suivi pédagogique",
+    speciality: "Boxe éducative, motricité",
+    certifications: ["Encadrement diplômé", "Prévention & sécurité"]
   },
   {
-    name: "Ahmed Benali",
-    role: "Éducateur Socio-sportif",
-    description: "Éducateur spécialisé dans l'accompagnement socio-éducatif. Il coordonne les activités d'aide aux devoirs et d'orientation professionnelle.",
+    name: "Accompagnement socio-éducatif",
+    role: "Référent socio-éducatif",
+    description: "Coordination des actions (aide aux devoirs, suivi, ateliers) et lien avec les familles pour un accompagnement concret et bienveillant.",
     image: coach1,
-    experience: "12 ans d'expérience",
-    speciality: "Accompagnement scolaire, insertion",
-    certifications: ["DEES", "Médiateur social"]
+    experience: "Accompagnement",
+    speciality: "Soutien scolaire, ateliers",
+    certifications: ["Animation / médiation", "Coordination de projets"]
   },
   {
-    name: "Sophie Leroy",
-    role: "Coordinatrice Handiboxe",
-    description: "Spécialisée dans l'encadrement des personnes en situation de handicap. Elle développe des programmes adaptés pour l'inclusion par le sport.",
+    name: "Inclusion & sport adapté",
+    role: "Référent handiboxe",
+    description: "Mise en place d’adaptations, progression individualisée et accueil de tous les publics, dans une logique d’inclusion par le sport.",
     image: coach2,
-    experience: "6 ans d'expérience",
-    speciality: "Handiboxe, sport adapté",
-    certifications: ["CQP Handiboxe", "Formation sport adapté"]
+    experience: "Accompagnement adapté",
+    speciality: "Handiboxe, inclusion",
+    certifications: ["Formation sport adapté", "Sensibilisation handicap"]
   }
 ];
 
@@ -52,50 +53,16 @@ const Equipe = () => {
 
   return (
     <div className="container-fluid">
-      {/* Hero Section Moderne */}
-      <section className="hero-section">
-        <div className="container">
-          <motion.div 
-            className="hero-content"
-            initial={{ opacity: 0, y: 50 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-          >
-            <motion.div 
-              className="hero-icon-container"
-              initial={{ scale: 0, rotate: -180 }}
-              animate={{ scale: 1, rotate: 0 }}
-              transition={{ duration: 1, delay: 0.2, ease: "easeOut" }}
-            >
-              <FontAwesomeIcon icon={faUsers} className="hero-icon" />
-            </motion.div>
-            <motion.h1 
-              className="hero-title"
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.4 }}
-            >
-              Notre Équipe
-            </motion.h1>
-            <motion.p 
-              className="hero-description"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.6 }}
-            >
-              Des professionnels passionnés et diplômés pour vous accompagner
-            </motion.p>
-            <motion.div 
-              className="hero-badge"
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.6, delay: 0.8 }}
-            >
-              <span className="badge-text">Équipe Qualifiée</span>
-            </motion.div>
-          </motion.div>
-        </div>
-      </section>
+      <SectionHeader
+        title="L’équipe"
+        subtitle="Des professionnels passionnés (sport & socio-éducatif) pour vous accompagner avec exigence, bienveillance et sécurité."
+        eyebrow="Encadrement qualifié"
+        image={coach1}
+        actions={[
+          { label: "Activités", to: "/activite", className: "btn-primary", icon: <FontAwesomeIcon icon={faFistRaised} /> },
+          { label: "Contact", to: "/contact", className: "btn-secondary", icon: <FontAwesomeIcon icon={faEnvelope} /> },
+        ]}
+      />
 
       {/* Team Section Moderne */}
       <section className="content-section">
@@ -119,10 +86,9 @@ const Equipe = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: index * 0.1 }}
                 viewport={{ once: true }}
-                whileHover={{ scale: 1.05 }}
               >
                 <div className="member-photo">
-                  <img src={member.image} alt={member.name} />
+                  <img src={member.image} alt={member.name} loading="lazy" />
                   <div className="photo-overlay">
                     <FontAwesomeIcon icon={faFistRaised} />
                   </div>

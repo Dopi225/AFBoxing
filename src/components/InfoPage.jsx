@@ -1,255 +1,152 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faFistRaised, faGraduationCap, faHeart, faMusic, faBrain, faWheelchair, faCalendarAlt, faTrophy, faEnvelope, faFileSignature, faUsers, faMapMarkerAlt, faLightbulb, faHome } from '@fortawesome/free-solid-svg-icons';
+import { faFistRaised, faCalendarAlt, faTrophy, faEnvelope, faFileSignature, faGraduationCap } from '@fortawesome/free-solid-svg-icons';
 import { motion } from 'framer-motion';
+import { scheduleApi, activitiesApi, pricingApi } from '../services/apiService';
+import SectionHeader from './SectionHeader';
+import {
+  faFistRaised as faFistRaisedIcon,
+  faGraduationCap as faGraduationCapIcon,
+  faHeart,
+  faMusic,
+  faBrain,
+  faWheelchair,
+  faUsers,
+  faLightbulb
+} from '@fortawesome/free-solid-svg-icons'; 
+
+const formatPrice = (price) => {
+  if (!price) return '—';
+  if (price.amount === 0) return 'Gratuit';
+  if (typeof price.amount === 'number') return `${price.amount}€`;
+  return String(price.amount);
+};
+
+const iconMap = {
+  faFistRaised: faFistRaisedIcon,
+  faGraduationCap: faGraduationCapIcon,
+  faHeart,
+  faMusic,
+  faBrain,
+  faWheelchair,
+  faUsers,
+  faLightbulb
+};
+
+// Fix ESLint no-unused-vars dans certains setups: l'analyse ne voit pas `motion.*` en JSX.
+// (variable inutilisée autorisée car commence par "_")
+const _MOTION = motion;
+
+const DAY_ORDER = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
 
 const InfoPage = () => {
-    const navigate = useNavigate(); 
+  const navigate = useNavigate(); 
   const { type } = useParams();
 
-  const activityInfo = {
-    educative: {
-      title: 'Boxe Éducative',
-      icon: faGraduationCap,
-      description: 'Découvrez la boxe éducative, une pratique adaptée aux jeunes de 8 à 17 ans.',
-      content: `La boxe éducative est une discipline sportive qui s'adresse aux jeunes souhaitant découvrir la boxe dans un cadre sécurisé et éducatif. Cette pratique met l'accent sur l'apprentissage technique, le respect des règles et le développement personnel.
+  const [info, setInfo] = useState(null);
+  const [allActivities, setAllActivities] = useState([]);
+  const [pricing, setPricing] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [scheduleLoading, setScheduleLoading] = useState(false);
+  const [scheduleError, setScheduleError] = useState('');
+  const [scheduleItems, setScheduleItems] = useState([]);
 
-      **Objectifs :**
-      - Développer la coordination et la motricité
-      - Apprendre les techniques de base de la boxe
-      - Renforcer la confiance en soi
-      - Encourager le respect et la discipline
-      - Favoriser l'esprit d'équipe
+  // Charger l'activité depuis l'API
+  useEffect(() => {
+    const loadActivity = async () => {
+      setLoading(true);
+      try {
+        const activities = await activitiesApi.list();
+        const activity = activities.find(a => a.id === type && a.enabled);
+        
+        if (activity) {
+          setInfo(activity);
+          setAllActivities(activities);
+          
+          // Charger le tarif correspondant
+          if (activity.meta?.priceKey) {
+            try {
+              const priceData = await pricingApi.get(activity.meta.priceKey);
+              if (priceData) {
+                setPricing(priceData);
+              }
+            } catch {
+              // Tarif non trouvé, on continue sans
+            }
+          }
+        } else {
+          setInfo(null);
+        }
+      } catch (err) {
+        console.error('Error loading activity:', err);
+        setInfo(null);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-      **Encadrement :**
-      Nos éducateurs diplômés assurent un encadrement de qualité avec une approche pédagogique adaptée à chaque âge. La sécurité est notre priorité absolue.`,
-      age: '8-17 ans',
-      schedule: 'Lundi, Mercredi, Vendredi 18h-19h',
-      equipment: 'Gants et protège-dents fournis',
-      price: '150€/an'
-    },
-    loisir: {
-      title: 'Boxe Loisir',
-      icon: faHeart,
-      description: 'Pratiquez la boxe pour le plaisir, sans compétition.',
-      content: `La boxe loisir s'adresse à tous ceux qui souhaitent pratiquer la boxe pour le plaisir, sans objectif de compétition. C'est une excellente activité pour se défouler, se maintenir en forme et apprendre les techniques de base.
-
-      **Bénéfices :**
-      - Amélioration de la condition physique
-      - Développement de la coordination
-      - Gestion du stress
-      - Renforcement musculaire
-      - Travail cardio-vasculaire
-
-      **Déroulement :**
-      Les séances comprennent un échauffement, l'apprentissage des techniques de base, des exercices de mise en situation et un retour au calme. L'ambiance est conviviale et bienveillante.`,
-      age: 'Tous âges',
-      schedule: 'Mardi, Jeudi 19h-20h, Samedi 11h-12h',
-      equipment: 'Tenue de sport, gants fournis',
-      price: '180€/an'
-    },
-    amateur: {
-      title: 'Boxe Amateur',
-      icon: faFistRaised,
-      description: 'Pour les boxeurs engagés souhaitant participer aux compétitions.',
-      content: `La boxe amateur est destinée aux boxeurs les plus engagés qui souhaitent participer aux compétitions officielles de la Fédération Française de Boxe. Cette pratique nécessite un engagement important et une régularité dans l'entraînement.
-
-      **Exigences :**
-      - Niveau technique confirmé
-      - Engagement régulier
-      - Respect des règles de compétition
-      - Licence FFB obligatoire
-      - Certificat médical
-
-      **Entraînement :**
-      Les séances sont intensives et comprennent un travail technique poussé, de la préparation physique spécifique et des sparrings contrôlés. L'objectif est la performance en compétition.`,
-      age: '16+ ans',
-      schedule: 'Lundi, Mercredi, Vendredi 20h-21h',
-      equipment: 'Équipement complet de compétition',
-      price: '220€/an + licence FFB'
-    },
-    handiboxe: {
-      title: 'Handiboxe',
-      icon: faWheelchair,
-      description: 'Boxe adaptée aux personnes en situation de handicap.',
-      content: `L'handiboxe est une pratique adaptée aux personnes en situation de handicap. Elle permet de découvrir la boxe dans un cadre sécurisé et adapté, favorisant l'inclusion par le sport.
-
-      **Adaptations :**
-      - Techniques adaptées selon le handicap
-      - Matériel spécialisé
-      - Encadrement qualifié
-      - Progression individualisée
-      - Accessibilité des locaux
-
-      **Bénéfices :**
-      - Amélioration de la condition physique
-      - Développement de la confiance
-      - Socialisation et inclusion
-      - Dépassement de soi
-      - Bien-être psychologique`,
-      age: 'Tous âges',
-      schedule: 'Mardi, Vendredi 18h-19h',
-      equipment: 'Matériel adapté fourni',
-      price: '120€/an'
-    },
-    aeroboxe: {
-      title: 'Aeroboxe',
-      icon: faMusic,
-      description: 'Boxe sans contact avec musique pour le cardio et la coordination.',
-      content: `L'aeroboxe combine les mouvements de boxe avec de la musique pour créer une séance dynamique et rythmée. C'est une activité sans contact qui travaille le cardio et la coordination.
-
-      **Caractéristiques :**
-      - Mouvements de boxe sur musique
-      - Pas de contact physique
-      - Travail cardio intense
-      - Amélioration de la coordination
-      - Ambiance festive
-
-      **Déroulement :**
-      Chaque séance suit un rythme musical avec des enchaînements de coups de poing, de coups de pied et de mouvements de coordination. L'objectif est de se dépenser tout en s'amusant.`,
-      age: 'Tous âges',
-      schedule: 'Mardi, Jeudi 19h-20h',
-      equipment: 'Tenue de sport, chaussures de sport',
-      price: '160€/an'
-    },
-    therapie: {
-      title: 'Boxe Thérapie',
-      icon: faBrain,
-      description: 'Utilisation de la boxe dans une démarche de bien-être mental.',
-      content: `La boxe thérapie utilise les techniques de boxe dans une démarche de bien-être mental et de gestion des émotions. Cette approche thérapeutique aide à gérer le stress, l'anxiété et à développer la confiance en soi.
-
-      **Objectifs thérapeutiques :**
-      - Gestion du stress et de l'anxiété
-      - Développement de la confiance
-      - Canalisation de l'agressivité
-      - Amélioration de l'estime de soi
-      - Relaxation et bien-être
-
-      **Méthode :**
-      Les séances combinent exercices de boxe, techniques de respiration et relaxation. L'encadrement est assuré par des professionnels formés à l'approche thérapeutique.`,
-      age: 'Tous âges',
-      schedule: 'Mercredi 19h-20h, Samedi 10h-11h',
-      equipment: 'Gants et protège-dents fournis',
-      price: '200€/an'
-    },
-    'aide-devoirs': {
-      title: 'Aide aux devoirs',
-      icon: faGraduationCap,
-      description: 'Encadrement bienveillant pour soutenir les enfants dans leurs devoirs après l\'école.',
-      content: `L'aide aux devoirs est un service essentiel de notre programme socio-éducatif. Nos animateurs qualifiés accompagnent les enfants dans leurs devoirs dans un cadre bienveillant et structuré.
-
-      **Objectifs :**
-      - Aider les enfants à faire leurs devoirs
-      - Créer un environnement d'étude favorable
-      - Développer l'autonomie et la méthodologie
-      - Renforcer la confiance en soi
-      - Maintenir le lien avec l'école
-
-      **Encadrement :**
-      Nos éducateurs diplômés assurent un suivi personnalisé et adapté à chaque enfant. L'aide aux devoirs se déroule après l'école pour permettre aux enfants de rentrer chez eux avec leurs devoirs terminés.`,
-      age: '6-16 ans',
-      schedule: 'Lundi au Vendredi 16h30-18h00',
-      equipment: 'Matériel scolaire fourni',
-      price: 'Gratuit'
-    },
-    'accompagnement-scolaire': {
-      title: 'Accompagnement scolaire',
-      icon: faUsers,
-      description: 'Un suivi régulier avec des animateurs qualifiés pour progresser à l\'école.',
-      content: `L'accompagnement scolaire s'adresse aux enfants en difficulté scolaire. Nos éducateurs travaillent en collaboration avec les familles et les enseignants pour assurer un suivi cohérent.
-
-      **Méthode :**
-      - Évaluation des besoins de l'enfant
-      - Mise en place d'un plan d'accompagnement personnalisé
-      - Suivi régulier avec les familles
-      - Collaboration avec les enseignants
-      - Bilan trimestriel
-
-      **Bénéfices :**
-      - Amélioration des résultats scolaires
-      - Renforcement de la confiance
-      - Développement de l'autonomie
-      - Meilleure communication famille-école`,
-      age: '6-18 ans',
-      schedule: 'Sur rendez-vous',
-      equipment: 'Matériel pédagogique adapté',
-      price: 'Gratuit'
-    },
-    'orientation': {
-      title: 'Orientation professionnelle',
-      icon: faLightbulb,
-      description: 'Des ateliers pour aider les jeunes à s\'orienter dans leur parcours scolaire ou professionnel.',
-      content: `L'orientation professionnelle aide les jeunes à construire leur projet d'avenir. Nos ateliers permettent de découvrir les métiers et les formations.
-
-      **Activités :**
-      - Ateliers de découverte des métiers
-      - Rencontres avec des professionnels
-      - Visites d'entreprises et d'établissements
-      - Aide à la rédaction de CV et lettres de motivation
-      - Préparation aux entretiens
-
-      **Objectifs :**
-      - Aider à définir un projet professionnel
-      - Découvrir les différentes voies de formation
-      - Développer les compétences de recherche d'emploi
-      - Renforcer la confiance en l'avenir`,
-      age: '14-25 ans',
-      schedule: 'Mercredi 14h-16h',
-      equipment: 'Matériel informatique et documentation',
-      price: 'Gratuit'
-    },
-    'sorties-pedagogiques': {
-      title: 'Sorties pédagogiques',
-      icon: faMapMarkerAlt,
-      description: 'Sorties culturelles et éducatives pour découvrir le monde autrement.',
-      content: `Les sorties pédagogiques permettent aux enfants de découvrir leur environnement et d'enrichir leurs connaissances de manière ludique et interactive.
-
-      **Types de sorties :**
-      - Visites de musées et expositions
-      - Découverte de parcs naturels
-      - Visites d'entreprises locales
-      - Sorties culturelles (théâtre, cinéma)
-      - Activités sportives en extérieur
-
-      **Bénéfices :**
-      - Ouverture culturelle
-      - Développement de la curiosité
-      - Apprentissage par l'expérience
-      - Renforcement du lien social
-      - Découverte de nouveaux horizons`,
-      age: '6-16 ans',
-      schedule: 'Pendant les vacances scolaires',
-      equipment: 'Transport et repas fournis',
-      price: 'Gratuit'
-    },
-    'sorties-familiales': {
-      title: 'Sorties familiales',
-      icon: faHome,
-      description: 'Moments de partage entre familles pour renforcer les liens et créer des souvenirs.',
-      content: `Les sorties familiales favorisent les échanges et renforcent les liens familiaux. Ces moments de partage créent des souvenirs précieux et renforcent la cohésion familiale.
-
-      **Activités proposées :**
-      - Pique-niques en famille
-      - Visites de sites touristiques
-      - Activités sportives en famille
-      - Ateliers créatifs parents-enfants
-      - Soirées conviviales
-
-      **Objectifs :**
-      - Renforcer les liens familiaux
-      - Créer des moments de partage
-      - Développer la communication
-      - Favoriser l'entraide
-      - Créer des souvenirs positifs`,
-      age: 'Toute la famille',
-      schedule: 'Un dimanche par mois',
-      equipment: 'Matériel d\'activité fourni',
-      price: 'Gratuit'
+    if (type) {
+      loadActivity();
     }
-  };
+  }, [type]);
 
-  const info = activityInfo[type];
+  // Charger les horaires
+  useEffect(() => {
+    if (!info?.scheduleActivityName) {
+      setScheduleItems([]);
+      setScheduleError('');
+      setScheduleLoading(false);
+      return;
+    }
+
+    const load = async () => {
+      setScheduleLoading(true);
+      setScheduleError('');
+      try {
+        const data = await scheduleApi.list();
+        const list = Array.isArray(data) ? data : (data?.data || []);
+        setScheduleItems(list.filter((s) => s?.activity === info.scheduleActivityName));
+      } catch (err) {
+        setScheduleError(err.message || "Impossible de charger les horaires depuis l'API.");
+        setScheduleItems([]);
+      } finally {
+        setScheduleLoading(false);
+      }
+    };
+
+    load();
+  }, [info]);
+
+  const groupedSchedule = React.useMemo(() => {
+    const groups = new Map();
+    (scheduleItems || []).forEach((s) => {
+      const day = s?.day || '';
+      if (!day) return;
+      if (!groups.has(day)) groups.set(day, []);
+      groups.get(day).push(s);
+    });
+
+    return Array.from(groups.entries())
+      .sort((a, b) => DAY_ORDER.indexOf(a[0]) - DAY_ORDER.indexOf(b[0]))
+      .map(([day, items]) => ({
+        day,
+        items: (items || []).slice().sort((x, y) => String(x?.time || '').localeCompare(String(y?.time || '')))
+      }));
+  }, [scheduleItems]);
+
+  if (loading) {
+    return (
+      <div className="container-fluid">
+        <section className="error-section">
+          <div className="container">
+            <h1>Chargement...</h1>
+            <p>Chargement de l'activité en cours.</p>
+          </div>
+        </section>
+      </div>
+    );
+  }
 
   if (!info) {
     return (
@@ -257,7 +154,7 @@ const InfoPage = () => {
         <section className="error-section">
           <div className="container">
             <h1>Activité non trouvée</h1>
-            <p>L'activité demandée n'existe pas.</p>
+            <p>L'activité demandée n'existe pas ou n'est pas activée.</p>
             <button className="btn btn-primary" onClick={() => navigate('/activite')}>
               Retour aux activités
             </button>
@@ -267,52 +164,29 @@ const InfoPage = () => {
     );
   }
 
+
   return (
     <div className="container-fluid">
-      {/* Hero Section */}
-      <section className="info-hero">
-        <div className="container">
-          <motion.div 
-            className="hero-content"
-            initial={{ opacity: 0, y: 50 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, ease: "easeOut" }}
-          >
-            <motion.div 
-              className="hero-icon-container"
-              initial={{ scale: 0, rotate: -180 }}
-              animate={{ scale: 1, rotate: 0 }}
-              transition={{ duration: 1, delay: 0.2, ease: "easeOut" }}
-            >
-              <FontAwesomeIcon icon={info.icon} className="hero-icon" />
-            </motion.div>
-            <motion.h1 
-              className="hero-title"
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.4 }}
-            >
-              {info.title}
-            </motion.h1>
-            <motion.p 
-              className="hero-description"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.6 }}
-            >
-              {info.description}
-            </motion.p>
-            <motion.div 
-              className="hero-badge"
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.6, delay: 0.8 }}
-            >
-              <span className="badge-text">Activité</span>
-            </motion.div>
-          </motion.div>
+      <SectionHeader
+        className="info-page-header"
+        title={info.title}
+        subtitle={info.subtitle}
+        eyebrow={info.eyebrow}
+        actions={[
+          { label: "Tarifs", to: "/tarif", className: "btn-primary", icon: <FontAwesomeIcon icon={faFileSignature} /> },
+          { label: "Contact", to: "/contact", className: "btn-outline", icon: <FontAwesomeIcon icon={faEnvelope} /> },
+          { label: "Horaires", to: "/horaire", className: "btn-secondary", icon: <FontAwesomeIcon icon={faCalendarAlt} /> },
+        ]}
+      >
+        <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
+          <span className="hero-badge" style={{ margin: 0 }}>
+            <span className="badge-text">{info.kind === 'boxing' ? 'Boxe' : 'Socio-éducatif'}</span>
+          </span>
+          <span className="hero-badge" style={{ margin: 0 }}>
+            <span className="badge-text">{info.meta?.age}</span>
+          </span>
         </div>
-      </section>
+      </SectionHeader>
 
       {/* Content Section */}
       <section className="info-content">
@@ -327,20 +201,32 @@ const InfoPage = () => {
             >
               <div className="content-card">
                 <div className="content-header">
-                  <h2>À propos de cette activité</h2>
+                  <h2>Présentation</h2>
                   <div className="content-divider"></div>
                 </div>
                 <div className="content-text">
-                  {info.content.split('\n\n').map((paragraph, index) => (
-                    <motion.p 
-                      key={index}
-                      initial={{ opacity: 0, y: 20 }}
-                      whileInView={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.5, delay: index * 0.1 }}
-                      viewport={{ once: true }}
-                    >
-                      {paragraph}
-                    </motion.p>
+                  {(info.sections || []).map((block, idx) => (
+                    <div key={`${block.title}-${idx}`} style={{ marginBottom: '1.6rem' }}>
+                      <h3 style={{ margin: '0 0 0.75rem', fontWeight: 900 }}>{block.title}</h3>
+                      {(block.paragraphs || []).map((p, pIdx) => (
+                        <motion.p
+                          key={`${idx}-p-${pIdx}`}
+                          initial={{ opacity: 0, y: 16 }}
+                          whileInView={{ opacity: 1, y: 0 }}
+                          transition={{ duration: 0.45, delay: pIdx * 0.05 }}
+                          viewport={{ once: true }}
+                        >
+                          {p}
+                        </motion.p>
+                      ))}
+                      {(block.bullets || []).length ? (
+                        <ul className="info-bullets">
+                          {block.bullets.map((b, bIdx) => (
+                            <li key={`${idx}-b-${bIdx}`}>{b}</li>
+                          ))}
+                        </ul>
+                      ) : null}
+                    </div>
                   ))}
                 </div>
               </div>
@@ -377,10 +263,10 @@ const InfoPage = () => {
                       <div className="section-icon age-icon">
                         <FontAwesomeIcon icon={faGraduationCap} />
                       </div>
-                      <h4>Âge requis</h4>
+                      <h4>Public</h4>
                     </div>
                     <div className="section-content">
-                      <span className="section-value">{info.age}</span>
+                      <span className="section-value">{info.meta?.age}</span>
                     </div>
                   </motion.div>
                   
@@ -399,7 +285,39 @@ const InfoPage = () => {
                       <h4>Horaires</h4>
                     </div>
                     <div className="section-content">
-                      <span className="section-value">{info.schedule}</span>
+                      {info.scheduleActivityName ? (
+                        <>
+                          {scheduleLoading && <span className="section-value">Chargement des horaires (API)…</span>}
+                          {!scheduleLoading && scheduleError && (
+                            <span className="section-value">{scheduleError}</span>
+                          )}
+                          {!scheduleLoading && !scheduleError && groupedSchedule.length === 0 && (
+                            <span className="section-value">Horaires non renseignés pour le moment.</span>
+                          )}
+                          {!scheduleLoading && !scheduleError && groupedSchedule.length > 0 && (
+                            <div className="section-value">
+                              {groupedSchedule.map((g) => (
+                                <div key={g.day} style={{ marginBottom: '0.5rem' }}>
+                                  <strong>{g.day}</strong>{' '}
+                                  {g.items.map((s, idx) => (
+                                    <span key={`${s.time}-${idx}`}>
+                                      {idx === 0 ? '' : ' · '}
+                                      {s.time}{s.level ? ` (${s.level})` : ''}
+                                    </span>
+                                  ))}
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                          <div style={{ marginTop: '0.75rem' }}>
+                            <button className="btn btn-outline" onClick={() => navigate('/horaire')}>
+                              Voir tout le planning
+                            </button>
+                          </div>
+                        </>
+                      ) : (
+                        <span className="section-value">Horaires sur demande — contactez-nous.</span>
+                      )}
                     </div>
                   </motion.div>
                   
@@ -418,7 +336,7 @@ const InfoPage = () => {
                       <h4>Équipement</h4>
                     </div>
                     <div className="section-content">
-                      <span className="section-value">{info.equipment}</span>
+                      <span className="section-value">{info.meta?.equipment}</span>
                     </div>
                   </motion.div>
                   
@@ -437,10 +355,14 @@ const InfoPage = () => {
                       <h4>Tarif</h4>
                     </div>
                     <div className="section-content">
-                      <div className="price-display">
-                        <span className="price-value">{info.price}</span>
-                        <span className="price-period">/an</span>
-                      </div>
+                      {pricing ? (
+                        <div className="price-display">
+                          <span className="price-value">{formatPrice(pricing)}</span>
+                          {pricing?.period ? <span className="price-period">/{pricing.period}</span> : null}
+                        </div>
+                      ) : (
+                        <span className="section-value">Tarif sur demande</span>
+                      )}
                     </div>
                   </motion.div>
                 </div>
@@ -474,8 +396,8 @@ const InfoPage = () => {
             transition={{ duration: 0.8, ease: "easeOut" }}
             viewport={{ once: true }}
           >
-            <h2>Prêt à commencer ?</h2>
-            <p>Rejoignez-nous et découvrez cette activité passionnante</p>
+            <h2>Aller plus loin</h2>
+            <p>Besoin d’un essai, d’un renseignement ou d’un conseil sur l’activité la plus adaptée ?</p>
           </motion.div>
           
           <div className="cta-grid">
@@ -502,7 +424,7 @@ const InfoPage = () => {
                 </motion.div>
                 <h3>Nous contacter</h3>
               </div>
-              <p>Pour plus d'informations sur cette activité.</p>
+              <p>On vous répond rapidement et on vous oriente vers le bon créneau.</p>
               <motion.button 
                 className="btn btn-primary" 
                 onClick={() => navigate('/contact')}
@@ -536,7 +458,7 @@ const InfoPage = () => {
                 </motion.div>
                 <h3>S'inscrire</h3>
               </div>
-              <p>Inscrivez-vous à cette activité dès maintenant.</p>
+              <p>Consultez les tarifs et la liste des documents nécessaires.</p>
               <motion.button 
                 className="btn btn-secondary" 
                 onClick={() => navigate('/tarif')}
@@ -546,6 +468,49 @@ const InfoPage = () => {
                 S'inscrire
               </motion.button>
             </motion.div>
+          </div>
+        </div>
+      </section>
+
+      {/* Liens visibles vers les autres pages Info */}
+      <section className="content-section section-white info-related">
+        <div className="container">
+          <h2 className="section-title">Voir aussi</h2>
+          <p className="home-section-subtitle">
+            {info.kind === 'boxing'
+              ? 'Toutes nos formes de pratique, du loisir à la compétition, en passant par l’inclusion.'
+              : 'Les actions socio-éducatives du club : accompagnement, ateliers et sorties.'}
+          </p>
+
+          <div className="modern-grid grid-3">
+            {allActivities
+              .filter((p) => p.id !== info.id && p.kind === info.kind && p.enabled)
+              .map((p) => {
+                const pIcon = p.icon && iconMap[p.icon] ? iconMap[p.icon] : faFistRaised;
+                return (
+                  <motion.button
+                    key={p.id}
+                    type="button"
+                    className="modern-card info-related-card"
+                    onClick={() => navigate(`/info/${p.id}`)}
+                    whileHover={{ y: -6 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    <div className="card-header" style={{ textAlign: 'center' }}>
+                      <FontAwesomeIcon icon={pIcon} className="card-icon" />
+                      <h3 style={{ margin: 0 }}>{p.title}</h3>
+                    </div>
+                    <div className="card-content">
+                      <p style={{ margin: 0 }}>{p.subtitle}</p>
+                    </div>
+                    <div className="card-footer" style={{ textAlign: 'center' }}>
+                      <span className="btn btn-primary" style={{ pointerEvents: 'none' }}>
+                        En savoir plus
+                      </span>
+                    </div>
+                  </motion.button>
+                );
+              })}
           </div>
         </div>
       </section>

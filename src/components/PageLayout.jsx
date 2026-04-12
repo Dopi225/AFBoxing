@@ -4,7 +4,7 @@ import { OptimizedMotion, fadeInUp } from './OptimizedMotion';
 const PageLayout = ({ 
   heroTitle, 
   heroSubtitle, 
-  heroBackground = "linear-gradient(135deg, var(--primary-red), var(--primary-orange))",
+  heroBackground = "linear-gradient(135deg, var(--primary-red), var(--primary-red-dark))",
   children,
   className = ""
 }) => {

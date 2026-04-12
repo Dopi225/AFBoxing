@@ -1,0 +1,1068 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guide d'utilisation - AF Boxing Club 86</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            color: #e60000;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            border-bottom: 3px solid #e60000;
+            padding-bottom: 10px;
+        }
+        
+        h2 {
+            color: #e60000;
+            font-size: 1.8em;
+            margin-top: 40px;
+            margin-bottom: 20px;
+            padding-left: 15px;
+            border-left: 4px solid #e60000;
+        }
+        
+        h3 {
+            color: #333;
+            font-size: 1.4em;
+            margin-top: 30px;
+            margin-bottom: 15px;
+            background: #f8f8f8;
+            padding: 10px 15px;
+            border-radius: 6px;
+        }
+        
+        h4 {
+            color: #555;
+            font-size: 1.2em;
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+        
+        p {
+            margin-bottom: 15px;
+            text-align: justify;
+        }
+        
+        ul, ol {
+            margin-left: 30px;
+            margin-bottom: 20px;
+        }
+        
+        li {
+            margin-bottom: 10px;
+        }
+        
+        .step {
+            background: #f0f8ff;
+            border-left: 4px solid #0066cc;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 4px;
+        }
+        
+        .step-number {
+            display: inline-block;
+            background: #0066cc;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 30px;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        
+        .warning {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 4px;
+        }
+        
+        .success {
+            background: #d4edda;
+            border-left: 4px solid #28a745;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 4px;
+        }
+        
+        .info {
+            background: #d1ecf1;
+            border-left: 4px solid #17a2b8;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 4px;
+        }
+        
+        .danger {
+            background: #f8d7da;
+            border-left: 4px solid #dc3545;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 4px;
+        }
+        
+        code {
+            background: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            color: #e60000;
+        }
+        
+        .table-of-contents {
+            background: #f8f8f8;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 30px 0;
+        }
+        
+        .table-of-contents ul {
+            list-style: none;
+            margin-left: 0;
+        }
+        
+        .table-of-contents li {
+            margin: 8px 0;
+        }
+        
+        .table-of-contents a {
+            color: #0066cc;
+            text-decoration: none;
+        }
+        
+        .table-of-contents a:hover {
+            text-decoration: underline;
+        }
+        
+        .screenshot-placeholder {
+            background: #e9ecef;
+            border: 2px dashed #adb5bd;
+            padding: 40px;
+            text-align: center;
+            border-radius: 8px;
+            margin: 20px 0;
+            color: #6c757d;
+        }
+        
+        .icon {
+            font-size: 1.2em;
+            margin-right: 5px;
+        }
+        
+        .admin-section {
+            background: #fff;
+            border: 2px solid #e60000;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .feature-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .feature-card {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            border-left: 3px solid #e60000;
+        }
+        
+        .feature-card h4 {
+            color: #e60000;
+            margin-top: 0;
+        }
+        
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+            .container {
+                box-shadow: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📚 Guide d'utilisation complet</h1>
+        <p style="font-size: 1.1em; color: #666; margin-bottom: 30px;">
+            <strong>AF Boxing Club 86</strong> - Administration et gestion du site web
+        </p>
+        
+        <div class="table-of-contents">
+            <h3>📑 Table des matières</h3>
+            <ul>
+                <li><a href="#introduction">1. Introduction</a></li>
+                <li><a href="#acces-admin">2. Accès à l'administration</a></li>
+                <li><a href="#dashboard">3. Tableau de bord</a></li>
+                <li><a href="#actualites">4. Gestion des actualités</a></li>
+                <li><a href="#palmares">5. Gestion des palmarès</a></li>
+                <li><a href="#galerie">6. Gestion de la galerie</a></li>
+                <li><a href="#planning">7. Gestion du planning</a></li>
+                <li><a href="#contacts">8. Gestion des contacts</a></li>
+                <li><a href="#activites">9. Gestion des activités</a></li>
+                <li><a href="#tarifs">10. Gestion des tarifs</a></li>
+                <li><a href="#parametres">11. Paramètres du site</a></li>
+                <li><a href="#historique">12. Historique des actions</a></li>
+                <li><a href="#recherche">13. Recherche globale</a></li>
+                <li><a href="#conseils">14. Conseils et bonnes pratiques</a></li>
+                <li><a href="#problemes">15. Résolution de problèmes</a></li>
+            </ul>
+        </div>
+        
+        <section id="introduction">
+            <h2>1. Introduction</h2>
+            
+            <div class="info">
+                <strong>💡 À qui s'adresse ce guide ?</strong><br>
+                Ce guide est destiné à toute personne chargée de gérer le site web du club, même sans connaissances techniques particulières.
+            </div>
+            
+            <h3>🎯 Ce que vous pouvez faire</h3>
+            <div class="feature-list">
+                <div class="feature-card">
+                    <h4>📰 Actualités</h4>
+                    <p>Créer, modifier et supprimer les actualités du club</p>
+                </div>
+                <div class="feature-card">
+                    <h4>🏆 Palmarès</h4>
+                    <p>Gérer les résultats et compétitions</p>
+                </div>
+                <div class="feature-card">
+                    <h4>📸 Galerie</h4>
+                    <p>Ajouter et organiser les photos</p>
+                </div>
+                <div class="feature-card">
+                    <h4>📅 Planning</h4>
+                    <p>Mettre à jour les horaires d'entraînement</p>
+                </div>
+                <div class="feature-card">
+                    <h4>✉️ Contacts</h4>
+                    <p>Consulter et répondre aux messages</p>
+                </div>
+                <div class="feature-card">
+                    <h4>🎯 Activités</h4>
+                    <p>Gérer les activités de boxe et socio-éducatives</p>
+                </div>
+                <div class="feature-card">
+                    <h4>💰 Tarifs</h4>
+                    <p>Modifier les prix et formules</p>
+                </div>
+                <div class="feature-card">
+                    <h4>⚙️ Paramètres</h4>
+                    <p>Modifier les coordonnées et réseaux sociaux</p>
+                </div>
+            </div>
+            
+            <div class="success">
+                <strong>✅ Important :</strong> Toutes vos modifications sont automatiquement sauvegardées dans la base de données et apparaissent immédiatement sur le site public.
+            </div>
+        </section>
+        
+        <section id="acces-admin">
+            <h2>2. Accès à l'administration</h2>
+            
+            <div class="step">
+                <span class="step-number">1</span>
+                <strong>Ouvrez votre navigateur</strong> (Chrome, Firefox, Edge, Safari)
+            </div>
+            
+            <div class="step">
+                <span class="step-number">2</span>
+                <strong>Allez à l'adresse du site</strong> : <code>Votre nom de domaine(ex : afboxing.com)</code>
+            </div>
+            
+            <div class="step">
+                <span class="step-number">3</span>
+                <strong>Cliquez sur "Admin"</strong> dans le menu de navigation (en haut à droite) ou allez directement à : <code>Votre nom de domaine(ex : afboxing.com)/admin</code>
+            </div>
+            
+            <div class="step">
+                <span class="step-number">4</span>
+                <strong>Connectez-vous</strong> avec vos identifiants :
+                <ul>
+                    <li><strong>Nom d'utilisateur :</strong> (fourni par l'administrateur)</li>
+                    <li><strong>Mot de passe :</strong> (fourni par l'administrateur)</li>
+                </ul>
+            </div>
+            
+            <div class="warning">
+                <strong>⚠️ Sécurité :</strong> Ne partagez jamais vos identifiants. Si vous pensez qu'ils ont été compromis, contactez immédiatement l'administrateur technique(Maxence ADOPO - contact@pixelfounderstudio.fr).
+            </div>
+            
+            <div class="info">
+                <strong>💡 Astuce :</strong> Si vous oubliez votre mot de passe, contactez l'administrateur technique  (Maxence ADOPO - contact@pixelfounderstudio.fr) qui pourra le réinitialiser.
+            </div>
+        </section>
+        
+        <section id="dashboard">
+            <h2>3. Tableau de bord</h2>
+            
+            <p>Une fois connecté, vous arrivez sur le <strong>tableau de bord</strong>. C'est votre centre de contrôle.</p>
+            
+            <h3>📊 Ce que vous voyez</h3>
+            <ul>
+                <li><strong>Indicateurs de santé :</strong> État général du site (actualités, palmarès, galerie, etc.)</li>
+                <li><strong>Alertes :</strong> Messages non lus, problèmes à corriger</li>
+                <li><strong>Statistiques :</strong> Nombre d'actualités, de photos, de messages</li>
+                <li><strong>Actions rapides :</strong> Boutons pour accéder rapidement aux sections principales</li>
+            </ul>
+            
+            <h3>🧭 Navigation</h3>
+            <p>Sur la gauche, vous avez un <strong>menu de navigation</strong> avec toutes les sections :</p>
+            <ul>
+                <li>🏠 <strong>Accueil</strong> - Retour au tableau de bord</li>
+                <li>📰 <strong>Actualités</strong> - Gérer les news</li>
+                <li>🏆 <strong>Palmarès</strong> - Gérer les résultats</li>
+                <li>📸 <strong>Galerie</strong> - Gérer les photos</li>
+                <li>📅 <strong>Planning</strong> - Gérer les horaires</li>
+                <li>✉️ <strong>Contacts</strong> - Voir les messages</li>
+                <li>🎯 <strong>Activités</strong> - Gérer les activités</li>
+                <li>💰 <strong>Tarifs</strong> - Gérer les prix</li>
+                <li>⚙️ <strong>Paramètres</strong> - Modifier les coordonnées</li>
+                <li>📜 <strong>Historique</strong> - Voir toutes les actions</li>
+            </ul>
+            
+            <div class="info">
+                <strong>💡 Astuce :</strong> Vous pouvez utiliser la <strong>recherche globale</strong> (icône de loupe en haut) pour trouver rapidement n'importe quel contenu.
+            </div>
+        </section>
+        
+        <section id="actualites">
+            <h2>4. Gestion des actualités</h2>
+            
+            <p>Les actualités apparaissent sur la page d'accueil du site. Vous pouvez en créer, modifier ou supprimer.</p>
+            
+            <h3>➕ Créer une actualité</h3>
+            <div class="step">
+                <span class="step-number">1</span>
+                Cliquez sur <strong>"Actualités"</strong> dans le menu de gauche
+            </div>
+            
+            <div class="step">
+                <span class="step-number">2</span>
+                Cliquez sur le bouton <strong>"✨ Créer l'actualité"</strong> (en haut à droite)
+            </div>
+            
+            <div class="step">
+                <span class="step-number">3</span>
+                Remplissez le formulaire :
+                <ul>
+                    <li><strong>Titre *</strong> : Le titre de l'actualité (obligatoire)</li>
+                    <li><strong>Date *</strong> : La date de publication (obligatoire)</li>
+                    <li><strong>Résumé *</strong> : Un court texte qui apparaît sur la page d'accueil (obligatoire)</li>
+                    <li><strong>Description *</strong> : Le texte complet de l'actualité (obligatoire)</li>
+                    <li><strong>Image</strong> : Une photo pour illustrer (optionnel, mais recommandé)</li>
+                </ul>
+            </div>
+            
+            <div class="step">
+                <span class="step-number">4</span>
+                Pour ajouter une image :
+                <ul>
+                    <li>Cliquez sur <strong>"Choisir un fichier"</strong></li>
+                    <li>Sélectionnez une image sur votre ordinateur</li>
+                    <li>L'image s'affichera automatiquement en prévisualisation</li>
+                </ul>
+            </div>
+            
+            <div class="step">
+                <span class="step-number">5</span>
+                Cliquez sur <strong>"✨ Créer l'actualité"</strong> pour sauvegarder
+            </div>
+            
+            <div class="success">
+                <strong>✅ Succès !</strong> Votre actualité est maintenant visible sur le site.
+            </div>
+            
+            <h3>✏️ Modifier une actualité</h3>
+            <div class="step">
+                <span class="step-number">1</span>
+                Dans la liste des actualités, cliquez sur l'icône <strong>✏️ Modifier</strong> (crayon) à côté de l'actualité
+            </div>
+            
+            <div class="step">
+                <span class="step-number">2</span>
+                Modifiez les champs souhaités
+            </div>
+            
+            <div class="step">
+                <span class="step-number">3</span>
+                Cliquez sur <strong>"💾 Modifier"</strong> pour sauvegarder
+            </div>
+            
+            <h3>🗑️ Supprimer une actualité</h3>
+            <div class="step">
+                <span class="step-number">1</span>
+                Cliquez sur l'icône <strong>🗑️ Supprimer</strong> (poubelle) à côté de l'actualité
+            </div>
+            
+            <div class="step">
+                <span class="step-number">2</span>
+                Confirmez la suppression dans la fenêtre qui apparaît
+            </div>
+            
+            <div class="danger">
+                <strong>⚠️ Attention :</strong> La suppression est définitive. L'actualité ne pourra pas être récupérée.
+            </div>
+            
+            <h3>🔍 Rechercher et filtrer</h3>
+            <p>Vous pouvez utiliser les filtres en haut de la page pour :</p>
+            <ul>
+                <li><strong>Rechercher</strong> par mot-clé dans le titre ou la description</li>
+                <li><strong>Filtrer par date</strong> : sélectionner une période</li>
+                <li><strong>Trier</strong> par date (plus récent ou plus ancien)</li>
+            </ul>
+            
+            <h3>📦 Actions en masse</h3>
+            <p>Vous pouvez sélectionner plusieurs actualités et les supprimer en une seule fois :</p>
+            <div class="step">
+                <span class="step-number">1</span>
+                Cochez les cases à côté des actualités à supprimer
+            </div>
+            
+            <div class="step">
+                <span class="step-number">2</span>
+                Cliquez sur <strong>"Supprimer la sélection"</strong>
+            </div>
+        </section>
+        
+        <section id="palmares">
+            <h2>5. Gestion des palmarès</h2>
+            
+            <p>Les palmarès affichent les résultats de compétitions et les titres remportés par les boxeurs du club.</p>
+            
+            <h3>➕ Créer un palmarès</h3>
+            <div class="step">
+                <span class="step-number">1</span>
+                Cliquez sur <strong>"Palmarès"</strong> dans le menu
+            </div>
+            
+            <div class="step">
+                <span class="step-number">2</span>
+                Cliquez sur <strong>"Ajouter un palmarès"</strong>
+            </div>
+            
+            <div class="step">
+                <span class="step-number">3</span>
+                Remplissez le formulaire :
+                <ul>
+                    <li><strong>Titre *</strong> : Nom de la compétition (ex: "Championnat de France")</li>
+                    <li><strong>Date *</strong> : Date de la compétition</li>
+                    <li><strong>Lieu</strong> : Ville où s'est déroulée la compétition</li>
+                    <li><strong>Catégorie *</strong> : Type de compétition (Boxe Amateur, Boxe Éducative, etc.)</li>
+                    <li><strong>Résultat *</strong> : Résultat obtenu (Champion, Vice-champion, etc.)</li>
+                    <li><strong>Boxeur / Équipe *</strong> : Nom du boxeur ou de l'équipe</li>
+                    <li><strong>Détails *</strong> : Description détaillée du résultat</li>
+                </ul>
+            </div>
+            
+            <div class="step">
+                <span class="step-number">4</span>
+                Cliquez sur <strong>"🏆 Créer le palmarès"</strong>
+            </div>
+        </section>
+        
+        <section id="galerie">
+            <h2>6. Gestion de la galerie</h2>
+            
+            <p>La galerie permet d'afficher des photos du club sur le site.</p>
+            
+            <h3>➕ Ajouter une photo</h3>
+            <div class="step">
+                <span class="step-number">1</span>
+                Cliquez sur <strong>"Galerie"</strong> dans le menu
+            </div>
+            
+            <div class="step">
+                <span class="step-number">2</span>
+                Cliquez sur <strong>"Ajouter une image"</strong>
+            </div>
+            
+            <div class="step">
+                <span class="step-number">3</span>
+                Remplissez le formulaire :
+                <ul>
+                    <li><strong>Titre *</strong> : Nom de la photo (ex: "Entraînement du 15 janvier")</li>
+                    <li><strong>Catégorie *</strong> : Type de photo (Infrastructure, Coaching, Compétition, etc.)</li>
+                    <li><strong>Description</strong> : Description optionnelle de la photo</li>
+                    <li><strong>Image *</strong> : Cliquez sur "Choisir un fichier" et sélectionnez une image</li>
+                </ul>
+            </div>
+            
+            <div class="step">
+                <span class="step-number">4</span>
+                L'image s'affiche en prévisualisation une fois sélectionnée
+            </div>
+            
+            <div class="step">
+                <span class="step-number">5</span>
+                Cliquez sur <strong>"📸 Ajouter l'image"</strong>
+            </div>
+            
+            <div class="info">
+                <strong>💡 Formats acceptés :</strong> JPG, PNG, GIF. Taille recommandée : moins de 5 Mo par image.
+            </div>
+            
+            <h3>✏️ Modifier une photo</h3>
+            <div class="step">
+                <span class="step-number">1</span>
+                Cliquez sur l'icône <strong>✏️ Modifier</strong> sur la photo
+            </div>
+            
+            <div class="step">
+                <span class="step-number">2</span>
+                Modifiez les informations (titre, catégorie, description)
+            </div>
+            
+            <div class="step">
+                <span class="step-number">3</span>
+                Pour changer l'image, sélectionnez un nouveau fichier
+            </div>
+            
+            <div class="step">
+                <span class="step-number">4</span>
+                Cliquez sur <strong>"💾 Modifier"</strong>
+            </div>
+        </section>
+        
+        <section id="planning">
+            <h2>7. Gestion du planning</h2>
+            
+            <p>Le planning affiche les horaires d'entraînement par jour de la semaine.</p>
+            
+            <h3>📅 Modifier le planning</h3>
+            <div class="step">
+                <span class="step-number">1</span>
+                Cliquez sur <strong>"Planning"</strong> dans le menu
+            </div>
+            
+            <div class="step">
+                <span class="step-number">2</span>
+                Vous voyez les jours de la semaine (Lundi, Mardi, etc.)
+            </div>
+            
+            <div class="step">
+                <span class="step-number">3</span>
+                Pour chaque jour, vous pouvez :
+                <ul>
+                    <li><strong>Ajouter un créneau</strong> : Cliquez sur "+" pour ajouter un horaire</li>
+                    <li><strong>Modifier un créneau</strong> : Changez l'heure, l'activité ou le niveau</li>
+                    <li><strong>Supprimer un créneau</strong> : Cliquez sur la poubelle 🗑️</li>
+                </ul>
+            </div>
+            
+            <div class="step">
+                <span class="step-number">4</span>
+                Pour chaque créneau, remplissez :
+                <ul>
+                    <li><strong>Heure</strong> : Ex: "18h00-19h00"</li>
+                    <li><strong>Activité</strong> : Ex: "Boxe Éducative", "Boxe Loisir"</li>
+                    <li><strong>Niveau</strong> : Ex: "Tous niveaux", "Débutant", "Avancé"</li>
+                </ul>
+            </div>
+            
+            <div class="step">
+                <span class="step-number">5</span>
+                Une fois toutes vos modifications faites, cliquez sur <strong>"💾 Sauvegarder le planning"</strong> en haut à droite
+            </div>
+            
+            <div class="success">
+                <strong>✅ Important :</strong> N'oubliez pas de sauvegarder ! Vos modifications ne sont pas enregistrées tant que vous n'avez pas cliqué sur "Sauvegarder".
+            </div>
+        </section>
+        
+        <section id="contacts">
+            <h2>8. Gestion des contacts</h2>
+            
+            <p>Les contacts sont les messages envoyés via le formulaire de contact du site.</p>
+            
+            <h3>📬 Consulter les messages</h3>
+            <div class="step">
+                <span class="step-number">1</span>
+                Cliquez sur <strong>"Contacts"</strong> dans le menu
+            </div>
+            
+            <div class="step">
+                <span class="step-number">2</span>
+                Vous voyez la liste de tous les messages reçus
+            </div>
+            
+            <div class="step">
+                <span class="step-number">3</span>
+                Les messages <strong>non lus</strong> apparaissent en premier et sont marqués différemment
+            </div>
+            
+            <h3>👁️ Marquer comme lu</h3>
+            <div class="step">
+                <span class="step-number">1</span>
+                Cliquez sur un message pour le lire
+            </div>
+            
+            <div class="step">
+                <span class="step-number">2</span>
+                Le message s'ouvre avec toutes les informations (nom, email, téléphone, message)
+            </div>
+            
+            <div class="step">
+                <span class="step-number">3</span>
+                Cliquez sur <strong>"Marquer comme lu"</strong> pour indiquer que vous avez traité le message
+            </div>
+            
+            <h3>🗑️ Supprimer un message</h3>
+            <div class="step">
+                <span class="step-number">1</span>
+                Cliquez sur l'icône <strong>🗑️ Supprimer</strong> à côté du message
+            </div>
+            
+            <div class="step">
+                <span class="step-number">2</span>
+                Confirmez la suppression
+            </div>
+            
+            <h3>🔍 Filtrer les messages</h3>
+            <p>Vous pouvez filtrer les messages :</p>
+            <ul>
+                <li><strong>Tous</strong> : Voir tous les messages</li>
+                <li><strong>Non lus</strong> : Voir uniquement les nouveaux messages</li>
+                <li><strong>Lus</strong> : Voir uniquement les messages déjà traités</li>
+            </ul>
+        </section>
+        
+        <section id="activites">
+            <h2>9. Gestion des activités</h2>
+            
+            <p>Les activités sont les différentes pratiques proposées par le club (Boxe Éducative, Boxe Loisir, Handiboxe, etc.).</p>
+            
+            <h3>➕ Créer une activité</h3>
+            <div class="step">
+                <span class="step-number">1</span>
+                Cliquez sur <strong>"Activités"</strong> dans le menu
+            </div>
+            
+            <div class="step">
+                <span class="step-number">2</span>
+                Cliquez sur <strong>"Ajouter une activité"</strong>
+            </div>
+            
+            <div class="step">
+                <span class="step-number">3</span>
+                Remplissez le formulaire :
+                <ul>
+                    <li><strong>ID unique *</strong> : Un identifiant court (ex: "educative"). Généré automatiquement si vide</li>
+                    <li><strong>Catégorie</strong> : "Boxe" ou "Socio-éducatif"</li>
+                    <li><strong>Titre *</strong> : Nom de l'activité (ex: "Boxe Éducative")</li>
+                    <li><strong>Eyebrow</strong> : Sous-titre court (ex: "8–17 ans • Technique • Valeurs")</li>
+                    <li><strong>Description *</strong> : Description complète de l'activité</li>
+                    <li><strong>Nom pour le planning</strong> : Nom utilisé dans le planning (ex: "Boxe Éducative")</li>
+                </ul>
+            </div>
+            
+            <div class="step">
+                <span class="step-number">4</span>
+                Dans la section <strong>"Métadonnées"</strong> :
+                <ul>
+                    <li><strong>Âge</strong> : Public cible (ex: "8–17 ans")</li>
+                    <li><strong>Équipement</strong> : Équipement nécessaire</li>
+                    <li><strong>Clé de prix</strong> : Référence au tarif (ex: "boxing.educative")</li>
+                </ul>
+            </div>
+            
+            <div class="step">
+                <span class="step-number">5</span>
+                Dans la section <strong>"Sections de contenu"</strong> :
+                <ul>
+                    <li>Cliquez sur <strong>"Ajouter une section"</strong> pour créer des blocs de texte</li>
+                    <li>Chaque section peut avoir :
+                        <ul>
+                            <li>Un <strong>titre</strong></li>
+                            <li>Des <strong>paragraphes</strong> (un par ligne)</li>
+                            <li>Des <strong>puces</strong> (une par ligne)</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+            
+            <div class="step">
+                <span class="step-number">6</span>
+                Cliquez sur <strong>"✨ Créer l'activité"</strong> (le bouton est désactivé si le titre ou la description manquent)
+            </div>
+            
+            <div class="info">
+                <strong>💡 Astuce :</strong> Vous pouvez prévisualiser l'activité avant de la sauvegarder en cliquant sur l'icône 👁️ dans la liste.
+            </div>
+            
+            <h3>🔍 Filtrer par catégorie</h3>
+            <p>En haut de la liste, vous pouvez filtrer les activités :</p>
+            <ul>
+                <li><strong>Toutes</strong> : Voir toutes les activités</li>
+                <li><strong>Boxe</strong> : Voir uniquement les activités de boxe</li>
+                <li><strong>Socio-éducatif</strong> : Voir uniquement les activités socio-éducatives</li>
+            </ul>
+            
+            <h3>🔄 Activer/Désactiver une activité</h3>
+            <p>Vous pouvez activer ou désactiver une activité sans la supprimer :</p>
+            <div class="step">
+                <span class="step-number">1</span>
+                Cliquez sur le bouton <strong>✓</strong> ou <strong>✗</strong> à côté de l'activité
+            </div>
+            
+            <div class="step">
+                <span class="step-number">2</span>
+                Une activité désactivée n'apparaît plus sur le site public
+            </div>
+        </section>
+        
+        <section id="tarifs">
+            <h2>10. Gestion des tarifs</h2>
+            
+            <p>Les tarifs sont gérés depuis la section <strong>"Tarifs"</strong> de l'admin.</p>
+            
+            <div class="info">
+                <strong>💡 Note :</strong> La gestion des tarifs est actuellement en développement donc pas disponiblen. Pour l'instant, les tarifs sont gérés via la base de données directement.
+            </div>
+            
+            <h3>💰 Structure des tarifs</h3>
+            <p>Les tarifs sont organisés par catégorie :</p>
+            <ul>
+                <li><strong>Boxe</strong> :
+                    <ul>
+                        <li>Boxe Éducative</li>
+                        <li>Boxe Loisir</li>
+                    </ul>
+                </li>
+                <li><strong>Socio-éducatif</strong> :
+                    <ul>
+                        <li>Activité Périscolaire</li>
+                    </ul>
+                </li>
+            </ul>
+            
+            <p>Chaque tarif contient :</p>
+            <ul>
+                <li><strong>Label</strong> : Nom du tarif</li>
+                <li><strong>Montant</strong> : Prix (peut être "Gratuit" ou un nombre)</li>
+                <li><strong>Période</strong> : "an" ou "mois"</li>
+                <li><strong>Note</strong> : Informations complémentaires</li>
+            </ul>
+        </section>
+        
+        <section id="parametres">
+            <h2>11. Paramètres du site</h2>
+            
+            <p>Les paramètres permettent de modifier les coordonnées du club et les liens vers les réseaux sociaux. Ces modifications apparaissent immédiatement sur tout le site.</p>
+            
+            <h3>📝 Modifier les paramètres</h3>
+            <div class="step">
+                <span class="step-number">1</span>
+                Cliquez sur <strong>"Paramètres"</strong> dans le menu
+            </div>
+            
+            <div class="step">
+                <span class="step-number">2</span>
+                Vous voyez trois sections :
+                <ul>
+                    <li><strong>Contact</strong> : Adresse, téléphone, email</li>
+                    <li><strong>Réseaux sociaux</strong> : Facebook, Instagram</li>
+                    <li><strong>Site</strong> : Nom du club, slogan</li>
+                </ul>
+            </div>
+            
+            <div class="step">
+                <span class="step-number">3</span>
+                Modifiez les champs souhaités
+            </div>
+            
+            <div class="step">
+                <span class="step-number">4</span>
+                Cliquez sur <strong>"💾 Sauvegarder les paramètres"</strong> en haut à droite
+            </div>
+            
+            <div class="success">
+                <strong>✅ Important :</strong> Les modifications sont immédiatement visibles sur :
+                <ul>
+                    <li>La page de contact</li>
+                    <li>Le pied de page (footer)</li>
+                    <li>Tous les endroits où ces informations apparaissent</li>
+                </ul>
+            </div>
+            
+            <h3>📧 Coordonnées de contact</h3>
+            <ul>
+                <li><strong>Adresse</strong> : L'adresse complète du club</li>
+                <li><strong>Téléphone</strong> : Numéro de téléphone (format : 06 37 23 26 98)</li>
+                <li><strong>Email</strong> : Adresse email de contact</li>
+            </ul>
+            
+            <h3>🌐 Réseaux sociaux</h3>
+            <ul>
+                <li><strong>Facebook</strong> : URL complète de la page Facebook (ex: https://www.facebook.com/afboxingclub86)</li>
+                <li><strong>Instagram</strong> : URL complète du profil Instagram (ex: https://www.instagram.com/afboxingclub86)</li>
+            </ul>
+            
+            <div class="warning">
+                <strong>⚠️ Attention :</strong> Assurez-vous que les URLs des réseaux sociaux sont complètes (commencent par https://).
+            </div>
+        </section>
+        
+        <section id="historique">
+            <h2>12. Historique des actions</h2>
+            
+            <p>L'historique enregistre toutes les actions effectuées dans l'administration (création, modification, suppression).</p>
+            
+            <h3>📜 Consulter l'historique</h3>
+            <div class="step">
+                <span class="step-number">1</span>
+                Cliquez sur <strong>"Historique"</strong> dans le menu
+            </div>
+            
+            <div class="step">
+                <span class="step-number">2</span>
+                Vous voyez la liste de toutes les actions avec :
+                <ul>
+                    <li><strong>Action</strong> : Type d'action (Création, Modification, Suppression, Connexion)</li>
+                    <li><strong>Entité</strong> : Sur quoi l'action a été faite (Actualité, Palmarès, etc.)</li>
+                    <li><strong>Description</strong> : Détails de l'action</li>
+                    <li><strong>Utilisateur</strong> : Qui a fait l'action</li>
+                    <li><strong>Date</strong> : Quand l'action a été faite</li>
+                </ul>
+            </div>
+            
+            <h3>🔍 Filtrer l'historique</h3>
+            <p>Vous pouvez filtrer l'historique par :</p>
+            <ul>
+                <li><strong>Recherche</strong> : Mot-clé dans la description</li>
+                <li><strong>Entité</strong> : Type de contenu (Actualité, Palmarès, etc.)</li>
+                <li><strong>Action</strong> : Type d'action (Création, Modification, etc.)</li>
+                <li><strong>Date</strong> : Période (du... au...)</li>
+            </ul>
+            
+            <h3>🗑️ Vider l'historique</h3>
+            <div class="warning">
+                <strong>⚠️ Attention :</strong> Vider l'historique supprime définitivement tous les enregistrements. Cette action ne peut pas être annulée.
+            </div>
+            
+            <p>Pour vider l'historique :</p>
+            <div class="step">
+                <span class="step-number">1</span>
+                Cliquez sur <strong>"Vider l'historique"</strong>
+            </div>
+            
+            <div class="step">
+                <span class="step-number">2</span>
+                Confirmez l'action
+            </div>
+        </section>
+        
+        <section id="recherche">
+            <h2>13. Recherche globale</h2>
+            
+            <p>La recherche globale permet de trouver rapidement n'importe quel contenu dans l'administration.</p>
+            
+            <h3>🔍 Utiliser la recherche</h3>
+            <div class="step">
+                <span class="step-number">1</span>
+                Cliquez sur l'icône de <strong>loupe 🔍</strong> en haut à droite (ou utilisez le raccourci clavier)
+            </div>
+            
+            <div class="step">
+                <span class="step-number">2</span>
+                Tapez votre recherche (ex: "Boxe Éducative")
+            </div>
+            
+            <div class="step">
+                <span class="step-number">3</span>
+                Les résultats apparaissent par catégorie :
+                <ul>
+                    <li>Actualités</li>
+                    <li>Palmarès</li>
+                    <li>Galerie</li>
+                    <li>Contacts</li>
+                    <li>Planning</li>
+                    <li>Activités</li>
+                </ul>
+            </div>
+            
+            <div class="step">
+                <span class="step-number">4</span>
+                Cliquez sur un résultat pour y accéder directement
+            </div>
+        </section>
+        
+        <section id="conseils">
+            <h2>14. Conseils et bonnes pratiques</h2>
+            
+            <h3>✅ À faire</h3>
+            <ul>
+                <li><strong>Sauvegarder régulièrement</strong> : N'oubliez pas de cliquer sur "Sauvegarder" après vos modifications</li>
+                <li><strong>Vérifier avant de publier</strong> : Relisez vos textes avant de les publier</li>
+                <li><strong>Utiliser des images de qualité</strong> : Les photos doivent être nettes et bien cadrées</li>
+                <li><strong>Remplir tous les champs obligatoires</strong> : Les champs marqués d'un * sont obligatoires</li>
+                <li><strong>Marquer les messages comme lus</strong> : Cela aide à suivre les messages traités</li>
+                <li><strong>Utiliser la prévisualisation</strong> : Vérifiez comment votre contenu apparaîtra avant de publier</li>
+            </ul>
+            
+            <h3>❌ À éviter</h3>
+            <ul>
+                <li><strong>Ne pas supprimer sans réfléchir</strong> : La suppression est définitive</li>
+                <li><strong>Ne pas utiliser de texte trop long</strong> : Les textes trop longs sont difficiles à lire</li>
+                <li><strong>Ne pas oublier de sauvegarder</strong> : Vos modifications ne sont pas enregistrées automatiquement</li>
+                <li><strong>Ne pas partager vos identifiants</strong> : Gardez vos identifiants secrets</li>
+                <li><strong>Ne pas utiliser d'images trop lourdes</strong> : Les images de plus de 5 Mo peuvent être lentes à charger</li>
+            </ul>
+            
+            <h3>💡 Astuces</h3>
+            <ul>
+                <li><strong>Utilisez la recherche</strong> : Si vous cherchez quelque chose, utilisez la recherche globale plutôt que de parcourir toutes les pages</li>
+                <li><strong>Filtrez les listes</strong> : Utilisez les filtres pour trouver rapidement ce que vous cherchez</li>
+                <li><strong>Vérifiez les messages non lus</strong> : Consultez régulièrement les nouveaux messages dans "Contacts"</li>
+                <li><strong>Testez sur le site public</strong> : Après avoir publié quelque chose, vérifiez qu'il apparaît bien sur le site</li>
+            </ul>
+        </section>
+        
+        <section id="problemes">
+            <h2>15. Résolution de problèmes</h2>
+            
+            <h3>🔐 Problème de connexion</h3>
+            <div class="step">
+                <span class="step-number">1</span>
+                Vérifiez que vous utilisez les bons identifiants
+            </div>
+            
+            <div class="step">
+                <span class="step-number">2</span>
+                Vérifiez que vous êtes bien sur la bonne adresse (Votre nom de domaine(ex : afboxing.com)/admin)
+            </div>
+            
+            <div class="step">
+                <span class="step-number">3</span>
+                Si le problème persiste, contactez l'administrateur technique(Maxence ADOPO - contact@pixelfounderstudio.fr)
+            </div>
+            
+            <h3>💾 Erreur lors de la sauvegarde</h3>
+            <div class="step">
+                <span class="step-number">1</span>
+                Vérifiez que tous les champs obligatoires (marqués d'un *) sont remplis
+            </div>
+            
+            <div class="step">
+                <span class="step-number">2</span>
+                Vérifiez que les dates sont au bon format (AAAA-MM-JJ)
+            </div>
+            
+            <div class="step">
+                <span class="step-number">3</span>
+                Vérifiez que les URLs sont complètes (commencent par http:// ou https://)
+            </div>
+            
+            <div class="step">
+                <span class="step-number">4</span>
+                Lisez le message d'erreur qui s'affiche - il indique souvent le problème
+            </div>
+            
+            <h3>📸 Problème avec les images</h3>
+            <div class="step">
+                <span class="step-number">1</span>
+                Vérifiez que le fichier est bien une image (JPG, PNG, GIF)
+            </div>
+            
+            <div class="step">
+                <span class="step-number">2</span>
+                Vérifiez que l'image n'est pas trop lourde (moins de 5 Mo recommandé)
+            </div>
+            
+            <div class="step">
+                <span class="step-number">3</span>
+                Si l'image ne s'affiche pas, essayez de la compresser ou d'en utiliser une autre
+            </div>
+            
+            <h3>🔄 Les modifications n'apparaissent pas</h3>
+            <div class="step">
+                <span class="step-number">1</span>
+                Vérifiez que vous avez bien cliqué sur "Sauvegarder"
+            </div>
+            
+            <div class="step">
+                <span class="step-number">2</span>
+                Actualisez la page du site public (F5 ou Ctrl+R)
+            </div>
+            
+            <div class="step">
+                <span class="step-number">3</span>
+                Videz le cache de votre navigateur si nécessaire
+            </div>
+            
+            <h3>❓ Autres problèmes</h3>
+            <p>Si vous rencontrez un problème non listé ici :</p>
+            <ul>
+                <li>Notez le message d'erreur exact qui s'affiche</li>
+                <li>Notez ce que vous étiez en train de faire quand le problème est survenu</li>
+                <li>Contactez l'administrateur technique(Maxence ADOPO - contact@pixelfounderstudio.fr) avec ces informations</li>
+            </ul>
+            
+            <div class="info">
+                <strong>📞 Contact technique :</strong> En cas de problème technique, contactez l'administrateur (Maxence ADOPO - contact@pixelfounderstudio.fr)du site avec :
+                <ul>
+                    <li>Le message d'erreur exact</li>
+                    <li>La section où le problème est survenu</li>
+                    <li>Les étapes pour reproduire le problème</li>
+                </ul>
+            </div>
+        </section>
+        
+        <section style="margin-top: 50px; padding-top: 30px; border-top: 2px solid #e60000;">
+            <h2>📞 Besoin d'aide ?</h2>
+            <p>Si vous avez des questions ou rencontrez des difficultés, n'hésitez pas à :</p>
+            <ul>
+                <li>Relire ce guide</li>
+                <li>Consulter les messages d'aide dans l'interface</li>
+                <li>Contacter l'administrateur technique(Maxence ADOPO - contact@pixelfounderstudio.fr)</li>
+            </ul>
+            
+            <div class="success" style="margin-top: 30px;">
+                <strong>🎉 Félicitations !</strong> Vous maîtrisez maintenant l'administration du site AF Boxing Club 86. 
+                N'hésitez pas à explorer et à expérimenter - vous ne pouvez rien casser définitivement !
+            </div>
+        </section>
+        
+        <footer style="margin-top: 50px; padding-top: 20px; border-top: 1px solid #ddd; text-align: center; color: #666;">
+            <p>Guide d'utilisation - AF Boxing Club 86</p>
+            <p>Dernière mise à jour : <script>document.write(new Date().toLocaleDateString('fr-FR'));</script></p>
+        </footer>
+    </div>
+</body>
+</html>
+

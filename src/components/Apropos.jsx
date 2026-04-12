@@ -1,8 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faFistRaised, faGraduationCap, faUsers, faHeart, faTrophy, faHandshake } from '@fortawesome/free-solid-svg-icons';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
+import SectionHeader from './SectionHeader';
+import aboutBg from '../assets/about.jpg';
+
+// Fix ESLint no-unused-vars dans certains setups: l'analyse ne voit pas `motion.*` en JSX.
+// (variable inutilisée autorisée car commence par "_")
+const _MOTION = motion;
 
 
 const Apropos = () => {
@@ -10,20 +16,17 @@ const Apropos = () => {
 
   return (
     <div className="container-fluid">
-      {/* Hero Section */}
-      <section className="about-hero">
-        <div className="container">
-          <motion.div 
-            className="hero-content"
-            initial={{ opacity: 0, y: 50 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-          >
-            <h1>À propos de nous</h1>
-            <p>Découvrez l'histoire et les valeurs de l'AF Boxing Club 86</p>
-          </motion.div>
-        </div>
-      </section>
+      <SectionHeader
+        title="Le club"
+        subtitle="Une structure sportive et socio-éducative à Poitiers, fondée sur le respect, la discipline et la solidarité."
+        eyebrow="Sport • Éducation • Inclusion"
+        image={aboutBg}
+        actions={[
+          { label: "Activités", to: "/activite", className: "btn-primary", icon: <FontAwesomeIcon icon={faFistRaised} /> },
+          { label: "Socio-éducatif", to: "/actualite", className: "btn-outline", icon: <FontAwesomeIcon icon={faGraduationCap} /> },
+          { label: "Contact", to: "/contact", className: "btn-secondary", icon: <FontAwesomeIcon icon={faUsers} /> },
+        ]}
+      />
 
       {/* Mission Section */}
       <section className="mission-section">
@@ -178,7 +181,7 @@ const Apropos = () => {
             >
               <FontAwesomeIcon icon={faTrophy} className="cta-icon" />
               <h3>Palmarès</h3>
-              <p>Découvrez les succès et les titres remportés par nos boxeurs.</p>
+              <p>Résultats, moments marquants et compétitions : l’histoire du club en chiffres.</p>
               <button className="btn btn-primary" onClick={() => navigate('/palmares')}>
                 Voir le palmarès
               </button>
@@ -192,8 +195,8 @@ const Apropos = () => {
               viewport={{ once: true }}
             >
               <FontAwesomeIcon icon={faUsers} className="cta-icon" />
-              <h3>Rejoignez-nous</h3>
-              <p>Intégrez notre club et découvrez la boxe dans un cadre bienveillant.</p>
+              <h3>Commencer au club</h3>
+              <p>Tarifs, inscription et documents : tout est prêt pour démarrer sereinement.</p>
               <button className="btn btn-secondary" onClick={() => navigate('/tarif')}>
                 S'inscrire
               </button>

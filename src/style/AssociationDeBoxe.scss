@@ -238,7 +238,7 @@ nav .btn {
     }
   }
   .center-btn {
-    background: #ed5508;
+    background: var(--primary-black);
 
     &:hover {
       color: black !important;
@@ -402,11 +402,11 @@ nav .btn {
       }
 
       .center-btn {
-        background: linear-gradient(135deg, var(--primary-orange), #d44a00);
+        background: var(--gradient-primary);
         color: white;
 
         &:hover {
-          background: linear-gradient(135deg, #d44a00, #b83d00);
+          background: linear-gradient(135deg, var(--primary-red-dark), var(--primary-red));
         }
       }
     }
@@ -648,24 +648,24 @@ transition: transform 0.5s ease-in-out;
   background: linear-gradient(135deg, var(--secondary-gray), #fafafa);
   margin-top: var(--spacing-xxl);
 
-  h2 {
-    text-align: center;
-    margin-bottom: var(--spacing-xl);
-    color: var(--primary-black);
-    position: relative;
+      h2 {
+        text-align: center;
+        margin-bottom: var(--spacing-xl);
+        color: var(--primary-black);
+        position: relative;
 
-    &::after {
-      content: '';
-      position: absolute;
-      bottom: -10px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 80px;
-      height: 4px;
-      background: linear-gradient(90deg, var(--primary-red), var(--primary-orange));
-      border-radius: 2px;
-    }
-  }
+        &::after {
+          content: '';
+          position: absolute;
+          bottom: -10px;
+          left: 50%;
+          transform: translateX(-50%);
+          width: 80px;
+          height: 4px;
+          background: var(--gradient-primary);
+          border-radius: 2px;
+        }
+      }
 }
 
 .news-grid {

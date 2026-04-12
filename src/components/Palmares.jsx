@@ -1,80 +1,46 @@
 import React from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTrophy, faMedal, faCalendarAlt, faMapMarkerAlt, faUsers, faEnvelope, faFileSignature, faStar, faCrown } from '@fortawesome/free-solid-svg-icons';
-import { OptimizedMotion, CardMotion, fadeInUp } from './OptimizedMotion';
+import { OptimizedMotion, CardMotion } from './OptimizedMotion';
 import { useNavigate } from 'react-router-dom';
+import { palmaresApi } from '../services/apiService';
+import SectionHeader from './SectionHeader';
+import amateurBg from '../assets/coach1.jpg';
 
 const Palmares = () => {
   const navigate = useNavigate();
+  const [achievements, setAchievements] = React.useState([]);
+  const [loading, setLoading] = React.useState(false);
+  const [error, setError] = React.useState('');
 
-  const achievements = [
-    {
-      id: 1,
-      title: 'Championnat Régional Nouvelle-Aquitaine',
-      date: '2024-03-15',
-      location: 'Poitiers',
-      category: 'Boxe Amateur',
-      result: 'Champion',
-      boxer: 'Mohamed Benali',
-      details: 'Victoire par décision unanime contre le champion de Bordeaux. Combat très disputé sur 3 rounds avec une technique remarquable.',
-      image: 'trophy1.jpg'
-    },
-    {
-      id: 2,
-      title: 'Tournoi Inter-clubs Vienne',
-      date: '2024-02-10',
-      location: 'Châtellerault',
-      category: 'Boxe Éducative',
-      result: 'Vainqueur',
-      boxer: 'Équipe AF Boxing',
-      details: 'Victoire collective de notre équipe éducative avec 3 victoires sur 4 combats. Excellent esprit d\'équipe et technique.',
-      image: 'trophy2.jpg'
-    },
-    {
-      id: 3,
-      title: 'Championnat Handiboxe',
-      date: '2024-01-20',
-      location: 'La Rochelle',
-      category: 'Handiboxe',
-      result: 'Médaillé d\'Argent',
-      boxer: 'Sophie Martin',
-      details: 'Première participation en compétition handiboxe. Performance remarquable et esprit sportif exemplaire.',
-      image: 'trophy3.jpg'
-    },
-    {
-      id: 4,
-      title: 'Coupe de France Amateur',
-      date: '2023-12-05',
-      location: 'Paris',
-      category: 'Boxe Amateur',
-      result: 'Demi-finaliste',
-      boxer: 'Karim Traoré',
-      details: 'Excellent parcours jusqu\'en demi-finale. Défaite honorable contre le futur champion de France.',
-      image: 'trophy4.jpg'
-    },
-    {
-      id: 5,
-      title: 'Tournoi Jeunes Espoirs',
-      date: '2023-11-18',
-      location: 'Angoulême',
-      category: 'Boxe Éducative',
-      result: 'Champion',
-      boxer: 'Lucas Dubois',
-      details: 'Victoire technique parfaite. Le jeune boxeur montre un grand potentiel pour l\'avenir.',
-      image: 'trophy5.jpg'
-    },
-    {
-      id: 6,
-      title: 'Championnat Inter-régional',
-      date: '2023-10-12',
-      location: 'Limoges',
-      category: 'Boxe Amateur',
-      result: 'Médaillé de Bronze',
-      boxer: 'Fatima Alami',
-      details: 'Première compétition importante pour notre boxeuse. Performance encourageante et belle progression.',
-      image: 'trophy6.jpg'
-    }
-  ];
+  const stats = React.useMemo(() => {
+    const total = achievements.length;
+    const champions = achievements.filter((a) => a?.result === 'Champion' || a?.result === 'Vainqueur').length;
+    const medals = achievements.filter((a) => String(a?.result || '').includes('Médaillé')).length;
+    const boxers = new Set(achievements.map((a) => a?.boxer).filter(Boolean)).size;
+    return { total, champions, medals, boxers };
+  }, [achievements]);
+
+  React.useEffect(() => {
+    const load = async () => {
+      setLoading(true);
+      setError('');
+      try {
+        const data = await palmaresApi.list();
+        const list = Array.isArray(data) ? data : (data?.data || []);
+        setAchievements(
+          list
+            .slice()
+            .sort((a, b) => new Date(b.date) - new Date(a.date))
+        );
+      } catch (err) {
+        setError(err.message || 'Impossible de charger les palmarès.');
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
+  }, []);
 
   const getResultColor = (result) => {
     switch (result) {
@@ -82,11 +48,11 @@ const Palmares = () => {
       case 'Vainqueur':
         return 'var(--primary-red)';
       case 'Médaillé d\'Argent':
-        return '#C0C0C0';
+        return 'var(--secondary-light)';
       case 'Médaillé de Bronze':
-        return '#CD7F32';
+        return 'var(--secondary-dark)';
       default:
-        return 'var(--primary-orange)';
+        return 'var(--primary-red-dark)';
     }
   };
 
@@ -107,17 +73,16 @@ const Palmares = () => {
 
   return (
     <div className="container-fluid">
-      {/* Hero Section */}
-      <section className="palmares-hero">
-        <div className="container">
-          <OptimizedMotion variant={fadeInUp}>
-            <div className="hero-content">
-              <h1>🏆 Palmarès</h1>
-              <p>Nos succès et nos moments de gloire en compétition</p>
-            </div>
-          </OptimizedMotion>
-        </div>
-      </section>
+      <SectionHeader
+        title="Palmarès"
+        subtitle="Nos succès et nos moments marquants en compétition : résultats, dates, lieux et boxeurs."
+        eyebrow="Sérieux • Performance • Fierté"
+        image={amateurBg}
+        actions={[
+          { label: "Activités", to: "/activite", className: "btn-primary" },
+          { label: "Contact", to: "/contact", className: "btn-outline" },
+        ]}
+      />
 
       {/* Achievements Section */}
       <section className="palmares-main">
@@ -127,7 +92,12 @@ const Palmares = () => {
           </OptimizedMotion>
           
           <div className="achievements-grid">
-            {achievements.map((achievement, index) => (
+            {loading && <p>Chargement des palmarès...</p>}
+            {error && !loading && <p>{error}</p>}
+            {!loading && !error && achievements.length === 0 && (
+              <p>Aucun palmarès enregistré pour le moment.</p>
+            )}
+            {!loading && !error && achievements.map((achievement, index) => (
               <CardMotion
                 key={achievement.id}
                 className="achievement-card"
@@ -174,27 +144,27 @@ const Palmares = () => {
         <div className="container">
           <OptimizedMotion>
             <div className="stats-content">
-              <h2>Nos Statistiques</h2>
+              <h2>En chiffres</h2>
               <div className="stats-grid">
                 <CardMotion className="stat-item" delay={0.1}>
                   <FontAwesomeIcon icon={faCrown} className="stat-icon" />
-                  <div className="stat-number">12</div>
-                  <div className="stat-label">Titres remportés</div>
+                  <div className="stat-number">{stats.champions}</div>
+                  <div className="stat-label">Titres / victoires</div>
                 </CardMotion>
                 <CardMotion className="stat-item" delay={0.2}>
                   <FontAwesomeIcon icon={faMedal} className="stat-icon" />
-                  <div className="stat-number">28</div>
+                  <div className="stat-number">{stats.medals}</div>
                   <div className="stat-label">Médailles</div>
                 </CardMotion>
                 <CardMotion className="stat-item" delay={0.3}>
                   <FontAwesomeIcon icon={faUsers} className="stat-icon" />
-                  <div className="stat-number">45</div>
-                  <div className="stat-label">Boxeurs actifs</div>
+                  <div className="stat-number">{stats.boxers}</div>
+                  <div className="stat-label">Boxeurs (palmarès)</div>
                 </CardMotion>
                 <CardMotion className="stat-item" delay={0.4}>
                   <FontAwesomeIcon icon={faCalendarAlt} className="stat-icon" />
-                  <div className="stat-number">8</div>
-                  <div className="stat-label">Années d'existence</div>
+                  <div className="stat-number">{stats.total}</div>
+                  <div className="stat-label">Résultats publiés</div>
                 </CardMotion>
               </div>
             </div>
@@ -209,16 +179,16 @@ const Palmares = () => {
             <CardMotion className="cta-card" delay={0.1}>
               <FontAwesomeIcon icon={faEnvelope} className="cta-icon" />
               <h3>Nous contacter</h3>
-              <p>Pour plus d'informations sur nos compétitions et entraînements.</p>
+              <p>Une question sur la compétition, les licences ou les entraînements ? On vous répond.</p>
               <button className="btn btn-primary" onClick={() => navigate('/contact')}>
-                Contactez-nous
+                Nous écrire
               </button>
             </CardMotion>
 
             <CardMotion className="cta-card" delay={0.2}>
               <FontAwesomeIcon icon={faFileSignature} className="cta-icon" />
-              <h3>Rejoignez-nous</h3>
-              <p>Intégrez notre club et participez aux prochaines compétitions.</p>
+              <h3>Tarifs & inscription</h3>
+              <p>Retrouvez les formules et démarrez avec le bon créneau.</p>
               <button className="btn btn-secondary" onClick={() => navigate('/tarif')}>
                 S'inscrire
               </button>

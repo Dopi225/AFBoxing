@@ -2,18 +2,58 @@ import React, { useState, useEffect } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faFistRaised, faGraduationCap, faFileAlt, faDownload, faCheckCircle } from '@fortawesome/free-solid-svg-icons';
 import Modal from './Modal';
+import { pricingApi } from '../services/apiService';
+import SectionHeader from './SectionHeader';
+import pricingBg from '../assets/club.jpeg';
+
+const formatPrice = (price) => {
+  if (!price) return '—';
+  if (price.amount === 0) return 'Gratuit';
+  if (typeof price.amount === 'number') return `${price.amount}€`;
+  return String(price.amount);
+};
 
 const Tarif = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [modalTitle, setModalTitle] = useState('');
   const [modalContent, setModalContent] = useState(null);
+  const [pricing, setPricing] = useState(null);
   
   useEffect(() => {
     document.body.style.overflow = modalOpen ? 'hidden' : 'auto';
     return () => (document.body.style.overflow = 'auto');
   }, [modalOpen]);
 
+  useEffect(() => {
+    const loadPricing = async () => {
+      try {
+        const data = await pricingApi.list();
+        setPricing(data);
+      } catch (err) {
+        console.error('Error loading pricing:', err);
+        // Fallback sur données par défaut
+        setPricing({
+          boxing: {
+            educative: { label: 'Boxe Éducative', amount: 80, period: 'an', note: 'Licence comprise – Certificat médical obligatoire' },
+            loisir: { label: 'Boxe Loisir', amount: 120, period: 'an', note: 'Licence comprise – Certificat médical obligatoire' }
+          },
+          social: {
+            periscolaire: { label: 'Programme Social-Éducatif', amount: 30, period: 'an', note: 'Tarif dégressif selon quotient familial (CAF)' }
+          }
+        });
+      }
+    };
+
+    loadPricing();
+  }, []);
+
   const openModal = (type) => {
+    if (!pricing) return;
+    
+    const boxingEduc = pricing.boxing?.educative || { label: 'Boxe Éducative', amount: 80, period: 'an', note: 'Licence comprise – Certificat médical obligatoire' };
+    const boxingAdult = pricing.boxing?.loisir || pricing.boxing?.amateur || { label: 'Boxe Loisir', amount: 120, period: 'an', note: 'Licence comprise – Certificat médical obligatoire' };
+    const social = pricing.social?.periscolaire || { label: 'Programme Social-Éducatif', amount: 30, period: 'an', note: 'Tarif dégressif selon quotient familial (CAF)' };
+
     if (type === 'boxe') {
       setModalTitle("Inscription Boxe Anglaise");
       setModalContent(
@@ -23,18 +63,18 @@ const Tarif = () => {
             <div className="pricing-grid">
               <div className="pricing-card">
                 <h4>Boxe Éducative</h4>
-                <div className="price">80€<span>/an</span></div>
+                <div className="price">{formatPrice(boxingEduc)}<span>/{boxingEduc.period}</span></div>
                 <p>Enfants et adolescents (-18 ans)</p>
               </div>
               <div className="pricing-card featured">
                 <h4>Boxe Loisir/Amateur</h4>
-                <div className="price">120€<span>/an</span></div>
+                <div className="price">{formatPrice(boxingAdult)}<span>/{boxingAdult.period}</span></div>
                 <p>Adultes (18 ans et plus)</p>
               </div>
             </div>
             <div className="pricing-note">
               <FontAwesomeIcon icon={faCheckCircle} />
-              <span>Licence comprise – Certificat médical obligatoire</span>
+              <span>{boxingEduc.note}</span>
             </div>
           </div>
 
@@ -66,13 +106,13 @@ const Tarif = () => {
             <div className="pricing-grid">
               <div className="pricing-card">
                 <h4>Activité Périscolaire</h4>
-                <div className="price">30€<span>/an</span></div>
+                <div className="price">{formatPrice(social)}<span>/{social.period}</span></div>
                 <p>Aide aux devoirs, sorties, etc.</p>
               </div>
             </div>
             <div className="pricing-note">
               <FontAwesomeIcon icon={faCheckCircle} />
-              <span>Tarif dégressif selon quotient familial (CAF)</span>
+              <span>{social.note}</span>
             </div>
           </div>
 
@@ -102,19 +142,21 @@ const Tarif = () => {
 
   return (
     <div className="container-fluid">
-      <section className="pricing-hero">
-        <div className="container">
-          <div className="hero-content">
-            <h1>Tarifs et Inscriptions</h1>
-            <p>Rejoignez l'AF Boxing Club 86 et découvrez nos programmes adaptés à tous les âges et tous les besoins.</p>
-          </div>
-        </div>
-      </section>
+      <SectionHeader
+        title="Tarifs & inscriptions"
+        subtitle="Tarifs, modalités et documents : choisissez votre programme (boxe ou socio-éducatif) et démarrez simplement."
+        eyebrow="Simple • Clair • Accompagné"
+        image={pricingBg}
+        actions={[
+          { label: "Contact", to: "/contact", className: "btn-secondary" },
+          { label: "Horaires", to: "/horaire", className: "btn-outline" },
+        ]}
+      />
 
       <section className="pricing-section">
         <div className="container">
           <h2>Choisissez votre programme</h2>
-          <p className="section-subtitle">Sélectionnez une catégorie pour consulter les tarifs et les documents d'inscription.</p>
+          <p className="section-subtitle">Sélectionnez une catégorie pour voir les tarifs, les documents et les étapes d’inscription.</p>
           
           <div className="pricing-cards">
             <div className="pricing-card main-card" onClick={() => openModal('boxe')}>
@@ -125,7 +167,10 @@ const Tarif = () => {
               <div className="card-content">
                 <div className="price-highlight">
                   <span className="price-from">À partir de</span>
-                  <div className="price">80€<span>/an</span></div>
+                  <div className="price">
+                    {pricing?.boxing?.educative ? formatPrice(pricing.boxing.educative) : '80€'}
+                    <span>/an</span>
+                  </div>
                 </div>
                 <ul className="features-list">
                   <li><FontAwesomeIcon icon={faCheckCircle} /> Boxe Éducative (enfants)</li>
@@ -147,7 +192,10 @@ const Tarif = () => {
               <div className="card-content">
                 <div className="price-highlight">
                   <span className="price-from">À partir de</span>
-                  <div className="price">30€<span>/an</span></div>
+                  <div className="price">
+                    {pricing?.social?.periscolaire ? formatPrice(pricing.social.periscolaire) : '30€'}
+                    <span>/an</span>
+                  </div>
                 </div>
                 <ul className="features-list">
                   <li><FontAwesomeIcon icon={faCheckCircle} /> Aide aux devoirs</li>
@@ -175,12 +223,12 @@ const Tarif = () => {
             <div className="info-card">
               <FontAwesomeIcon icon={faCheckCircle} className="info-icon" />
               <h3>Inscription simple</h3>
-              <p>Processus d'inscription rapide et accompagnement personnalisé pour tous les nouveaux membres.</p>
+              <p>On vous accompagne : choix du créneau, informations pratiques et documents à prévoir.</p>
             </div>
             <div className="info-card">
               <FontAwesomeIcon icon={faGraduationCap} className="info-icon" />
               <h3>Encadrement qualifié</h3>
-              <p>Équipe d'éducateurs diplômés et expérimentés pour un suivi de qualité.</p>
+              <p>Encadrement progressif, sécurité, et adaptation aux profils (jeunes, adultes, inclusion).</p>
             </div>
           </div>
         </div>

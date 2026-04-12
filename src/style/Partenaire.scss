@@ -1,7 +1,7 @@
 /* Styles pour la page Partenaires - AF Boxing Club */
 
 .partners-hero {
-  background: linear-gradient(135deg, var(--primary-black), var(--primary-orange));
+  background: var(--gradient-hero);
   color: white;
   padding: var(--spacing-xxl) 0;
   text-align: center;
@@ -47,7 +47,7 @@
       transform: translateX(-50%);
       width: 80px;
       height: 4px;
-      background: linear-gradient(90deg, var(--primary-red), var(--primary-orange));
+      background: var(--gradient-primary);
       border-radius: 2px;
     }
   }
@@ -159,7 +159,7 @@
           transition: all var(--transition-normal);
 
           &:hover {
-            color: var(--primary-orange);
+            color: var(--primary-red-dark);
             transform: translateX(5px);
           }
 
@@ -191,7 +191,7 @@
         transform: translateX(-50%);
         width: 80px;
         height: 4px;
-        background: linear-gradient(90deg, var(--primary-red), var(--primary-orange));
+        background: var(--gradient-primary);
         border-radius: 2px;
       }
     }

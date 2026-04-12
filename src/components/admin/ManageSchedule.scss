@@ -1,0 +1,146 @@
+.manage-schedule {
+  .page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+
+    h2 {
+      font-size: 2rem;
+      color: var(--primary-black);
+      font-weight: 700;
+    }
+
+    .btn-primary {
+      padding: 0.875rem 1.5rem;
+      background: var(--primary-red);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 1rem;
+      font-weight: 600;
+      transition: all 0.3s ease;
+
+      &:hover {
+        background: var(--primary-red-dark);
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(230, 0, 0, 0.3);
+      }
+    }
+  }
+
+  .schedule-list {
+    display: grid;
+    gap: 1.5rem;
+
+    .day-card {
+      background: white;
+      border-radius: 16px;
+      padding: 2rem;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+
+      .day-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        padding-bottom: 1rem;
+        border-bottom: 2px solid var(--secondary-gray);
+
+        h3 {
+          font-size: 1.5rem;
+          color: var(--primary-black);
+          font-weight: 700;
+        }
+
+        .btn-add {
+          padding: 0.5rem 1rem;
+          background: var(--primary-red);
+          color: white;
+          border: none;
+          border-radius: 6px;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          font-size: 0.9rem;
+          transition: all 0.3s ease;
+
+          &:hover {
+            background: var(--primary-red-dark);
+          }
+        }
+      }
+
+      .activities-list {
+        .empty-message {
+          color: var(--text-light);
+          text-align: center;
+          padding: 2rem;
+        }
+
+        .activity-item {
+          display: grid;
+          grid-template-columns: 200px 1fr 150px auto;
+          gap: 1rem;
+          align-items: center;
+          padding: 1rem;
+          background: var(--secondary-gray);
+          border-radius: 8px;
+          margin-bottom: 0.75rem;
+
+          .activity-time {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--primary-red);
+
+            input {
+              flex: 1;
+              padding: 0.5rem;
+              border: 1px solid #ddd;
+              border-radius: 4px;
+            }
+          }
+
+          select,
+          input {
+            padding: 0.5rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 0.95rem;
+          }
+
+          .btn-delete {
+            padding: 0.5rem;
+            background: #fee;
+            color: #c33;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+
+            &:hover {
+              background: #c33;
+              color: white;
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .manage-schedule {
+    .schedule-list .day-card .activities-list .activity-item {
+      grid-template-columns: 1fr;
+      gap: 0.75rem;
+    }
+  }
+}
+

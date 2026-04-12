@@ -3,10 +3,12 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faExternalLinkAlt, faHandshake, faHeart, faEnvelope } from '@fortawesome/free-solid-svg-icons';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
+import SectionHeader from './SectionHeader';
 
 import logoPoitiers from '../assets/LOGOPOITIERS.jpg';
 import logoFFBoxe from '../assets/FFBOXE.png';
 import logoEkidom from '../assets/ekidom.jpg';
+import partenaireHero from '../assets/partenaire1.jpg';
 
 const partenaires = [
   { 
@@ -63,11 +65,11 @@ const Partenaire = () => {
       case 'Fédération':
         return 'var(--primary-black)';
       case 'Social':
-        return 'var(--primary-orange)';
+        return 'var(--primary-red-dark)';
       case 'Régional':
         return 'var(--primary-red)';
       case 'Sportif':
-        return 'var(--primary-orange)';
+        return 'var(--primary-red-dark)';
       default:
         return 'var(--primary-red)';
     }
@@ -75,20 +77,16 @@ const Partenaire = () => {
 
   return (
     <div className="container-fluid">
-      {/* Hero Section */}
-      <section className="partners-hero">
-        <div className="container">
-          <motion.div 
-            className="hero-content"
-            initial={{ opacity: 0, y: 50 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-          >
-            <h1>Nos Partenaires</h1>
-        <p>Merci à ceux qui nous soutiennent et partagent nos valeurs</p>
-          </motion.div>
-        </div>
-      </section>
+      <SectionHeader
+        title="Partenaires"
+        subtitle="Merci à ceux qui nous soutiennent et partagent nos valeurs sportives, humaines et inclusives."
+        eyebrow="Confiance & engagement"
+        image={partenaireHero}
+        actions={[
+          { label: "Devenir partenaire", to: "/contact", className: "btn-primary", icon: <FontAwesomeIcon icon={faHandshake} /> },
+          { label: "Contact", to: "/contact", className: "btn-outline", icon: <FontAwesomeIcon icon={faEnvelope} /> },
+        ]}
+      />
 
       {/* Partners Section */}
       <section className="partners-main">
@@ -114,7 +112,7 @@ const Partenaire = () => {
                 whileHover={{ scale: 1.05 }}
               >
                 <div className="partner-logo">
-                  <img src={partner.logo} alt={partner.name} />
+                  <img src={partner.logo} alt={partner.name} loading="lazy" decoding="async" />
                   <div className="logo-overlay">
                     <FontAwesomeIcon icon={faExternalLinkAlt} />
                   </div>
@@ -195,7 +193,7 @@ const Partenaire = () => {
         </div>
       </section>
     </div>
-);
+  );
 };
 
 export default Partenaire;
