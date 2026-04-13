@@ -10,8 +10,7 @@ export const logActivity = async (action, entity, description, user = 'Admin') =
       user
     });
   } catch (err) {
-    // Ne pas bloquer l'application si l'enregistrement de log échoue
-    console.error('Error logging activity:', err);
+    if (import.meta.env.DEV) console.warn('Error logging activity:', err);
   }
 };
 

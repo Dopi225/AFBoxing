@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace AFBoxing\Middlewares;
 
+use AFBoxing\Core\HttpRequest;
+use AFBoxing\Core\JsonErrorResponse;
+use AFBoxing\Core\JwtRevocationList;
 use Dotenv\Dotenv;
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
@@ -21,24 +24,26 @@ interface AuthMiddlewareInterface
 
 class AuthMiddleware implements AuthMiddlewareInterface
 {
+    /**
+     * @param list<string>|null $requiredRoles Si défini, le rôle de l'utilisateur doit être dans cette liste (ex. admin, editor).
+     */
+    public function __construct(
+        private ?array $requiredRoles = null
+    ) {
+    }
+
     public function handle(): ?array
     {
-        header('Content-Type: application/json; charset=utf-8');
+        $token = HttpRequest::bearerToken();
 
-        $headers = $this->getAuthorizationHeader();
-
-        if (!$headers || !preg_match('/Bearer\s+(\S+)/i', $headers, $matches)) {
-            http_response_code(401);
-            echo json_encode(['error' => 'Authorization header missing'], JSON_UNESCAPED_UNICODE);
+        if ($token === null || $token === '') {
+            JsonErrorResponse::send(401, 'AUTH_HEADER_MISSING', 'Authorization header missing');
             return null;
         }
-
-        $token = $matches[1];
         $this->loadEnvIfNeeded();
         $secret = $_ENV['JWT_SECRET'] ?? getenv('JWT_SECRET') ?: null;
         if (!$secret) {
-            http_response_code(500);
-            echo json_encode(['error' => 'JWT misconfigured (JWT_SECRET missing)'], JSON_UNESCAPED_UNICODE);
+            JsonErrorResponse::send(500, 'JWT_MISCONFIGURED', 'JWT misconfigured (JWT_SECRET missing)');
             return null;
         }
 
@@ -50,6 +55,32 @@ class AuthMiddleware implements AuthMiddlewareInterface
                 throw new \RuntimeException('Invalid token payload');
             }
 
+            if (isset($decoded->iss) && (string) $decoded->iss !== 'afboxing-api') {
+                JsonErrorResponse::send(401, 'INVALID_TOKEN', 'Invalid token issuer');
+                return null;
+            }
+
+            if (isset($decoded->aud)) {
+                $audOk = false;
+                if (is_string($decoded->aud) && $decoded->aud === 'afboxing-api') {
+                    $audOk = true;
+                } elseif (is_array($decoded->aud) && in_array('afboxing-api', $decoded->aud, true)) {
+                    $audOk = true;
+                }
+                if (!$audOk) {
+                    JsonErrorResponse::send(401, 'INVALID_TOKEN', 'Invalid token audience');
+                    return null;
+                }
+            }
+
+            if (isset($decoded->jti) && is_string($decoded->jti) && $decoded->jti !== '') {
+                $revocation = new JwtRevocationList();
+                if ($revocation->isRevoked($decoded->jti)) {
+                    JsonErrorResponse::send(401, 'TOKEN_REVOKED', 'Token has been revoked');
+                    return null;
+                }
+            }
+
             /** @var PDO $pdo */
             $pdo = afboxing_db();
             $stmt = $pdo->prepare('SELECT id, username, role, created_at FROM users WHERE id = :id LIMIT 1');
@@ -57,57 +88,23 @@ class AuthMiddleware implements AuthMiddlewareInterface
             $user = $stmt->fetch();
 
             if (!$user) {
-                http_response_code(401);
-                echo json_encode(['error' => 'User not found'], JSON_UNESCAPED_UNICODE);
+                JsonErrorResponse::send(401, 'USER_NOT_FOUND', 'User not found');
                 return null;
+            }
+
+            if ($this->requiredRoles !== null) {
+                $role = (string) ($user['role'] ?? '');
+                if (!in_array($role, $this->requiredRoles, true)) {
+                    JsonErrorResponse::send(403, 'FORBIDDEN', 'Accès refusé : permissions insuffisantes.');
+                    return null;
+                }
             }
 
             return $user;
         } catch (\Throwable $e) {
-            http_response_code(401);
-            echo json_encode(['error' => 'Invalid or expired token'], JSON_UNESCAPED_UNICODE);
+            JsonErrorResponse::send(401, 'INVALID_TOKEN', 'Invalid or expired token');
             return null;
         }
-    }
-
-    private function getAuthorizationHeader(): ?string
-    {
-        // Cas le plus fréquent (Apache / PHP-FPM) : HTTP_AUTHORIZATION
-        if (isset($_SERVER['HTTP_AUTHORIZATION'])) {
-            return trim((string) $_SERVER['HTTP_AUTHORIZATION']);
-        }
-
-        // Selon la config Apache + FastCGI, l'header peut être préfixé REDIRECT_
-        if (isset($_SERVER['REDIRECT_HTTP_AUTHORIZATION'])) {
-            return trim((string) $_SERVER['REDIRECT_HTTP_AUTHORIZATION']);
-        }
-
-        // Certains environnements utilisent HTTPS_AUTHORIZATION (rare, mais on garde en dernier recours)
-        if (isset($_SERVER['HTTPS_AUTHORIZATION'])) {
-            return trim((string) $_SERVER['HTTPS_AUTHORIZATION']);
-        }
-
-        // getallheaders() : souvent dispo même quand apache_request_headers() ne l'est pas
-        if (function_exists('getallheaders')) {
-            /** @var array<string, string> $headers */
-            $headers = getallheaders();
-            foreach ($headers as $k => $v) {
-                if (strtolower((string) $k) === 'authorization') {
-                    return trim((string) $v);
-                }
-            }
-        }
-
-        if (function_exists('apache_request_headers')) {
-            $headers = apache_request_headers();
-            foreach ($headers as $k => $v) {
-                if (strtolower((string) $k) === 'authorization') {
-                    return trim((string) $v);
-                }
-            }
-        }
-
-        return null;
     }
 
     private function loadEnvIfNeeded(): void

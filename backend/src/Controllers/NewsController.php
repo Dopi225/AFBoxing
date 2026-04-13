@@ -17,8 +17,21 @@ class NewsController extends BaseController
 
     public function index(array $params): void
     {
-        $items = $this->news->all();
-        $this->json($items);
+        $page = isset($_GET['page']) ? max(1, (int) $_GET['page']) : 1;
+        $perPage = isset($_GET['per_page']) ? min(500, max(1, (int) $_GET['per_page'])) : 500;
+        $total = $this->news->countAll();
+        $items = $this->news->paginate($page, $perPage);
+        $totalPages = $perPage > 0 ? (int) ceil($total / $perPage) : 0;
+
+        $this->json([
+            'data' => $items,
+            'meta' => [
+                'total' => $total,
+                'page' => $page,
+                'per_page' => $perPage,
+                'total_pages' => $totalPages,
+            ],
+        ]);
     }
 
     public function show(array $params): void
@@ -26,7 +39,7 @@ class NewsController extends BaseController
         $id = (int)($params['id'] ?? 0);
         $item = $this->news->find($id);
         if (!$item) {
-            $this->json(['error' => 'Actualité introuvable'], 404);
+            $this->jsonError('NOT_FOUND', 'Actualité introuvable', 404);
             return;
         }
         $this->json($item);
@@ -86,7 +99,7 @@ class NewsController extends BaseController
         $id = (int)($params['id'] ?? 0);
         $existing = $this->news->find($id);
         if (!$existing) {
-            $this->json(['error' => 'Actualité introuvable'], 404);
+            $this->jsonError('NOT_FOUND', 'Actualité introuvable', 404);
             return;
         }
 
@@ -142,7 +155,7 @@ class NewsController extends BaseController
         $id = (int)($params['id'] ?? 0);
         $existing = $this->news->find($id);
         if (!$existing) {
-            $this->json(['error' => 'Actualité introuvable'], 404);
+            $this->jsonError('NOT_FOUND', 'Actualité introuvable', 404);
             return;
         }
 

@@ -1,4 +1,4 @@
-import { defineConfig } from 'vite'
+import { defineConfig } from 'vitest/config'
 import react from '@vitejs/plugin-react-swc'
 import viteImagemin from 'vite-plugin-imagemin'
 
@@ -6,14 +6,25 @@ import viteImagemin from 'vite-plugin-imagemin'
 export default defineConfig({
   plugins: [
     react(),
-    // Minifie automatiquement les images au build (sans changer tes imports)
-    viteImagemin({
-      gifsicle: { optimizationLevel: 3 },
-      optipng: { optimizationLevel: 7 },
-      mozjpeg: { quality: 75 },
-      pngquant: { quality: [0.7, 0.85], speed: 3 },
-      svgo: true,
-      webp: { quality: 75 }
-    })
+    // Évite imagemin pendant les tests Vitest (trop lent / inutile)
+    ...(process.env.VITEST
+      ? []
+      : [
+          viteImagemin({
+            gifsicle: { optimizationLevel: 3 },
+            optipng: { optimizationLevel: 7 },
+            mozjpeg: { quality: 75 },
+            pngquant: { quality: [0.7, 0.85], speed: 3 },
+            svgo: true,
+            webp: { quality: 75 }
+          })
+        ])
   ],
+  test: {
+    globals: false,
+    environment: 'jsdom',
+    setupFiles: './src/test/setupTests.js',
+    include: ['src/**/*.{test,spec}.{js,jsx}'],
+    css: true
+  }
 })

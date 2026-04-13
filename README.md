@@ -27,6 +27,7 @@ L'AF Boxing Club 86 est un club de boxe qui propose :
 - 📅 **Gestion du planning** (horaires et activités)
 - 🖼️ **Gestion de la galerie** (photos et catégories)
 - 📧 **Gestion des contacts** (demandes de contact, marquer comme lu)
+- 👤 **Comptes staff** (admin / éditeur) avec contrôle d’accès par rôle
 - 💾 **Backend PHP** (API REST sécurisée + base MySQL pour toutes les données métier)
 
 ## 🛠️ Technologies utilisées
@@ -57,6 +58,30 @@ npm run build
 
 # Prévisualiser le build
 npm run preview
+
+# Tests (Vitest + Testing Library)
+npm test
+
+# Tests E2E (Playwright — installe les navigateurs une première fois : npx playwright install)
+npm run test:e2e
+```
+
+### Variables d’environnement utiles (backend)
+
+| Variable | Rôle |
+|----------|------|
+| `APP_ENV` | `production` pour CORS strict et messages d’erreur génériques |
+| `JWT_SECRET` | Secret de signature JWT (obligatoire) |
+| `CORS_ALLOWED_ORIGINS` | Liste d’origines séparées par des virgules |
+| `CORS_STRICT=1` | En dev, n’autoriser que les origines listées (comme en prod) |
+| `TRUSTED_PROXY=1` | Derrière reverse proxy : lire `X-Forwarded-For` / `X-Real-IP` pour IP client (rate limit) |
+
+### Tests backend (API PHP)
+
+```bash
+cd backend
+composer install
+composer test
 ```
 
 ## 📁 Structure du projet
@@ -147,12 +172,12 @@ Le frontend utilisera automatiquement cette URL pour tous les appels API.
 ### Endpoints principaux
 
 - **Auth**
-  - `POST /api/auth/login` – login admin (`username`, `password`) → JWT
-  - `POST /api/auth/logout` – déconnexion (stateless côté API)
+  - `POST /api/auth/login` – login admin (`username`, `password`) → JWT (`iss`, `aud`, `jti`)
+  - `POST /api/auth/logout` – révoque le `jti` courant (blacklist locale) puis le client supprime le token
   - `GET /api/auth/me` – infos de l’admin connecté
 
 - **News**
-  - `GET /api/news`
+  - `GET /api/news?page=1&per_page=500` – liste paginée `{ data, meta }`
   - `GET /api/news/{id}`
   - `POST /api/news` *(admin, JWT)*
   - `PUT /api/news/{id}` *(admin, JWT)*
@@ -314,3 +339,12 @@ Le frontend ne conserve dans le `localStorage` que le **token JWT** d’authenti
 2. **Mot de passe admin** : Changez le mot de passe par défaut en base de données
 
 3. **Permissions fichiers** : Vérifiez que `backend/storage/` et `backend/public/uploads/` ont les bonnes permissions
+
+## Checklist déploiement (smoke)
+
+1. `composer install --no-dev` dans `backend/` ; `npm ci` puis `npm run build` à la racine.
+2. Copier `backend/.env.example` vers `backend/.env`, renseigner `APP_ENV=production`, `JWT_SECRET`, `CORS_ALLOWED_ORIGINS`, base de données.
+3. Vérifier que l’URL de l’API répond : `GET /api/news` (JSON `{ data, meta }`).
+4. Vérifier login admin : `POST /api/auth/login`, puis `GET /api/auth/me` avec `Authorization: Bearer …`.
+5. Déployer le dossier `dist/` (frontend) et pointer `VITE_API_BASE_URL` vers l’URL publique du `backend/public`.
+6. Lancer les tests : `npm test`, `cd backend && composer test`, optionnel `npm run test:e2e` (nécessite `npx playwright install`).

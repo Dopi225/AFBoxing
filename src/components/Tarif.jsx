@@ -30,7 +30,9 @@ const Tarif = () => {
         const data = await pricingApi.list();
         setPricing(data);
       } catch (err) {
-        console.error('Error loading pricing:', err);
+        if (import.meta.env.DEV) {
+          console.warn('Error loading pricing:', err);
+        }
         // Fallback sur données par défaut
         setPricing({
           boxing: {

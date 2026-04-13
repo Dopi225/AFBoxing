@@ -218,7 +218,7 @@ const Horaire = () => {
         eyebrow="Rapide à lire • Mobile-first"
         image={salleBg}
         actions={[
-          { label: "Tarifs / S'inscrire", to: "/tarif", className: "btn-primary" },
+          { label: 'Tarifs et inscription', to: '/tarif', className: 'btn-primary' },
           { label: "Contact", to: "/contact", className: "btn-secondary" },
         ]}
       />

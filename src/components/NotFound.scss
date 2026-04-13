@@ -1,0 +1,40 @@
+.not-found-page {
+  min-height: 60vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-xl, 2rem) var(--spacing-md, 1rem);
+}
+
+.not-found-page__inner {
+  max-width: 32rem;
+  text-align: center;
+}
+
+.not-found-page__eyebrow {
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--primary-red, #c00);
+  margin: 0 0 var(--spacing-sm, 0.75rem);
+}
+
+.not-found-page__title {
+  font-size: clamp(1.75rem, 4vw, 2.25rem);
+  margin: 0 0 var(--spacing-md, 1rem);
+  line-height: 1.2;
+}
+
+.not-found-page__lead {
+  color: var(--text-muted, #555);
+  margin: 0 0 var(--spacing-xl, 2rem);
+  line-height: 1.6;
+}
+
+.not-found-page__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm, 0.75rem);
+  justify-content: center;
+}

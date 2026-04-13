@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useRequireAdmin } from '../../hooks/useRequireAdmin';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faHistory,
@@ -56,6 +57,7 @@ const getEntityLabel = (entity) => {
 };
 
 const ActivityLog = () => {
+  const adminOk = useRequireAdmin();
   const { info, error: notifyError } = useNotifications();
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -70,9 +72,10 @@ const ActivityLog = () => {
   });
 
   useEffect(() => {
+    if (!adminOk) return;
     loadLogs();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filters]);
+  }, [adminOk, filters]);
 
   const loadLogs = async () => {
     setLoading(true);
@@ -152,6 +155,16 @@ const ActivityLog = () => {
       }
     }
   };
+
+  if (!adminOk) {
+    return (
+      <div className="activity-log">
+        <div className="empty-state">
+          <p>Vérification des droits…</p>
+        </div>
+      </div>
+    );
+  }
 
   const entities = [...new Set(logs.map(log => log.entity))];
 

@@ -14,14 +14,14 @@ const StickyTarifCTA = () => {
   if (isAdmin || isTarifPage) return null;
 
   return (
-    <div className="sticky-tarif-cta" role="region" aria-label="Accès rapide tarifs et inscription">
+    <div className="sticky-tarif-cta" role="region" aria-label="Accès rapide aux tarifs et à l’inscription">
       <button
         type="button"
         className="sticky-tarif-cta__btn"
         onClick={() => navigate('/tarif')}
       >
         <FontAwesomeIcon icon={faEuroSign} />
-        Tarifs / S'inscrire
+        Tarifs et inscription
       </button>
     </div>
   );

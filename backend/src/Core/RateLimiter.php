@@ -12,10 +12,10 @@ class RateLimiter
 {
     private string $storageDir;
 
-    public function __construct()
+    public function __construct(?string $storageDir = null)
     {
         $backendRoot = dirname(__DIR__, 2);
-        $this->storageDir = $backendRoot . '/storage/cache/ratelimit';
+        $this->storageDir = $storageDir ?? $backendRoot . '/storage/cache/ratelimit';
         if (!is_dir($this->storageDir)) {
             @mkdir($this->storageDir, 0775, true);
         }
@@ -55,6 +55,34 @@ class RateLimiter
         $data[] = $now;
         $this->writeAttempt($file, $data);
         return true;
+    }
+
+    /**
+     * Secondes à attendre avant une nouvelle tentative (pour en-tête Retry-After).
+     */
+    public function getRetryAfterSeconds(string $key, int $maxAttempts = 5, int $windowSeconds = 300): int
+    {
+        $file = $this->storageDir . '/' . md5($key) . '.json';
+        $now = time();
+
+        if (!file_exists($file)) {
+            return 0;
+        }
+
+        $data = json_decode((string) file_get_contents($file), true);
+        if (!is_array($data) || $data === []) {
+            return 0;
+        }
+
+        $data = array_filter($data, fn ($timestamp) => ($now - (int) $timestamp) < $windowSeconds);
+        $data = array_values($data);
+        if (count($data) < $maxAttempts) {
+            return 0;
+        }
+
+        $oldest = (int) min($data);
+
+        return max(1, $windowSeconds - ($now - $oldest));
     }
 
     /**

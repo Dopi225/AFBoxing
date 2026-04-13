@@ -60,6 +60,15 @@
         line-height: 1.6;
         margin: 0;
       }
+
+      .footer-tagline {
+        font-size: 0.98rem;
+        letter-spacing: 0.02em;
+        color: rgba(255, 255, 255, 0.72);
+        max-width: 22ch;
+        margin-left: auto;
+        margin-right: auto;
+      }
     }
 
     h3, h4 {

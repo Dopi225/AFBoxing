@@ -61,16 +61,26 @@ const handleResponse = async (response) => {
   }
 
   if (!response.ok) {
-    // Gestion spécifique des codes d'erreur
-    let message = data?.error || data?.message || 'Une erreur est survenue';
+    // Gestion spécifique des codes d'erreur (chaîne legacy ou objet { code, message })
+    let message = 'Une erreur est survenue';
+    if (data?.error != null) {
+      if (typeof data.error === 'string') {
+        message = data.error;
+      } else if (typeof data.error === 'object' && typeof data.error.message === 'string') {
+        message = data.error.message;
+      }
+    } else if (typeof data?.message === 'string') {
+      message = data.message;
+    }
     
     if (response.status === 401) {
       // Déconnexion automatique en cas d'erreur 401
       removeToken();
       message = 'Session expirée. Veuillez vous reconnecter.';
     } else if (response.status === 429) {
-      // Rate limiting
-      message = data?.error || 'Trop de tentatives. Veuillez réessayer dans quelques instants.';
+      if (message === 'Une erreur est survenue') {
+        message = 'Trop de tentatives. Veuillez réessayer dans quelques instants.';
+      }
     } else if (response.status === 422) {
       // Erreurs de validation
       if (data?.errors) {
@@ -125,8 +135,20 @@ export const authApi = {
     return data;
   },
 
-  logout: () => {
-    removeToken();
+  logout: async () => {
+    try {
+      const token = getToken();
+      if (token) {
+        await fetch(`${API_BASE_URL}/api/auth/logout`, {
+          method: 'POST',
+          headers: buildHeaders(true, true)
+        });
+      }
+    } catch {
+      // Réseau / serveur : on purge quand même le token local
+    } finally {
+      removeToken();
+    }
   },
 
   getMe: async () => {
@@ -142,9 +164,20 @@ export const authApi = {
 };
 
 export const newsApi = {
-  list: async () => {
-    const res = await fetch(`${API_BASE_URL}/api/news`);
-    return handleResponse(res);
+  /** @param {{ page?: number, per_page?: number, withMeta?: boolean }} [opts] */
+  list: async (opts = {}) => {
+    const page = opts.page ?? 1;
+    const perPage = opts.per_page ?? 500;
+    const q = new URLSearchParams({ page: String(page), per_page: String(perPage) });
+    const res = await fetch(`${API_BASE_URL}/api/news?${q}`);
+    const raw = await handleResponse(res);
+    if (opts.withMeta && raw && typeof raw === 'object' && Array.isArray(raw.data)) {
+      return raw;
+    }
+    if (raw && typeof raw === 'object' && Array.isArray(raw.data)) {
+      return raw.data;
+    }
+    return Array.isArray(raw) ? raw : [];
   },
   get: async (id) => {
     const res = await fetch(`${API_BASE_URL}/api/news/${id}`);
@@ -413,6 +446,38 @@ export const activityLogApi = {
   },
   count: async () => {
     const res = await fetch(`${API_BASE_URL}/api/activity-log/count`, {
+      headers: buildHeaders()
+    });
+    return handleResponse(res);
+  }
+};
+
+export const usersApi = {
+  list: async () => {
+    const res = await fetch(`${API_BASE_URL}/api/users`, {
+      headers: buildHeaders()
+    });
+    return handleResponse(res);
+  },
+  create: async (payload) => {
+    const res = await fetch(`${API_BASE_URL}/api/users`, {
+      method: 'POST',
+      headers: buildHeaders(),
+      body: JSON.stringify(payload)
+    });
+    return handleResponse(res);
+  },
+  update: async (id, payload) => {
+    const res = await fetch(`${API_BASE_URL}/api/users/${id}`, {
+      method: 'PUT',
+      headers: buildHeaders(),
+      body: JSON.stringify(payload)
+    });
+    return handleResponse(res);
+  },
+  remove: async (id) => {
+    const res = await fetch(`${API_BASE_URL}/api/users/${id}`, {
+      method: 'DELETE',
       headers: buildHeaders()
     });
     return handleResponse(res);

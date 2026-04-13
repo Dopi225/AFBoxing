@@ -1,15 +1,17 @@
 import React, { useState, useEffect } from 'react';
+import { useRequireAdmin } from '../../hooks/useRequireAdmin';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEnvelope, faTrash, faCheck, faUser, faPhone, faCalendarAlt } from '@fortawesome/free-solid-svg-icons';
-import { motion } from 'framer-motion';
+import { motion as Motion } from 'framer-motion';
 import { contactsApi } from '../../services/apiService';
 import { useNotifications } from './NotificationSystem';
 import ConfirmDialog from './ConfirmDialog';
 import './ManageContacts.scss';
 
 const ManageContacts = () => {
+  const adminOk = useRequireAdmin();
   const { success, error: notifyError } = useNotifications();
-  const [contacts, setContacts] = useState([]);
+  const [contacts, setContacts] = useState([]); 
   const [selectedContact, setSelectedContact] = useState(null);
   const [filter, setFilter] = useState('all'); // all, unread, read
   const [loading, setLoading] = useState(false);
@@ -18,8 +20,9 @@ const ManageContacts = () => {
   const [deleteTarget, setDeleteTarget] = useState(null);
 
   useEffect(() => {
+    if (!adminOk) return;
     loadContacts();
-  }, []);
+  }, [adminOk]);
 
   const loadContacts = async () => {
     setLoading(true);
@@ -48,7 +51,7 @@ const ManageContacts = () => {
       await contactsApi.markAsRead(id);
       success('✅ Message marqué comme lu');
       loadContacts();
-    } catch (err) {
+    } catch {
       notifyError('❌ Erreur lors du marquage du message');
     }
   };
@@ -67,7 +70,7 @@ const ManageContacts = () => {
       if (selectedContact?.id === deleteTarget) {
         setSelectedContact(null);
       }
-    } catch (err) {
+    } catch {
       notifyError('Erreur lors de la suppression du contact.');
     } finally {
       setDeleteTarget(null);
@@ -81,6 +84,16 @@ const ManageContacts = () => {
   });
 
   const unreadCount = contacts.filter(c => !c.read).length;
+
+  if (!adminOk) {
+    return (
+      <div className="manage-contacts">
+        <div className="empty-state">
+          <p>Vérification des droits…</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="manage-contacts">
@@ -128,7 +141,7 @@ const ManageContacts = () => {
                 </div>
               ) : (
                 filteredContacts.map((contact, index) => (
-                  <motion.div
+                  <Motion.div
                     key={contact.id}
                     className={`contact-item ${!contact.read ? 'unread' : ''} ${selectedContact?.id === contact.id ? 'selected' : ''}`}
                     initial={{ opacity: 0, x: -20 }}
@@ -147,7 +160,7 @@ const ManageContacts = () => {
                     </div>
                     <p className="contact-email">{contact.email}</p>
                     <p className="contact-preview">{contact.message?.substring(0, 60)}...</p>
-                  </motion.div>
+                  </Motion.div>
                 ))
               )}
             </>
@@ -155,7 +168,7 @@ const ManageContacts = () => {
         </div>
 
         {selectedContact && (
-          <motion.div
+          <Motion.div
             className="contact-detail"
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
@@ -222,7 +235,7 @@ const ManageContacts = () => {
                 <p>{selectedContact.message}</p>
               </div>
             </div>
-          </motion.div>
+          </Motion.div>
         )}
       </div>
 

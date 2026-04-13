@@ -18,6 +18,28 @@ class News
         return $stmt->fetchAll();
     }
 
+    public function countAll(): int
+    {
+        $stmt = $this->pdo->query('SELECT COUNT(*) FROM news');
+        return (int) $stmt->fetchColumn();
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    public function paginate(int $page, int $perPage): array
+    {
+        $offset = max(0, ($page - 1) * $perPage);
+        $stmt = $this->pdo->prepare(
+            'SELECT * FROM news ORDER BY date DESC, created_at DESC LIMIT :limit OFFSET :offset'
+        );
+        $stmt->bindValue(':limit', $perPage, \PDO::PARAM_INT);
+        $stmt->bindValue(':offset', $offset, \PDO::PARAM_INT);
+        $stmt->execute();
+
+        return $stmt->fetchAll();
+    }
+
     public function find(int $id): ?array
     {
         $stmt = $this->pdo->prepare('SELECT * FROM news WHERE id = :id');

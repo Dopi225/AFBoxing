@@ -99,7 +99,7 @@ const Contact = () => {
         image={contactBg}
         actions={[
           { label: "Horaires", to: "/horaire", className: "btn-primary", icon: <FontAwesomeIcon icon={faClock} /> },
-          { label: "Tarifs / S'inscrire", to: "/tarif", className: "btn-secondary", icon: <FontAwesomeIcon icon={faPaperPlane} /> },
+          { label: 'Tarifs et inscription', to: '/tarif', className: 'btn-secondary', icon: <FontAwesomeIcon icon={faPaperPlane} /> },
         ]}
       />
 

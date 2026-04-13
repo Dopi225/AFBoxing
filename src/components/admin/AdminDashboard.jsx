@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Outlet } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faHome,
@@ -13,7 +14,8 @@ import {
   faTimes,
   faCog,
   faFistRaised,
-  faHistory
+  faHistory,
+  faUsers
 } from '@fortawesome/free-solid-svg-icons';
 // eslint-disable-next-line no-unused-vars
 import { motion } from 'framer-motion';
@@ -35,23 +37,17 @@ const AdminDashboard = () => {
 
   useEffect(() => {
     const initDashboard = async () => {
-      // 1) Vérification rapide côté client
-      if (!authApi.isAuthenticated()) {
-        navigate('/admin/login', { replace: true });
-        return;
-      }
-
-      // 2) Vérification côté API (token encore valide ?)
+      // Garde route : AdminAuthGate — ici validation API + rôle pour le menu
       try {
-        await authApi.getMe();
+        const me = await authApi.getMe();
+        setCurrentUser(me?.user ?? null);
       } catch (e) {
         console.log(e);
-        // authApi.logout();
         navigate('/admin/login', { replace: true });
         return;
       }
 
-      // 3) Chargement des stats uniquement si authentifié
+      // Chargement des stats
       try {
         const [news, palmares, contacts, gallery] = await Promise.all([
           newsApi.list().catch(() => []),
@@ -78,36 +74,31 @@ const AdminDashboard = () => {
     initDashboard();
   }, [navigate]);
 
-  const handleLogout = () => {
-    authApi.logout();
+  const handleLogout = async () => {
+    await authApi.logout();
     navigate('/admin/login');
   };
 
   const [currentUser, setCurrentUser] = useState(null);
 
-  useEffect(() => {
-    const loadUser = async () => {
-      try {
-        const userData = await authApi.getMe();
-        setCurrentUser(userData.user);
-      } catch {
-        // User data non disponible
-      }
-    };
-    loadUser();
-  }, []);
-
-  const menuItems = [
+  const staffMenuItems = [
     { icon: faHome, label: 'Dashboard', path: '/admin/dashboard', exact: true },
     { icon: faNewspaper, label: 'Actualités', path: '/admin/news', badge: stats.news },
     { icon: faTrophy, label: 'Palmarès', path: '/admin/palmares', badge: stats.palmares },
     { icon: faCalendarAlt, label: 'Planning', path: '/admin/schedule' },
     { icon: faImages, label: 'Galerie', path: '/admin/gallery', badge: stats.gallery },
-    { icon: faEnvelope, label: 'Contacts', path: '/admin/contacts', badge: stats.unreadContacts, badgeColor: 'red' },
-    { icon: faFistRaised, label: 'Activités', path: '/admin/activities' },
-    { icon: faCog, label: 'Paramètres', path: '/admin/settings' },
-    { icon: faHistory, label: 'Historique', path: '/admin/history' }
+    { icon: faFistRaised, label: 'Activités', path: '/admin/activities' }
   ];
+
+  const adminOnlyMenuItems = [
+    { icon: faEnvelope, label: 'Contacts', path: '/admin/contacts', badge: stats.unreadContacts, badgeColor: 'red' },
+    { icon: faCog, label: 'Paramètres', path: '/admin/settings' },
+    { icon: faHistory, label: 'Historique', path: '/admin/history' },
+    { icon: faUsers, label: 'Utilisateurs', path: '/admin/users' }
+  ];
+
+  const menuItems =
+    currentUser?.role === 'admin' ? [...staffMenuItems, ...adminOnlyMenuItems] : staffMenuItems;
 
   const handleNavClick = (path) => {
     navigate(path);
@@ -131,6 +122,10 @@ const AdminDashboard = () => {
 
   return (
     <NotificationProvider>
+      <Helmet>
+        <title>Administration — AF BOXING CLUB 86</title>
+        <meta name="robots" content="noindex, nofollow" />
+      </Helmet>
       <div className="admin-dashboard">
       {/* Sidebar */}
       <motion.aside

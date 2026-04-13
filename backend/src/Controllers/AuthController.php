@@ -4,8 +4,11 @@ declare(strict_types=1);
 
 namespace AFBoxing\Controllers;
 
+use AFBoxing\Core\HttpRequest;
+use AFBoxing\Core\JwtRevocationList;
 use AFBoxing\Core\RateLimiter;
 use Firebase\JWT\JWT;
+use Firebase\JWT\Key;
 use PDO;
 
 class AuthController extends BaseController
@@ -26,16 +29,22 @@ class AuthController extends BaseController
             return;
         }
 
-        // Rate limiting : 5 tentatives par 15 minutes par IP
-        $ip = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+        // Rate limiting : 5 tentatives par 15 minutes par IP (+ username)
+        $ip = HttpRequest::clientIp();
         $key = 'login_' . $ip . '_' . ($data['username'] ?? '');
-        
+
         if (!$this->rateLimiter->isAllowed($key, 5, 900)) {
             $remaining = $this->rateLimiter->getRemainingAttempts($key, 5, 900);
-            $this->json([
-                'error' => 'Trop de tentatives de connexion. Veuillez réessayer dans quelques minutes.',
-                'remaining_attempts' => $remaining,
-            ], 429);
+            $retry = $this->rateLimiter->getRetryAfterSeconds($key, 5, 900);
+            if ($retry > 0) {
+                header('Retry-After: ' . $retry);
+            }
+            $this->jsonError(
+                'RATE_LIMITED',
+                'Trop de tentatives de connexion. Veuillez réessayer dans quelques minutes.',
+                429,
+                ['remaining_attempts' => $remaining, 'retry_after_seconds' => $retry]
+            );
             return;
         }
 
@@ -51,7 +60,7 @@ class AuthController extends BaseController
 
         if (!$user || !password_verify($data['password'], $user['password'])) {
             // Ne pas révéler si l'utilisateur existe ou non (sécurité)
-            $this->json(['error' => 'Identifiants invalides'], 401);
+            $this->jsonError('INVALID_CREDENTIALS', 'Identifiants invalides', 401);
             return;
         }
 
@@ -62,15 +71,17 @@ class AuthController extends BaseController
         $exp = $now + 60 * 60 * 3; // 3h
         $secret = $_ENV['JWT_SECRET'] ?? getenv('JWT_SECRET') ?: null;
         if (!$secret) {
-            $this->json(['error' => 'JWT misconfigured (JWT_SECRET missing)'], 500);
+            $this->jsonError('JWT_MISCONFIGURED', 'Configuration JWT invalide (JWT_SECRET manquant)', 500);
             return;
         }
 
         $payload = [
             'iss' => 'afboxing-api',
+            'aud' => 'afboxing-api',
             'sub' => $user['id'],
             'iat' => $now,
             'exp' => $exp,
+            'jti' => bin2hex(random_bytes(16)),
             'role' => $user['role'],
         ];
 
@@ -89,15 +100,50 @@ class AuthController extends BaseController
 
     public function logout(array $params): void
     {
-        // Côté API stateless, le "logout" est géré côté client (suppression du token).
+        $token = HttpRequest::bearerToken();
+        if ($token) {
+            $this->loadEnvForJwt();
+            $secret = $_ENV['JWT_SECRET'] ?? getenv('JWT_SECRET') ?: null;
+            if ($secret) {
+                try {
+                    /** @var object $decoded */
+                    $decoded = JWT::decode($token, new Key($secret, 'HS256'));
+                    if (isset($decoded->jti) && is_string($decoded->jti) && $decoded->jti !== '') {
+                        $exp = isset($decoded->exp) ? (int) $decoded->exp : time() + 3600;
+                        (new JwtRevocationList())->revoke($decoded->jti, $exp);
+                    }
+                } catch (\Throwable) {
+                    // Token déjà invalidé côté client : on renvoie quand même succès.
+                }
+            }
+        }
+
         $this->json(['message' => 'Déconnexion effectuée.']);
+    }
+
+    private function loadEnvForJwt(): void
+    {
+        if (!empty($_ENV['JWT_SECRET']) || getenv('JWT_SECRET')) {
+            return;
+        }
+        if (!class_exists(\Dotenv\Dotenv::class)) {
+            return;
+        }
+        $backendRoot = dirname(__DIR__, 2);
+        if (file_exists($backendRoot . '/.env')) {
+            \Dotenv\Dotenv::createImmutable($backendRoot)->load();
+            return;
+        }
+        if (file_exists($backendRoot . '/../.env')) {
+            \Dotenv\Dotenv::createImmutable($backendRoot . '/..')->load();
+        }
     }
 
     public function me(array $params): void
     {
         $user = $params['authUser'] ?? null;
         if (!$user) {
-            $this->json(['error' => 'Non authentifié'], 401);
+            $this->jsonError('UNAUTHORIZED', 'Non authentifié', 401);
             return;
         }
 

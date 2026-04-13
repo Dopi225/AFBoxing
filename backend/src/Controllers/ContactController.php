@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AFBoxing\Controllers;
 
+use AFBoxing\Core\HttpRequest;
 use AFBoxing\Core\RateLimiter;
 use AFBoxing\Models\Contact;
 
@@ -27,13 +28,20 @@ class ContactController extends BaseController
     public function submit(array $params): void
     {
         // Rate limiting : 3 messages par heure par IP
-        $ip = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+        $ip = HttpRequest::clientIp();
         $key = 'contact_' . $ip;
-        
+
         if (!$this->rateLimiter->isAllowed($key, 3, 3600)) {
-            $this->json([
-                'error' => 'Trop de messages envoyés. Veuillez réessayer plus tard.',
-            ], 429);
+            $retry = $this->rateLimiter->getRetryAfterSeconds($key, 3, 3600);
+            if ($retry > 0) {
+                header('Retry-After: ' . $retry);
+            }
+            $this->jsonError(
+                'RATE_LIMITED',
+                'Trop de messages envoyés. Veuillez réessayer plus tard.',
+                429,
+                ['retry_after_seconds' => $retry]
+            );
             return;
         }
 

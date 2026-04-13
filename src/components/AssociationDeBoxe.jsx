@@ -217,10 +217,10 @@ const AssociationDeBoxe = () => {
   };
 
   const quickLinks = [
-    { title: 'Boxe', subtitle: 'Découvrir les pratiques', icon: faFistRaised, to: '/activite' },
-    { title: 'Socio-éducatif', subtitle: 'Actions & accompagnement', icon: faGraduationCap, to: '/actualite' },
-    { title: 'Galerie', subtitle: 'Ambiance du club', icon: faCamera, to: '/galerie' },
-    { title: 'Actualités', subtitle: 'Vie du club', icon: faNewspaper, to: '/news' },
+    { title: 'Boxe', subtitle: 'Pratiques et niveaux', icon: faFistRaised, to: '/activite' },
+    { title: 'Socio-éducatif', subtitle: 'Accompagnement', icon: faGraduationCap, to: '/actualite' },
+    { title: 'Galerie', subtitle: 'Le club en images', icon: faCamera, to: '/galerie' },
+    { title: 'Actualités', subtitle: 'Infos et événements', icon: faNewspaper, to: '/news' },
   ];
 
   // Charger les types de boxes depuis l'API (données dynamiques)
@@ -264,7 +264,9 @@ const AssociationDeBoxe = () => {
           .slice(0, 3);
         setLatestNews(sorted);
       } catch (err) {
-        console.error('Erreur chargement actualités accueil', err);
+        if (import.meta.env.DEV) {
+          console.warn('Erreur chargement actualités accueil', err);
+        }
         setNewsError("Impossible de charger les actualités.");
       }
     };
@@ -314,7 +316,9 @@ const AssociationDeBoxe = () => {
 
         setSchedulePreview({ todayName, todaySessions, nextSessions });
       } catch (err) {
-        console.error('Erreur chargement planning accueil', err);
+        if (import.meta.env.DEV) {
+          console.warn('Erreur chargement planning accueil', err);
+        }
         setScheduleError("Impossible de charger le planning pour le moment.");
       } finally {
         setScheduleLoading(false);
@@ -396,7 +400,7 @@ const AssociationDeBoxe = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.8 }}
             >
-              <span className="hero-description__text">"Boxer ensemble pour mieux vivre ensemble" — à Poitiers, sport et socio-éducatif réunis.</span>
+              <span className="hero-description__text">« Boxer ensemble pour mieux vivre ensemble » — Poitiers.</span>
             </motion.p>
             
             {/* <motion.div 
@@ -407,7 +411,7 @@ const AssociationDeBoxe = () => {
             >
               <span className="badge-text">Club de Boxe & Socio-éducatif</span>
             </motion.div> */}
-
+ 
 
             <motion.div 
               className="btn-group"

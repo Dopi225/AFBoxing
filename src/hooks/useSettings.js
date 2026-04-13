@@ -45,8 +45,9 @@ export const useSettings = () => {
         
         setSettings(loaded);
       } catch (err) {
-        console.error('Error loading settings:', err);
-        // En cas d'erreur, utiliser les valeurs par défaut
+        if (import.meta.env.DEV) {
+          console.warn('[useSettings] API indisponible, valeurs par défaut.', err);
+        }
         setSettings(defaultSettings);
       } finally {
         setLoading(false);

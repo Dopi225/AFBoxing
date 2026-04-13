@@ -92,8 +92,12 @@ class Router
 
             $body = file_get_contents('php://input');
             $data = null;
-            if (!empty($body)) {
+            if ($body !== false && $body !== '') {
                 $data = json_decode($body, true);
+                if (json_last_error() !== JSON_ERROR_NONE) {
+                    JsonErrorResponse::send(400, 'INVALID_JSON', 'Corps JSON invalide');
+                    return;
+                }
             }
 
             $params['_body'] = $data;
@@ -102,8 +106,7 @@ class Router
             return;
         }
 
-        http_response_code(404);
-        echo json_encode(['error' => 'Not found'], JSON_UNESCAPED_UNICODE);
+        JsonErrorResponse::send(404, 'NOT_FOUND', 'Not found');
     }
 
     private function convertPatternToRegex(string $pattern): string

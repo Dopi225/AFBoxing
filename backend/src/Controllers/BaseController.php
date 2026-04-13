@@ -13,6 +13,25 @@ abstract class BaseController
         echo json_encode($data, JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE);
     }
 
+    /**
+     * Erreur métier / client au format standard (compatible avec le parsing dans apiService.js).
+     *
+     * @param array<string, mixed>|null $details
+     */
+    protected function jsonError(string $code, string $message, int $status = 400, ?array $details = null): void
+    {
+        $body = [
+            'error' => [
+                'code' => $code,
+                'message' => $message,
+            ],
+        ];
+        if ($details !== null && $details !== []) {
+            $body['error']['details'] = $details;
+        }
+        $this->json($body, $status);
+    }
+
     protected function validateRequired(array $data, array $fields): array
     {
         $errors = [];

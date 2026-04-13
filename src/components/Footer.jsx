@@ -2,24 +2,19 @@ import React, { useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPhoneAlt, faEnvelope, faMapMarkerAlt, faChevronDown, faChevronUp } from '@fortawesome/free-solid-svg-icons';
 import { faFacebookF, faInstagram } from '@fortawesome/free-brands-svg-icons';
-import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useSettings } from '../hooks/useSettings';
 import image2 from '../assets/logo-removeb.png';
+import ThemeToggle from './ThemeToggle';
+import './ThemeToggle.scss';
 
 const Footer = () => {
   const { settings } = useSettings();
   const [showNav, setShowNav] = useState(false);
   const [showContact, setShowContact] = useState(false);
-  // const [showActivite, setShowActivite] = useState(false);
-  // const [showSocio, setShowSocio] = useState(false);
-  const navigate = useNavigate();
 
   const isMobile = typeof window !== "undefined" && window.innerWidth < 778;
-
-  const handleNavigate = (path) => {
-    navigate(path);
-  };
 
   return (
     <footer className="footer">
@@ -31,14 +26,14 @@ const Footer = () => {
           transition={{ duration: 0.6 }}
           viewport={{ once: true }}
         >
-          <div className='logo' onClick={() => handleNavigate('/')}>
-            <img src={image2} alt="AF Boxing Club 86" loading="lazy" />
-          </div>
+          <Link to="/" className="logo footer-logo-link" aria-label="Retour à l’accueil">
+            <img src={image2} alt="" loading="lazy" />
+          </Link>
           <p>Boxer pour mieux vivre ensemble à Poitiers.</p>
+          <ThemeToggle />
         </motion.div>
 
-        {/* Navigation */}
-        <motion.div 
+        <motion.div
           className="footer-col"
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -46,59 +41,21 @@ const Footer = () => {
           viewport={{ once: true }}
         >
           <h4 onClick={() => setShowNav(!showNav)} className="accordion-header">
-            Navigation {isMobile && (showNav ? <FontAwesomeIcon icon={faChevronUp} /> : <FontAwesomeIcon icon={faChevronDown} />)}
+            Plan du site {isMobile && (showNav ? <FontAwesomeIcon icon={faChevronUp} /> : <FontAwesomeIcon icon={faChevronDown} />)}
           </h4>
           {(showNav || !isMobile) && (
             <ul>
-              <li><a onClick={() => handleNavigate('/')}>Accueil</a></li>
-              <li><a onClick={() => handleNavigate('/apropos')}>Le Club</a></li>
-              <li><a onClick={() => handleNavigate('/activite')}>Activités</a></li>
-              <li><a onClick={() => handleNavigate('/horaire')}>Horaires</a></li>
-              <li><a onClick={() => handleNavigate('/contact')}>Contact</a></li>
-              <li><a onClick={() => handleNavigate('/tarif')}>Tarifs / S'inscrire</a></li>
+              <li><Link to="/apropos">Le club</Link></li>
+              <li><Link to="/activite">Activités</Link></li>
+              <li><Link to="/horaire">Horaires</Link></li>
+              <li><Link to="/galerie">Galerie</Link></li>
+              <li><Link to="/news">Actualités</Link></li>
+              <li><Link to="/contact">Contact</Link></li>
+              <li><Link to="/tarif">Tarifs et inscription</Link></li>
             </ul>
           )}
         </motion.div>
 
-        {/* Activités */}
-        {/* <motion.div 
-          className="footer-col"
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.2 }}
-          viewport={{ once: true }}
-        >
-          <h4>Nos Activités</h4>
-          <ul>
-            <li><a onClick={() => handleNavigate('/info/educative')}>Boxe Éducative</a></li>
-            <li><a onClick={() => handleNavigate('/info/loisir')}>Boxe Loisir</a></li>
-            <li><a onClick={() => handleNavigate('/info/amateur')}>Boxe Amateur</a></li>
-            <li><a onClick={() => handleNavigate('/info/handiboxe')}>Handiboxe</a></li>
-            <li><a onClick={() => handleNavigate('/info/aeroboxe')}>Aeroboxe</a></li>
-            <li><a onClick={() => handleNavigate('/info/therapie')}>Boxe Thérapie</a></li>
-            <li><a onClick={() => handleNavigate('/actualite')}>Pôle socio-éducatif</a></li>
-          </ul>
-        </motion.div> */}
-
-        {/* Socio-éducatif */}
-        {/* <motion.div
-          className="footer-col"
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.25 }}
-          viewport={{ once: true }}
-        >
-          <h4>Socio-éducatif</h4>
-          <ul>
-            <li><a onClick={() => handleNavigate('/info/aide-devoirs')}>Aide aux devoirs</a></li>
-            <li><a onClick={() => handleNavigate('/info/accompagnement-scolaire')}>Accompagnement scolaire</a></li>
-            <li><a onClick={() => handleNavigate('/info/orientation')}>Orientation & projet</a></li>
-            <li><a onClick={() => handleNavigate('/info/sorties-pedagogiques')}>Sorties pédagogiques</a></li>
-            <li><a onClick={() => handleNavigate('/info/sorties-familiales')}>Sorties familiales</a></li>
-          </ul>
-        </motion.div> */}
-
-        {/* Contact */}
         <motion.div 
           className="footer-col"
           initial={{ opacity: 0, y: 30 }}
@@ -113,14 +70,18 @@ const Footer = () => {
             <ul>
               <li>
                 <FontAwesomeIcon icon={faPhoneAlt} />{' '}
-                <a href={`tel:${settings.contact.phone.replace(/\s/g, '')}`}>{settings.contact.phone}</a>
+                <a
+                  href={`tel:${String(settings?.contact?.phone ?? '').replace(/\s/g, '')}`}
+                >
+                  {settings?.contact?.phone ?? '—'}
+                </a>
               </li>
               <li>
                 <FontAwesomeIcon icon={faEnvelope} />{' '}
-                <a href={`mailto:${settings.contact.email}`}>{settings.contact.email}</a>
+                <a href={`mailto:${settings?.contact?.email ?? ''}`}>{settings?.contact?.email ?? '—'}</a>
               </li>
               <li>
-                <FontAwesomeIcon icon={faMapMarkerAlt} /> {settings.contact.address}
+                <FontAwesomeIcon icon={faMapMarkerAlt} /> {settings?.contact?.address ?? '—'}
               </li>
             </ul>
           )}

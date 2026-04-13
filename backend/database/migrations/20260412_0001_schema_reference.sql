@@ -1,0 +1,3 @@
+-- Migrations incrémentales AF Boxing
+-- Référence complète « from scratch » : ../schema.sql
+-- Ajouter ici les fichiers ALTER TABLE / index futurs, dans l’ordre chronologique ou numérique.

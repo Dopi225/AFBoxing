@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import { useRequireAdmin } from '../../hooks/useRequireAdmin';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faSave,
   faEnvelope,
   faPhoneAlt,
   faMapMarkerAlt,
-  faFacebook,
-  faInstagram,
   faGlobe,
   faInfoCircle
 } from '@fortawesome/free-solid-svg-icons';
@@ -34,6 +33,7 @@ const defaultSettings = {
 };
 
 const ManageSettings = () => {
+  const adminOk = useRequireAdmin();
   const { success, error: notifyError } = useNotifications();
   const [settings, setSettings] = useState(defaultSettings);
   const [loading, setLoading] = useState(true);
@@ -41,8 +41,9 @@ const ManageSettings = () => {
   const [hasChanges, setHasChanges] = useState(false);
 
   useEffect(() => {
+    if (!adminOk) return;
     loadSettings();
-  }, []);
+  }, [adminOk]);
 
   const loadSettings = async () => {
     setLoading(true);
@@ -117,6 +118,16 @@ const ManageSettings = () => {
       setHasChanges(true);
     }
   };
+
+  if (!adminOk) {
+    return (
+      <div className="manage-settings">
+        <div className="empty-state">
+          <p>Vérification des droits…</p>
+        </div>
+      </div>
+    );
+  }
 
   if (loading) {
     return (

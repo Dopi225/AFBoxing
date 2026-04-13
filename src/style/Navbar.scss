@@ -46,6 +46,9 @@ nav.navbar {
       cursor: pointer;
       padding: 0.5rem;
       border-radius: 4px;
+      border: none;
+      background: transparent;
+      font: inherit;
       transition: background 0.2s ease;
 
       &:hover {
@@ -92,6 +95,13 @@ nav.navbar {
           background: rgba(230, 0, 0, 0.05);
         }
 
+        &.active {
+          color: var(--primary-red);
+          font-weight: 600;
+          background: transparent;
+          box-shadow: inset 0 -2px 0 0 var(--primary-red);
+        }
+
         .dropdown-icon {
           font-size: 0.8rem;
           transition: transform var(--transition-normal);
@@ -114,6 +124,11 @@ nav.navbar {
           &:hover {
             background: linear-gradient(135deg, var(--primary-red-dark), var(--primary-red));
             box-shadow: 0 4px 12px rgba(230, 0, 0, 0.4);
+          }
+
+          &.active {
+            box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.35), 0 4px 14px rgba(0, 0, 0, 0.2);
+            filter: brightness(1.05);
           }
         }
       }
@@ -172,6 +187,13 @@ nav.navbar {
         justify-content: flex-start;
         padding: 0.7rem 0.85rem;
         border-radius: 10px;
+
+        &.active {
+          color: var(--primary-red);
+          font-weight: 600;
+          background: rgba(230, 0, 0, 0.07);
+          box-shadow: none;
+        }
       }
     }
 

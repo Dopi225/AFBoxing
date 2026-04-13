@@ -101,7 +101,7 @@ const GlobalSearch = () => {
         info('Aucun résultat trouvé');
       }
     } catch (err) {
-      console.error('Search error:', err);
+      if (import.meta.env.DEV) console.warn('Search error:', err);
     } finally {
       setLoading(false);
     }

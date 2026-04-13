@@ -35,15 +35,16 @@ if (!function_exists('afboxing_apply_cors')) {
 
         // En production, on refuse les requêtes sans origine valide
         $isProduction = ($_ENV['APP_ENV'] ?? getenv('APP_ENV')) === 'production';
-        
+        $corsStrict = ($_ENV['CORS_STRICT'] ?? getenv('CORS_STRICT')) === '1';
+
         if ($origin && in_array($origin, $allowedOrigins, true)) {
             header("Access-Control-Allow-Origin: {$origin}");
             header('Access-Control-Allow-Credentials: true');
-        } elseif (!$isProduction && $origin) {
-            // En développement, on accepte l'origine si elle est fournie (mais pas *)
+        } elseif (!$isProduction && !$corsStrict && $origin) {
+            // En développement (sans CORS_STRICT), on accepte l'origine si elle est fournie (mais pas *)
             header("Access-Control-Allow-Origin: {$origin}");
             header('Access-Control-Allow-Credentials: true');
-        } elseif (!$isProduction) {
+        } elseif (!$isProduction && !$corsStrict) {
             // En développement uniquement, fallback sur * si pas d'origine
             header('Access-Control-Allow-Origin: *');
         } else {

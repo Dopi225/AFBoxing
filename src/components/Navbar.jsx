@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { NavLink, useLocation, useNavigate } from 'react-router-dom';
+import { Link, NavLink, useLocation } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBars, faTimes, faChevronDown } from '@fortawesome/free-solid-svg-icons';
 import image2 from '../assets/logo-removeb.png';
@@ -7,7 +7,6 @@ import image2 from '../assets/logo-removeb.png';
 const Navbar = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [clubOpen, setClubOpen] = useState(false);
-  const navigate = useNavigate();
   const location = useLocation();
 
   // Gérer scroll et classes CSS en fonction de l'ouverture du menu mobile
@@ -23,12 +22,6 @@ const Navbar = () => {
     };
   }, [menuOpen]);
 
-  // Fonction utilitaire pour naviguer et tout fermer
-  const handleNavigate = (path) => {
-    navigate(path);
-    setMenuOpen(false);
-  };
-
   // Fermer le menu mobile quand on change de page (navigation externe, boutons, etc.)
   useEffect(() => {
     setMenuOpen(false);
@@ -38,21 +31,26 @@ const Navbar = () => {
   return (
     <header>
       <nav className="navbar" id="navbar">
-        <div className="logo" onClick={() => handleNavigate('/')}>
-          <img src={image2} alt="logo" loading="lazy" />
-        </div>
+        <Link to="/" className="logo" aria-label="Accueil AF Boxing Club 86">
+          <img src={image2} alt="" loading="lazy" />
+        </Link>
 
-        <div
+        <button
+          type="button"
           className={`menu-toggle ${menuOpen ? 'open' : ''}`}
           onClick={() => setMenuOpen(!menuOpen)}
+          aria-expanded={menuOpen}
+          aria-controls="navbar-menu"
+          aria-label={menuOpen ? 'Fermer le menu' : 'Ouvrir le menu'}
         >
-          <FontAwesomeIcon 
-            icon={menuOpen ? faTimes : faBars} 
+          <FontAwesomeIcon
+            icon={menuOpen ? faTimes : faBars}
             className="menu-icon"
+            aria-hidden="true"
           />
-        </div>
+        </button>
 
-        <ul className={`nav-menu ${menuOpen ? 'active' : ''}`}>
+        <ul id="navbar-menu" className={`nav-menu ${menuOpen ? 'active' : ''}`}>
           <li>
             <NavLink to="/" onClick={() => setMenuOpen(false)}>Accueil</NavLink>
           </li>
@@ -65,7 +63,7 @@ const Navbar = () => {
               aria-expanded={clubOpen}
               onClick={() => setClubOpen((v) => !v)}
             >
-              Le club <FontAwesomeIcon icon={faChevronDown} className="dropdown-icon" />
+              Club <FontAwesomeIcon icon={faChevronDown} className="dropdown-icon" />
             </button>
             <ul className="nav-submenu" role="menu">
               <li role="none">
@@ -83,9 +81,6 @@ const Navbar = () => {
               <li role="none">
                 <NavLink role="menuitem" to="/palmares" onClick={() => setMenuOpen(false)}>Palmarès</NavLink>
               </li>
-              <li role="none">
-                <NavLink role="menuitem" to="/partenaire" onClick={() => setMenuOpen(false)}>Partenaires</NavLink>
-              </li>
             </ul>
           </li>
 
@@ -99,7 +94,7 @@ const Navbar = () => {
             <NavLink to="/contact" onClick={() => setMenuOpen(false)}>Contact</NavLink>
           </li>
           <li className="nav-btn-red">
-            <NavLink to="/tarif" onClick={() => setMenuOpen(false)}>Tarifs / S'inscrire</NavLink>
+            <NavLink to="/tarif" onClick={() => setMenuOpen(false)}>Inscription</NavLink>
           </li>
         </ul>
       </nav>

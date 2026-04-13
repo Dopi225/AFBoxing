@@ -114,13 +114,13 @@ const Activite = () => {
         image={pratique}
         actions={[
           { label: "Horaires", to: "/horaire", className: "btn-primary", icon: <FontAwesomeIcon icon={faCalendarAlt} /> },
-          { label: "Tarifs / S'inscrire", to: "/tarif", className: "btn-secondary", icon: <FontAwesomeIcon icon={faFistRaised} /> },
+          { label: 'Tarifs et inscription', to: '/tarif', className: 'btn-secondary', icon: <FontAwesomeIcon icon={faFistRaised} /> },
           { label: "Socio-éducatif", to: "/actualite", className: "btn-outline", icon: <FontAwesomeIcon icon={faGraduationCap} /> },
         ]}
       />
 
       {/* Activities Grid Moderne */}
-      <section className="content-section">
+      <section className="content-section"> 
         <div className="container">
           <motion.h2
             className="section-title"

@@ -79,7 +79,9 @@ const InfoPage = () => {
           setInfo(null);
         }
       } catch (err) {
-        console.error('Error loading activity:', err);
+        if (import.meta.env.DEV) {
+          console.warn('Error loading activity:', err);
+        }
         setInfo(null);
       } finally {
         setLoading(false);
