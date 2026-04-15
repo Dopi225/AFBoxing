@@ -145,7 +145,7 @@
       font-size: 4rem;
       font-weight: 900;
       margin-bottom: 1.5rem;
-      background: linear-gradient(45deg, #ffffff, #f0f0f0, #ffffff);
+      background: var(--gradient-shimmer-surface);
       background-size: 200% 200%;
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
@@ -206,7 +206,7 @@
 /* Content Section - Design Moderne */
 .info-content {
   padding: 5rem 0;
-  background: linear-gradient(180deg, #f8f9fa 0%, #ffffff 100%);
+  background: var(--gradient-page-fade);
   position: relative;
   
   &::before {
@@ -232,7 +232,7 @@
   
   .main-content {
     .content-card {
-      background: white;
+      background: var(--surface-elevated);
       border-radius: 24px;
       padding: 3rem;
       box-shadow: 
@@ -296,7 +296,7 @@
         p {
           font-size: 1.1rem;
           line-height: 1.8;
-          color: #2c3e50;
+          color: var(--text-dark);
           margin-bottom: 1.8rem;
           position: relative;
           padding-left: 1.5rem;
@@ -325,7 +325,7 @@
           li {
             position: relative;
             padding-left: 1.1rem;
-            color: #2c3e50;
+            color: var(--text-dark);
             line-height: 1.6;
             font-weight: 500;
 
@@ -345,7 +345,7 @@
   
   .info-sidebar {
     .info-card {
-      background: white;
+      background: var(--surface-elevated);
       border-radius: 24px;
       padding: 0;
       box-shadow: 
@@ -368,7 +368,7 @@
       
       .info-card-header {
         padding: 2rem 2rem 1.5rem;
-        border-bottom: 1px solid #f8f9fa;
+        border-bottom: 1px solid var(--secondary-light);
         display: flex;
         align-items: center;
         justify-content: space-between;
@@ -383,7 +383,7 @@
           
           p {
             font-size: 0.9rem;
-            color: #6c757d;
+            color: var(--text-muted);
             margin: 0;
             font-weight: 500;
           }
@@ -412,13 +412,13 @@
         .info-section {
           margin-bottom: 1.5rem;
           padding: 1.2rem;
-          background: #f8f9fa;
+          background: var(--secondary-gray);
           border-radius: 16px;
-          border: 1px solid #e9ecef;
+          border: 1px solid var(--secondary-light);
           transition: all 0.3s ease;
           
           &:hover {
-            background: #ffffff;
+            background: var(--surface-elevated);
             border-color: rgba(230, 0, 0, 0.2);
             transform: translateY(-2px);
             box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
@@ -489,9 +489,22 @@
           .section-content {
             .section-value {
               font-size: 1rem;
-              color: #495057;
+              color: var(--text-light);
               font-weight: 500;
               line-height: 1.4;
+            }
+
+            .info-practical-lead {
+              margin: 0 0 0.85rem;
+              font-size: 0.98rem;
+              line-height: 1.55;
+            }
+
+            .info-practical-link {
+              display: inline-flex;
+              align-items: center;
+              justify-content: center;
+              text-decoration: none;
             }
             
             .price-display {
@@ -510,7 +523,7 @@
               
               .price-period {
                 font-size: 0.9rem;
-                color: #6c757d;
+                color: var(--text-muted);
                 font-weight: 500;
               }
             }
@@ -520,7 +533,7 @@
       
       .info-action {
         padding: 1.5rem 2rem 2rem;
-        border-top: 1px solid #f8f9fa;
+        border-top: 1px solid var(--secondary-light);
         
         .btn {
           width: 100%;
@@ -549,6 +562,78 @@
           }
         }
       }
+    }
+  }
+}
+
+/* Sidebar « Informations pratiques » — thème sombre */
+:root[data-theme='dark'] .info-content .info-sidebar .info-card {
+  background: linear-gradient(168deg, rgba(22, 22, 30, 0.97) 0%, rgba(10, 10, 16, 0.99) 100%);
+  border-color: rgba(220, 70, 70, 0.28);
+  box-shadow:
+    0 24px 56px rgba(0, 0, 0, 0.55),
+    0 0 0 1px rgba(255, 255, 255, 0.07),
+    0 0 56px rgba(220, 0, 0, 0.07);
+
+  .info-card-header {
+    border-bottom-color: rgba(255, 255, 255, 0.1);
+  }
+
+  .info-sections .info-section {
+    background: rgba(255, 255, 255, 0.045);
+    border-color: rgba(255, 255, 255, 0.11);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: rgba(255, 140, 140, 0.32);
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.06),
+        0 12px 32px rgba(0, 0, 0, 0.42);
+    }
+
+    &.price-section {
+      background: linear-gradient(135deg, rgba(220, 45, 45, 0.22), rgba(90, 10, 10, 0.2));
+      border-color: rgba(255, 130, 130, 0.38);
+
+      &:hover {
+        background: linear-gradient(135deg, rgba(220, 55, 55, 0.32), rgba(120, 20, 20, 0.22));
+        border-color: rgba(255, 170, 170, 0.45);
+      }
+    }
+
+    .section-header {
+      .section-icon {
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+
+        &.age-icon {
+          background: linear-gradient(135deg, #3d8b40, #2e6b31);
+        }
+
+        &.schedule-icon {
+          background: linear-gradient(135deg, #1565c0, #0d47a1);
+        }
+
+        &.equipment-icon {
+          background: linear-gradient(135deg, #e65100, #bf360c);
+        }
+      }
+
+      h4 {
+        color: var(--text-dark);
+      }
+    }
+
+    .section-content .section-value {
+      color: var(--text-light);
+    }
+  }
+
+  .info-action {
+    border-top-color: rgba(255, 255, 255, 0.1);
+
+    .btn {
+      color: var(--primary-white);
     }
   }
 }
@@ -589,7 +674,7 @@
       color: white;
       margin-bottom: 1.5rem;
       font-weight: 800;
-      background: linear-gradient(45deg, #ffffff, #f0f0f0, #ffffff);
+      background: var(--gradient-shimmer-surface);
       background-size: 200% 200%;
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
@@ -806,7 +891,7 @@
 .error-section {
   padding: 4rem 0;
   text-align: center;
-  background: #f8f9fa;
+  background: var(--secondary-gray);
   
   h1 {
     color: var(--primary-red);
@@ -815,7 +900,7 @@
   }
   
   p {
-    color: #6c757d;
+    color: var(--text-muted);
     margin-bottom: 2rem;
   }
   
@@ -823,7 +908,7 @@
     display: inline-block;
     padding: 0.75rem 1.5rem;
     background: var(--primary-red);
-    color: white;
+    color: var(--primary-white);
     text-decoration: none;
     border-radius: 8px;
     font-weight: 500;

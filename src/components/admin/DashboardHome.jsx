@@ -16,7 +16,8 @@ import {
   faSearch,
   faCog,
   faInfoCircle,
-  faFistRaised
+  faFistRaised,
+  faMoneyBillWave
 } from '@fortawesome/free-solid-svg-icons';
 import { newsApi, palmaresApi, contactsApi, galleryApi, scheduleApi, authApi } from '../../services/apiService';
 import { useNotifications } from './NotificationSystem';
@@ -154,6 +155,13 @@ const DashboardHome = () => {
       count: stats.unreadContacts,
       badge: stats.unreadContacts > 0,
       color: 'var(--primary-red-dark)'
+    },
+    {
+      icon: faMoneyBillWave,
+      label: 'Tarifs',
+      path: '/admin/pricing',
+      adminOnly: true,
+      color: 'var(--primary-black)'
     },
     {
       icon: faFistRaised,

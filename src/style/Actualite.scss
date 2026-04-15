@@ -63,7 +63,7 @@
     }
 
     .activity-card {
-      background: white;
+      background: var(--surface-elevated);
       border-radius: 20px;
       padding: var(--spacing-xl);
       box-shadow: var(--shadow-md);
@@ -150,7 +150,7 @@
 
 .social-cta {
   padding: var(--spacing-xxl) 0;
-  background: white;
+  background: var(--surface-elevated);
 
   .cta-grid {
     display: grid;

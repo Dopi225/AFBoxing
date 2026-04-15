@@ -1,0 +1,196 @@
+/**
+ * AF Boxing — tokens design (source unique)
+ * Importé en premier dans main.jsx avant index.css et App.scss
+ */
+:root {
+  /* Typographie */
+  --font-primary: "Plus Jakarta Sans", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-display: "Playfair Display", Georgia, "Times New Roman", serif;
+
+  /* Couleurs charte */
+  --primary-red: #dc0000;
+  --primary-red-dark: #a80000;
+  --primary-black: #0b0b0b;
+  --primary-white: #ffffff;
+  --white: #ffffff;
+
+  /* Surfaces */
+  --surface-base: #f7f7f8;
+  --surface-elevated: #ffffff;
+  --surface-glass: rgba(255, 255, 255, 0.72);
+
+  /* Neutres */
+  --secondary-gray: #f0f0f2;
+  --secondary-dark: #222222;
+  --secondary-light: #e5e5e5;
+
+  /* Texte */
+  --text-dark: #111111;
+  --text-light: #555555;
+  --text-muted: #888888;
+
+  /* Champs (surfaces claires forcées en thème sombre) */
+  --input-fg: #14141c;
+  --input-placeholder: rgba(0, 0, 0, 0.45);
+
+  /* Accent admin */
+  --admin-accent: var(--primary-red);
+
+  /* Courbes */
+  --ease-premium: cubic-bezier(0.22, 1, 0.36, 1);
+
+  /* Espacements */
+  --spacing-xs: 0.5rem;
+  --spacing-sm: 1rem;
+  --spacing-md: 1.5rem;
+  --spacing-lg: 2rem;
+  --spacing-xl: 3rem;
+  --spacing-xxl: 4rem;
+
+  /* Ombres (premium + compat index) */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04), 0 4px 12px rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.04), 0 12px 32px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.06), 0 24px 56px rgba(0, 0, 0, 0.12);
+  --shadow-xl: 0 12px 24px rgba(0, 0, 0, 0.08), 0 32px 80px rgba(0, 0, 0, 0.14);
+  --shadow-red: 0 4px 20px rgba(230, 0, 0, 0.3);
+
+  /* Transitions (alignées MotionConfig ~0.28s) */
+  --transition-fast: 0.15s var(--ease-premium);
+  --transition-normal: 0.22s var(--ease-premium);
+  --transition-slow: 0.32s var(--ease-premium);
+
+  /* Rayons */
+  --border-radius-sm: 8px;
+  --border-radius-md: 12px;
+  --border-radius-lg: 16px;
+  --border-radius-xl: 20px;
+  --border-radius-xxl: 24px;
+
+  /* Dégradés */
+  --gradient-primary: linear-gradient(135deg, var(--primary-red), var(--primary-red-dark));
+  --gradient-dark: linear-gradient(135deg, #000000, #111111, #222222);
+  --gradient-light: linear-gradient(180deg, #f4f4f6 0%, #fafafb 45%, #ffffff 100%);
+  --gradient-hero: linear-gradient(135deg, var(--primary-black), var(--primary-red));
+  --gradient-shimmer-surface: linear-gradient(45deg, #ffffff, #f0f0f2, #ffffff);
+  --gradient-page-fade: linear-gradient(180deg, #f8f9fa 0%, #ffffff 100%);
+
+  /* Bordures (cartes, séparateurs) */
+  --border-subtle: rgba(0, 0, 0, 0.06);
+  --border-medium: rgba(0, 0, 0, 0.1);
+}
+
+/* Thème sombre — ThemeContext / ThemeToggle */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --primary-black: #f4f4f5;
+  --primary-red: #e81e1e;
+  --primary-red-dark: #b80000;
+  --text-dark: #ececf1;
+  --text-light: #b4b4c0;
+  --text-muted: #8e8e9a;
+  --secondary-gray: #1e1e24;
+  --secondary-light: #2a2a32;
+  --white: #0e0e12;
+  --surface-base: #08080c;
+  --surface-elevated: #12121a;
+  --surface-glass: rgba(22, 22, 30, 0.82);
+
+  /* Dégradés lisibles sans « flash » clair */
+  --gradient-light: linear-gradient(180deg, #07070b 0%, #0c0c12 48%, #09090e 100%);
+  --gradient-dark: linear-gradient(135deg, #020208, #0c0c12, #181822);
+  --gradient-shimmer-surface: linear-gradient(45deg, #1a1a24, #13131a, #1a1a24);
+  --gradient-page-fade: linear-gradient(180deg, #0e0e14 0%, #12121a 100%);
+
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --border-medium: rgba(255, 255, 255, 0.14);
+
+  /* Ombres plus profondes, moins de halo gris */
+  --shadow-sm: 0 1px 0 rgba(255, 255, 255, 0.04), 0 4px 18px rgba(0, 0, 0, 0.42);
+  --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.38), 0 14px 36px rgba(0, 0, 0, 0.38);
+  --shadow-lg: 0 10px 20px rgba(0, 0, 0, 0.45), 0 26px 56px rgba(0, 0, 0, 0.42);
+  --shadow-xl: 0 14px 28px rgba(0, 0, 0, 0.48), 0 36px 80px rgba(0, 0, 0, 0.45);
+  --shadow-red: 0 4px 24px rgba(220, 40, 40, 0.35);
+}
+
+:root[data-theme="dark"] body {
+  background-color: var(--surface-base);
+  background-image:
+    radial-gradient(ellipse 100% 60% at 50% -15%, rgba(220, 0, 0, 0.14), transparent 55%),
+    radial-gradient(ellipse 80% 50% at 100% 50%, rgba(80, 20, 20, 0.08), transparent 45%),
+    radial-gradient(ellipse 50% 40% at 0% 100%, rgba(40, 10, 10, 0.12), transparent 50%);
+  color: var(--text-dark);
+  scrollbar-color: rgba(255, 255, 255, 0.22) var(--surface-base);
+}
+
+:root[data-theme="dark"] a:hover {
+  color: #ff6b6b;
+}
+
+:root[data-theme="dark"] .btn-secondary {
+  background: var(--surface-elevated);
+  color: var(--text-dark);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+:root[data-theme="dark"] .btn-outline {
+  color: var(--text-dark);
+  border-color: rgba(255, 255, 255, 0.22);
+}
+
+:root[data-theme="dark"] .btn-outline:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-dark);
+}
+
+:root[data-theme="dark"] .modal-box {
+  background: var(--surface-elevated);
+  color: var(--text-dark);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+:root[data-theme="dark"] .modal-close {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-light);
+}
+
+:root[data-theme="dark"] .modal-header {
+  border-bottom-color: rgba(255, 255, 255, 0.08);
+}
+
+:root[data-theme="dark"] .contact-form .form-input,
+:root[data-theme="dark"] .contact-form textarea.form-input {
+  color: var(--input-fg) !important;
+  caret-color: var(--input-fg) !important;
+}
+
+:root[data-theme="dark"] .contact-form .form-input::placeholder,
+:root[data-theme="dark"] .contact-form textarea.form-input::placeholder {
+  color: var(--input-placeholder) !important;
+}
+
+:root[data-theme="dark"] .admin-dashboard input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="hidden"]):not([type="submit"]):not([type="button"]):not([type="reset"]),
+:root[data-theme="dark"] .admin-dashboard textarea,
+:root[data-theme="dark"] .admin-dashboard select {
+  color: var(--input-fg) !important;
+  caret-color: var(--input-fg) !important;
+}
+
+:root[data-theme="dark"] .admin-dashboard input::placeholder,
+:root[data-theme="dark"] .admin-dashboard textarea::placeholder {
+  color: var(--input-placeholder) !important;
+}
+
+:root[data-theme="dark"] .admin-dashboard select option {
+  color: var(--input-fg);
+  background: var(--surface-elevated);
+}
+
+::selection {
+  background: rgba(220, 0, 0, 0.18);
+  color: inherit;
+}
+
+:root[data-theme="dark"] ::selection {
+  background: rgba(220, 90, 90, 0.38);
+  color: #fdfdfd;
+}

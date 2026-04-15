@@ -20,14 +20,14 @@ const loaders = {
 };
 
 export function prefetchPublicRoute(pathname) {
-  if (!pathname || typeof pathname !== 'string') return;
+  if (!pathname || typeof pathname !== 'string') return undefined;
   const base = pathname.split('?')[0] || '/';
   const loader = loaders[base];
   if (loader) {
-    void loader();
-    return;
+    return loader();
   }
   if (base.startsWith('/info/')) {
-    void loaders['/info']();
+    return loaders['/info']();
   }
+  return undefined;
 }

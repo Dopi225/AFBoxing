@@ -1,36 +1,4 @@
-:root {
-  /* Couleurs principales */
-  --primary-red: #dc0000;
-  --primary-red-dark: #a80000;
-  --primary-black: #111111;
-  --secondary-gray: #f5f5f5;
-  --text-dark: #333333;
-  --text-light: #666666;
-  --white: #ffffff;
-  
-  /* Typographie */
-  --font-primary: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
-  --font-display: 'Playfair Display', Georgia, 'Times New Roman', serif;
-  
-  /* Espacements */
-  --spacing-xs: 0.5rem;
-  --spacing-sm: 1rem;
-  --spacing-md: 1.5rem;
-  --spacing-lg: 2rem;
-  --spacing-xl: 3rem;
-  --spacing-xxl: 4rem;
-  
-  /* Ombres */
-  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.1);
-  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.15);
-  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.2);
-  --shadow-red: 0 4px 20px rgba(230, 0, 0, 0.3);
-  
-  /* Transitions */
-  --transition-fast: 0.2s ease;
-  --transition-normal: 0.3s ease;
-  --transition-slow: 0.5s ease;
-}
+/* Tokens : src/style/tokens.css (importé dans main.jsx avant ce fichier) */
 
 * {
   margin: 0;
@@ -58,7 +26,7 @@ body {
   flex-direction: column;
 }
 
-/* Typographie */
+/* Typographie — échelle fluide */
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-display);
   font-weight: 600;
@@ -67,12 +35,12 @@ h1, h2, h3, h4, h5, h6 {
   margin-bottom: var(--spacing-sm);
 }
 
-h1 { font-size: 3rem; }
-h2 { font-size: 2.5rem; }
-h3 { font-size: 2rem; }
-h4 { font-size: 1.5rem; }
-h5 { font-size: 1.25rem; }
-h6 { font-size: 1.125rem; }
+h1 { font-size: clamp(2rem, 1.5rem + 1.5vw, 3rem); }
+h2 { font-size: clamp(1.65rem, 1.35rem + 1.1vw, 2.5rem); }
+h3 { font-size: clamp(1.4rem, 1.2rem + 0.75vw, 2rem); }
+h4 { font-size: clamp(1.2rem, 1.05rem + 0.5vw, 1.5rem); }
+h5 { font-size: clamp(1.05rem, 1rem + 0.2vw, 1.25rem); }
+h6 { font-size: clamp(1rem, 0.95rem + 0.15vw, 1.125rem); }
 
 p {
   margin-bottom: var(--spacing-sm);
@@ -116,38 +84,24 @@ a:hover {
 
 /* Responsive */
 @media (max-width: 768px) {
-  html { font-size: 14px; }
-  
-  h1 { font-size: 2.5rem; }
-  h2 { font-size: 2rem; }
-  h3 { font-size: 1.75rem; }
-  
+  html { font-size: 15px; }
+
   .container {
     padding: 0 var(--spacing-sm);
   }
 }
 
 @media (max-width: 480px) {
-  h1 { font-size: 2rem; }
-  h2 { font-size: 1.75rem; }
-  h3 { font-size: 1.5rem; }
-}
-
-/* Performance optimizations */
-* {
-  will-change: auto;
+  html { font-size: 14px; }
 }
 
 .motion-div {
   will-change: transform, opacity;
 }
 
-/* Reduce motion for better performance */
 @media (prefers-reduced-motion: reduce) {
-  * {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
+  html {
+    scroll-behavior: auto;
   }
 }
 
@@ -164,7 +118,7 @@ a:hover {
   font-weight: 600;
   text-decoration: none;
   cursor: pointer;
-  transition: all var(--transition-normal);
+  transition: transform var(--transition-normal), box-shadow var(--transition-normal), background var(--transition-normal), color var(--transition-normal), border-color var(--transition-normal);
   min-height: 48px;
   white-space: nowrap;
   position: relative;
@@ -188,7 +142,7 @@ a:hover {
 }
 
 .btn-secondary {
-  background: white;
+  background: var(--surface-elevated);
   color: var(--primary-red);
   border: 2px solid var(--primary-red);
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
@@ -245,7 +199,7 @@ a:hover {
 }
 
 .modal-box {
-  background: white;
+  background: var(--surface-elevated);
   border-radius: 24px;
   max-width: 90vw;
   max-height: 90vh;
@@ -268,26 +222,26 @@ a:hover {
   justify-content: center;
   cursor: pointer;
   z-index: 10;
-  transition: all var(--transition-fast);
+  transition: background var(--transition-fast), color var(--transition-fast), transform var(--transition-fast);
   color: var(--text-light);
+}
 
-  &:hover {
-    background: var(--primary-red);
-    color: white;
-    transform: scale(1.1);
-  }
+.modal-close:hover {
+  background: var(--primary-red);
+  color: white;
+  transform: scale(1.1);
 }
 
 .modal-header {
   padding: var(--spacing-xl) var(--spacing-xl) var(--spacing-md);
   border-bottom: 1px solid var(--secondary-gray);
+}
 
-  .modal-title {
-    color: var(--primary-black);
-    margin: 0;
-    font-size: 1.8rem;
-    text-align: center;
-  }
+.modal-header .modal-title {
+  color: var(--primary-black);
+  margin: 0;
+  font-size: 1.8rem;
+  text-align: center;
 }
 
 .modal-body {
@@ -304,55 +258,4 @@ select:focus-visible,
 textarea:focus-visible {
   outline: 3px solid var(--primary-red);
   outline-offset: 2px;
-}
-
-/* Thème sombre (voir ThemeToggle.jsx) — tokens alignés site public + cartes */
-:root[data-theme="dark"] {
-  color-scheme: dark;
-  --primary-black: #f4f4f5;
-  --primary-red: #e81e1e;
-  --primary-red-dark: #b80000;
-  --text-dark: #ececf1;
-  --text-light: #b4b4c0;
-  --text-muted: #8e8e9a;
-  --secondary-gray: #1e1e24;
-  --secondary-light: #2a2a32;
-  --white: #0e0e12;
-  --surface-base: #08080c;
-  --surface-elevated: #12121a;
-  --surface-glass: rgba(22, 22, 30, 0.82);
-}
-
-:root[data-theme="dark"] body {
-  background-color: var(--surface-base);
-  background-image:
-    radial-gradient(ellipse 100% 60% at 50% -15%, rgba(220, 0, 0, 0.14), transparent 55%),
-    radial-gradient(ellipse 80% 50% at 100% 50%, rgba(80, 20, 20, 0.08), transparent 45%);
-  color: var(--text-dark);
-}
-
-:root[data-theme="dark"] a:hover {
-  color: #ff6b6b;
-}
-
-:root[data-theme="dark"] .btn-secondary {
-  background: var(--surface-elevated);
-  color: var(--text-dark);
-  border-color: rgba(255, 255, 255, 0.12);
-}
-
-:root[data-theme="dark"] .btn-outline {
-  color: var(--text-dark);
-  border-color: rgba(255, 255, 255, 0.22);
-}
-
-:root[data-theme="dark"] .btn-outline:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.08);
-  color: var(--text-dark);
-}
-
-:root[data-theme="dark"] .modal-box {
-  background: var(--surface-elevated);
-  color: var(--text-dark);
-  border: 1px solid rgba(255, 255, 255, 0.08);
 }

@@ -7,6 +7,8 @@ import { contactsApi, scheduleApi } from '../services/apiService';
 import { useNavigate } from 'react-router-dom';
 import { useSettings } from '../hooks/useSettings';
 import SectionHeader from './SectionHeader';
+import '../style/ContactFom.scss';
+import '../style/Contact.scss';
 
 const Contact = () => {
   const navigate = useNavigate();

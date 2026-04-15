@@ -15,7 +15,8 @@ import {
   faCog,
   faFistRaised,
   faHistory,
-  faUsers
+  faUsers,
+  faMoneyBillWave
 } from '@fortawesome/free-solid-svg-icons';
 import { motion } from 'framer-motion';
 import { authApi, newsApi, palmaresApi, contactsApi, galleryApi } from '../../services/apiService';
@@ -99,6 +100,7 @@ const AdminDashboard = () => {
 
   const adminOnlyMenuItems = [
     { icon: faEnvelope, label: 'Contacts', path: '/admin/contacts', badge: stats.unreadContacts, badgeColor: 'red' },
+    { icon: faMoneyBillWave, label: 'Tarifs', path: '/admin/pricing' },
     { icon: faCog, label: 'Paramètres', path: '/admin/settings' },
     { icon: faHistory, label: 'Historique', path: '/admin/history' },
     { icon: faUsers, label: 'Utilisateurs', path: '/admin/users' }

@@ -63,7 +63,7 @@
     }
 
     .activity-card {
-      background: white;
+      background: var(--surface-elevated);
       border-radius: 20px;
       padding: var(--spacing-xl);
       box-shadow: var(--shadow-md);
@@ -138,7 +138,7 @@
 
 .schedule-section {
   padding: var(--spacing-xxl) 0;
-  background: white;
+  background: var(--surface-elevated);
 
   .schedule-content {
     text-align: center;
@@ -215,7 +215,7 @@
     gap: var(--spacing-xl);
 
     .cta-card {
-      background: white;
+      background: var(--surface-elevated);
       padding: var(--spacing-xl);
       border-radius: 16px;
       text-align: center;

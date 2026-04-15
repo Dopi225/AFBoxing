@@ -1,10 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faGraduationCap, faUsers, faLightbulb, faMapMarkerAlt, faHome, faEnvelope, faFileSignature } from '@fortawesome/free-solid-svg-icons';
-import { motion } from 'framer-motion';
+import { motion as Motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { activitiesApi } from '../services/apiService';
 import SectionHeader from './SectionHeader';
+import { EmptyState, ErrorState, InlineLoading } from './PageStates';
+import '../style/Actualite.scss';
 
 const iconMap = {
   faGraduationCap,
@@ -20,50 +22,39 @@ const Actualite = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  useEffect(() => {
-    const loadActivities = async () => {
-      setLoading(true);
-      try {
-        const data = await activitiesApi.list();
-        const social = data
-          .filter(a => a.kind === 'social' && a.enabled)
-          .map(a => {
-            const icon = a.icon && iconMap[a.icon] ? iconMap[a.icon] : faGraduationCap;
-            return {
-              id: a.id,
-              title: a.title,
-              icon: icon,
-              description: a.subtitle,
-              details: (a.sections || []).map(s => 
-                [...(s.paragraphs || []), ...(s.bullets || [])].join(' ')
-              ).join(' '),
-              schedule: a.meta?.scheduleText || 'Sur demande',
-              age: a.meta?.age || 'Tous âges'
-            };
-          });
-        setSocialActivities(social);
-      } catch (err) {
-        // console.error('Error loading social activities:', err);
-        setError(err.message || 'Impossible de charger les activités sociales.');
-        // Fallback sur données par défaut
-        // setSocialActivities([
-        //   {
-        //     id: 'aide-devoirs',
-        //     title: 'Aide aux devoirs',
-        //     icon: faGraduationCap,
-        //     description: 'Encadrement bienveillant pour soutenir les enfants dans leurs devoirs après l\'école.',
-        //     details: 'Nos animateurs qualifiés accompagnent les enfants dans leurs devoirs dans un cadre bienveillant et structuré.',
-        //     schedule: 'Lundi au Vendredi 16h30-18h00',
-        //     age: '6-16 ans'
-        //   }
-        // ]);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const loadActivities = useCallback(async () => {
+    setLoading(true);
+    setError('');
+    try {
+      const data = await activitiesApi.list();
+      const social = data
+        .filter(a => a.kind === 'social' && a.enabled)
+        .map(a => {
+          const icon = a.icon && iconMap[a.icon] ? iconMap[a.icon] : faGraduationCap;
+          return {
+            id: a.id,
+            title: a.title,
+            icon: icon,
+            description: a.subtitle,
+            details: (a.sections || []).map(s =>
+              [...(s.paragraphs || []), ...(s.bullets || [])].join(' ')
+            ).join(' '),
+            schedule: a.meta?.scheduleText || 'Sur demande',
+            age: a.meta?.age || 'Tous âges'
+          };
+        });
+      setSocialActivities(social);
+    } catch (err) {
+      setError(err.message || 'Impossible de charger les activités sociales.');
+      setSocialActivities([]);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
-    loadActivities();
-  }, []); 
+  useEffect(() => {
+    void loadActivities();
+  }, [loadActivities]); 
 
   return (
     <div className="container-fluid">
@@ -80,7 +71,7 @@ const Actualite = () => {
       {/* Activities Section Moderne */}
       <section className="content-section">
         <div className="container">
-          <motion.h2
+          <Motion.h2
             className="section-title"
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -88,16 +79,22 @@ const Actualite = () => {
             viewport={{ once: true }}
           >
             Nos Activités Socio-éducatives
-          </motion.h2>
+          </Motion.h2>
           
           {loading ? (
-            <p style={{ textAlign: 'center', padding: '2rem' }}>Chargement des activités...</p>
+            <div style={{ textAlign: 'center', padding: '2rem' }}>
+              <InlineLoading label="Chargement des activités…" />
+            </div>
+          ) : error ? (
+            <ErrorState title="Impossible de charger les activités" message={error} onRetry={() => void loadActivities()} />
           ) : socialActivities.length === 0 ? (
-            <p style={{ textAlign: 'center', padding: '2rem' }}>Aucune activité socio-éducative pour le moment.</p>
+            <EmptyState title="Aucune activité pour le moment">
+              Les activités socio-éducatives apparaîtront ici lorsqu’elles seront publiées.
+            </EmptyState>
           ) : (
             <div className="modern-grid grid-3">
               {socialActivities.map((activity, index) => (
-              <motion.div
+              <Motion.div
                 key={activity.id}
                 className="modern-card activity-card"
                 initial={{ opacity: 0, y: 30 }}
@@ -138,7 +135,7 @@ const Actualite = () => {
                     En savoir plus
                   </button>
                 </div>
-              </motion.div>
+              </Motion.div>
               ))}
             </div>
           )}
@@ -149,7 +146,7 @@ const Actualite = () => {
       <section className="social-cta">
         <div className="container">
           <div className="cta-grid">
-            <motion.div 
+            <Motion.div 
               className="cta-card"
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -162,9 +159,9 @@ const Actualite = () => {
               <button className="btn btn-primary" onClick={() => navigate('/contact')}>
                 Nous écrire
               </button>
-            </motion.div>
+            </Motion.div>
 
-            <motion.div 
+            <Motion.div 
               className="cta-card"
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -177,7 +174,7 @@ const Actualite = () => {
               <button className="btn btn-secondary" onClick={() => navigate('/tarif')}>
                 S'inscrire
               </button>
-            </motion.div>
+            </Motion.div>
           </div>
         </div>
       </section>

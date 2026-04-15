@@ -4,6 +4,7 @@ import { faExternalLinkAlt, faHandshake, faHeart, faEnvelope } from '@fortawesom
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import SectionHeader from './SectionHeader';
+import '../style/Partenaire.scss';
 
 import logoPoitiers from '../assets/LOGOPOITIERS.jpg';
 import logoFFBoxe from '../assets/FFBOXE.png';

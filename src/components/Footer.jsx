@@ -8,12 +8,15 @@ import { useSettings } from '../hooks/useSettings';
 import image2 from '../assets/logo-removeb.png';
 import ThemeToggle from './ThemeToggle';
 import './ThemeToggle.scss';
+import '../style/Footer.scss';
 import { prefetchPublicRoute } from '../utils/routePrefetch';
+import { PARTNERS } from '../data/partners';
 
 const Footer = () => {
   const { settings } = useSettings();
   const [showNav, setShowNav] = useState(false);
   const [showContact, setShowContact] = useState(false);
+  const [showPartners, setShowPartners] = useState(false);
 
   const isMobile = typeof window !== "undefined" && window.innerWidth < 778;
 
@@ -84,6 +87,42 @@ const Footer = () => {
               <li>
                 <FontAwesomeIcon icon={faMapMarkerAlt} /> {settings?.contact?.address ?? '—'}
               </li>
+            </ul>
+          )}
+        </motion.div>
+
+        <motion.div
+          className="footer-col footer-col--partners"
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.35 }}
+          viewport={{ once: true }}
+        >
+          <p
+            onClick={() => setShowPartners(!showPartners)}
+            className="accordion-header footer-col-heading"
+            role="presentation"
+          >
+            Partenaires{' '}
+            {isMobile && (showPartners ? <FontAwesomeIcon icon={faChevronUp} /> : <FontAwesomeIcon icon={faChevronDown} />)}
+          </p>
+          {(showPartners || !isMobile) && (
+            <ul className="footer-partners-logos" aria-label="Logos partenaires">
+              {PARTNERS.map((p) => (
+                <li key={p.name}>
+                  <a
+                    href={p.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="footer-partners-logo-link"
+                    aria-label={`Site partenaire : ${p.name}`}
+                    title={p.name}
+                  >
+                    <img src={p.logo} alt="" width={140} height={56} loading="lazy" decoding="async" />
+                    {/* <span className="footer-partners-name">{p.name}</span> */}
+                  </a>
+                </li>
+              ))}
             </ul>
           )}
         </motion.div>

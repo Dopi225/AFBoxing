@@ -14,7 +14,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNotifications } from './NotificationSystem';
 import ConfirmDialog from './ConfirmDialog';
-import { activitiesApi } from '../../services/apiService';
+import { activitiesApi, pricingApi } from '../../services/apiService';
 import { logActivity } from '../../utils/activityLogger';
 import './ManageActivities.scss';
 
@@ -72,6 +72,7 @@ const ManageActivities = () => {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [pricingCatalog, setPricingCatalog] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [formData, setFormData] = useState({
     id: '',
@@ -94,6 +95,23 @@ const ManageActivities = () => {
   useEffect(() => {
     loadActivities();
     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const rows = await pricingApi.catalog();
+        if (!cancelled && Array.isArray(rows)) {
+          setPricingCatalog(rows);
+        }
+      } catch {
+        if (!cancelled) setPricingCatalog([]);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const loadActivities = async () => {
@@ -185,10 +203,8 @@ const ManageActivities = () => {
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/^-+|-+$/g, '');
 
-    const price = formData.meta.priceKey || formData.title.toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-+|-+$/g, '');
-    
+    const priceKeyRaw = (formData.meta?.priceKey ?? '').toString().trim();
+
     // Préparation des données pour l'API
     const newActivity = {
       id: activityId,
@@ -200,7 +216,7 @@ const ManageActivities = () => {
       meta: {
         age: formData.meta?.age?.trim() || null,
         equipment: formData.meta?.equipment?.trim() || null,
-        priceKey: price|| null
+        priceKey: priceKeyRaw || null
       },
       sections: formData.sections || [],
       icon: formData.icon || null,
@@ -575,18 +591,30 @@ const ManageActivities = () => {
                       />
                     </div>
                   </div>
-                  {/* <div className="form-group">
-                    <label>Clé de prix</label>
-                    <input
-                      type="text"
-                      value={formData.meta.priceKey}
-                      onChange={(e) => setFormData({
-                        ...formData,
-                        meta: { ...formData.meta, priceKey: e.target.value }
-                      })}
-                      placeholder="boxing.educative"
-                    />
-                  </div> */}
+                  <div className="form-group">
+                    <label>Tarif associé (grille tarifaire)</label>
+                    <select
+                      value={formData.meta.priceKey || ''}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          meta: { ...formData.meta, priceKey: e.target.value }
+                        })
+                      }
+                    >
+                      <option value="">— Aucun / sur devis —</option>
+                      {pricingCatalog
+                        .filter((p) => p.enabled !== false)
+                        .map((p) => (
+                          <option key={p.priceKey} value={p.priceKey}>
+                            {p.label} ({p.priceKey}) — {p.amount}€ / {p.period}
+                          </option>
+                        ))}
+                    </select>
+                    <div className="form-hint">
+                      Les montants se gèrent dans la section Tarifs (menu admin). Ici vous choisissez la ligne de la grille affichée sur la fiche activité.
+                    </div>
+                  </div>
                 </div>
 
                 <div className="form-section">

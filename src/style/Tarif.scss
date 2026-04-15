@@ -80,7 +80,7 @@
     }
 
     .main-card {
-      background: white;
+      background: var(--surface-elevated);
       border-radius: 20px;
       padding: var(--spacing-xl);
       box-shadow: var(--shadow-md);
@@ -174,7 +174,7 @@
 
 .info-section {
   padding: var(--spacing-xxl) 0;
-  background: white;
+  background: var(--surface-elevated);
 
   .info-grid {
     display: grid;
@@ -275,6 +275,13 @@
           color: var(--text-light);
           font-size: 0.9rem;
           margin: 0;
+        }
+
+        .pricing-card-note {
+          margin-top: var(--spacing-sm);
+          font-size: 0.82rem;
+          color: var(--text-light);
+          line-height: 1.45;
         }
       }
     }

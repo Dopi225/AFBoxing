@@ -1,9 +1,29 @@
 .manage-schedule {
+  .page-subtitle {
+    margin: 0.5rem 0 0;
+    font-size: 0.95rem;
+    color: var(--text-light, #5a5a66);
+    max-width: 48rem;
+    line-height: 1.55;
+    font-weight: 500;
+  }
+
+  &__warning {
+    padding: 1rem 1.25rem;
+    border-radius: var(--border-radius-md, 8px);
+    background: #fff8e1;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    margin-bottom: 1.25rem;
+    color: var(--primary-black, #111);
+  }
+
   .page-header {
     display: flex;
     justify-content: space-between;
-    align-items: center;
+    align-items: flex-start;
+    gap: 1rem;
     margin-bottom: 2rem;
+    flex-wrap: wrap;
 
     h2 {
       font-size: 2rem;

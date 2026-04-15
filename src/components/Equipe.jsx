@@ -5,6 +5,7 @@ import { faFistRaised, faGraduationCap, faHeart, faTrophy, faUsers, faEnvelope }
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import SectionHeader from './SectionHeader';
+import '../style/Equipe.scss';
 
 import coach1 from '../assets/coach1.jpg';
 import coach2 from '../assets/coach2.jpg';

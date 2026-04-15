@@ -156,6 +156,10 @@ $router->get('/api/activity-log/count', [ActivityLogController::class, 'count'])
 
 // Pricing
 $router->get('/api/pricing', [PricingController::class, 'index']);
+$router->get('/api/pricing/catalog', [PricingController::class, 'catalog'])
+    ->middleware($authStaff);
+$router->get('/api/pricing/admin-list', [PricingController::class, 'adminList'])
+    ->middleware($authAdmin);
 $router->get('/api/pricing/{key}', [PricingController::class, 'show']);
 $router->post('/api/pricing', [PricingController::class, 'store'])
     ->middleware($authAdmin);

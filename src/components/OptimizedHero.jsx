@@ -85,7 +85,14 @@ const OptimizedHero = () => {
             transition={{ duration: 1, delay: 0.2, ease: "easeOut" }}
           >
             <div className="mil">
-              <img src={logo} alt="AF Boxing Club 86" loading="lazy" />
+              <img
+                src={logo}
+                alt="AF Boxing Club 86"
+                width={320}
+                height={320}
+                decoding="async"
+                fetchPriority="high"
+              />
             </div>
           </motion.div>
           

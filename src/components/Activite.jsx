@@ -6,6 +6,7 @@ import { faFistRaised, faGraduationCap, faHeart, faMusic, faBrain, faWheelchair,
 import { motion } from 'framer-motion';
 import { scheduleApi, activitiesApi } from '../services/apiService';
 import SectionHeader from './SectionHeader';
+import '../style/Activite.scss';
 
 const iconMap = {
   faFistRaised,

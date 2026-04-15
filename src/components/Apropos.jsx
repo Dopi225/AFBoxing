@@ -4,6 +4,7 @@ import { faFistRaised, faGraduationCap, faUsers, faHeart, faTrophy, faHandshake 
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import SectionHeader from './SectionHeader';
+import '../style/Apropos.scss';
 
 // Fix ESLint no-unused-vars dans certains setups: l'analyse ne voit pas `motion.*` en JSX.
 // (variable inutilisée autorisée car commence par "_")

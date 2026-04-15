@@ -1,9 +1,8 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faFistRaised, faGraduationCap, faNewspaper, faMapMarkerAlt, faCalendarAlt, faClock, faCamera, faArrowRight, faEnvelope, faPlay } from '@fortawesome/free-solid-svg-icons';
+import { faFistRaised, faGraduationCap, faNewspaper, faCalendarAlt, faClock, faCamera, faArrowRight, faEnvelope, faPlay } from '@fortawesome/free-solid-svg-icons';
 // eslint-disable-next-line no-unused-vars -- motion.* utilisé dans le JSX (faux positif ESLint sur les namespaces)
 import { motion } from 'framer-motion';
-import PartnersLogos from './PartnersLogos';
 import videaste from '../assets/club.mp4';
 import posterImage from '../assets/club.jpeg';
 import logo from '../assets/logo-removeb.png';
@@ -16,6 +15,8 @@ import { newsApi, scheduleApi } from '../services/apiService';
 // import aero from '../assets/gants.png';
 import therapie from '../assets/p1.png';
 import social from '../assets/social.jpg';
+import '../style/Home.scss';
+import '../style/PublicFuturistic.scss';
 
 export const CTAButton = ({ icon, label, onClick, delay = 0 }) => (
   <motion.a
@@ -452,23 +453,15 @@ const AssociationDeBoxe = () => {
                 Le Club
               </motion.button>
               <motion.button 
-                onClick={() => navigate('/horaire')} 
-                className="btn btn-outline"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <FontAwesomeIcon icon={faCalendarAlt} />
-                Horaires
-              </motion.button>
-              <motion.button 
                 onClick={() => navigate('/contact')} 
-                className="btn btn-secondary"
+                className="btn btn-outline"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
                 <FontAwesomeIcon icon={faEnvelope} />
                 Contact
               </motion.button>
+              
             </motion.div>
           </motion.div>
         </div>
@@ -511,162 +504,6 @@ const AssociationDeBoxe = () => {
           </div>
         </div>
       </motion.section>
-
-      {/* Dernières actualités (données API) */}
-      <motion.section
-        className="content-section section-white home-news-strip"
-        initial={{ opacity: 0, y: 40 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
-        viewport={{ once: true }}
-        aria-labelledby="home-news-heading"
-      >
-        <div className="container">
-          <h2 id="home-news-heading" className="section-title">
-            À la une
-          </h2>
-          <p className="home-news-strip__subtitle">
-            Les dernières infos du club — rester informé des événements et annonces.
-          </p>
-
-          {newsLoading && (
-            <div className="home-news-loading" role="status" aria-live="polite">
-              <span className="afb-spinner" aria-hidden />
-              <span>Chargement des actualités…</span>
-            </div>
-          )}
-
-          {!newsLoading && newsError && (
-            <div className="public-banner public-banner--warning" role="alert">
-              {newsError}
-            </div>
-          )}
-
-          {!newsLoading && !newsError && latestNews.length === 0 && (
-            <p className="home-news-empty">
-              Aucune actualité publiée pour le moment. Consultez bientôt cette section ou la page Actualités.
-            </p>
-          )}
-
-          {!newsLoading && !newsError && latestNews.length > 0 && (
-            <div className="home-news-grid">
-              {latestNews.map((n) => (
-                <article key={n.id} className="modern-card home-news-card">
-                  <div className="home-news-card__date">
-                    {formatDate(n.date || n.created_at)}
-                  </div>
-                  <h3 className="home-news-card__title">{n.title}</h3>
-                  <p className="home-news-card__excerpt">
-                    {(n.summary || '').length > 160 ? `${String(n.summary).slice(0, 160)}…` : n.summary}
-                  </p>
-                </article>
-              ))}
-            </div>
-          )}
-
-          <div className="home-news-strip__cta">
-            <motion.button
-              type="button"
-              className="btn btn-primary"
-              onClick={() => navigate('/news')}
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.97 }}
-            >
-              <FontAwesomeIcon icon={faNewspaper} />
-              Toutes les actualités
-            </motion.button>
-          </div>
-        </div>
-      </motion.section>
-
-      {/* Pôle boxe */}
-      <motion.section
-        className="content-section section-white home-social"
-        initial={{ opacity: 0, y: 40 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
-        viewport={{ once: true }}
-      >
-        <div className="container">
-          <div className="home-split">
-            <div className="home-split__media">
-              <img src={therapie} alt="Pôle Boxe" width={2000} height={2000} loading="lazy" decoding="async" />
-            </div>
-            <div className="home-split__content">
-              <div className="home-eyebrow">Pôle Boxe</div>
-              <h2 className="home-split__title">Un club de boxe pour tous les niveaux</h2>
-              <p className="home-split__text">
-                Boxe éducative, boxe loisir, boxe compétition, etc...  
-          Un encadrement structuré pour progresser, se dépasser et performer,
-          quel que soit votre niveau.
-              </p>
-              <ul className="home-bullets">
-                <li>Boxe anglaise & disciplines associées</li>
-                <li>Entraînements techniques et physiques</li>
-                <li>Préparation aux compétitions officielles</li>
-              </ul>
-              <div className="home-split__actions">
-                <button className="btn btn-primary" onClick={() => handleNavigate('/activite')}>
-                  <FontAwesomeIcon icon={faFistRaised} />
-                  Découvrir le pôle boxe
-                </button>
-                <button className="btn btn-outline" onClick={() => handleNavigate('/contact')}>
-                  <FontAwesomeIcon icon={faEnvelope} />
-                  Nous contacter
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </motion.section>
-
-      {/* Pôle socio-éducatif */}
-      <motion.section
-        className="content-section section-white home-social"
-        initial={{ opacity: 0, y: 40 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
-        viewport={{ once: true }}
-      >
-        <div className="container">
-          <div className="home-split">
-            <div className="home-split__media">
-              <img src={social} alt="Pôle socio-éducatif" width={4223} height={3167} loading="lazy" decoding="async" />
-            </div>
-            <div className="home-split__content">
-              <div className="home-eyebrow">Pôle socio-éducatif</div>
-              <h2 className="home-split__title">  Le sport comme outil d’éducation et d’insertion</h2>
-              <p className="home-split__text">
-                À travers la boxe et des actions éducatives ciblées, nous accompagnons
-          les jeunes et les familles dans leur parcours scolaire, social et
-          citoyen, en transmettant des valeurs de respect, discipline et engagement.
-              </p>
-              <ul className="home-bullets">
-                <li>Accompagnement scolaire et aide aux devoirs</li>
-                <li>Ateliers éducatifs et citoyens</li>
-                <li>Actions de prévention et d’insertion</li>
-              </ul>
-              <div className="home-split__actions">
-                <button className="btn btn-primary" onClick={() => handleNavigate('/actualite')}>
-                  <FontAwesomeIcon icon={faGraduationCap} />
-                  Découvrir le socio-éducatif
-                </button>
-                <button className="btn btn-outline" onClick={() => handleNavigate('/contact')}>
-                  <FontAwesomeIcon icon={faEnvelope} />
-                  Nous contacter
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </motion.section>
-
-      {/* Section Partenaires */}
-      <section className="content-section section-white">
-        <div className="container">
-          <PartnersLogos />
-        </div>
-      </section>
 
       {/* Planning en un coup d'œil */}
       <motion.section
@@ -789,49 +626,188 @@ const AssociationDeBoxe = () => {
         </div>
       </motion.section>
 
-      {/* Section Carte */}
-      <motion.section 
-        className="content-section section-dark"
+      {/* Dernières actualités (données API) */}
+      {/* <motion.section
+        className="content-section section-white home-news-strip"
+        initial={{ opacity: 0, y: 40 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+        viewport={{ once: true }}
+        aria-labelledby="home-news-heading"
+      >
+        <div className="container">
+          <h2 id="home-news-heading" className="section-title">
+            À la une
+          </h2>
+          <p className="home-news-strip__subtitle">
+            Les dernières infos du club — rester informé des événements et annonces.
+          </p>
+
+          {newsLoading && (
+            <div className="home-news-loading" role="status" aria-live="polite">
+              <span className="afb-spinner" aria-hidden />
+              <span>Chargement des actualités…</span>
+            </div>
+          )}
+
+          {!newsLoading && newsError && (
+            <div className="public-banner public-banner--warning" role="alert">
+              {newsError}
+            </div>
+          )}
+
+          {!newsLoading && !newsError && latestNews.length === 0 && (
+            <p className="home-news-empty">
+              Aucune actualité publiée pour le moment. Consultez bientôt cette section ou la page Actualités.
+            </p>
+          )}
+
+          {!newsLoading && !newsError && latestNews.length > 0 && (
+            <div className="home-news-grid">
+              {latestNews.map((n) => (
+                <article key={n.id} className="modern-card home-news-card">
+                  <div className="home-news-card__date">
+                    {formatDate(n.date || n.created_at)}
+                  </div>
+                  <h3 className="home-news-card__title">{n.title}</h3>
+                  <p className="home-news-card__excerpt">
+                    {(n.summary || '').length > 160 ? `${String(n.summary).slice(0, 160)}…` : n.summary}
+                  </p>
+                </article>
+              ))}
+            </div>
+          )}
+
+          <div className="home-news-strip__cta">
+            <motion.button
+              type="button"
+              className="btn btn-primary"
+              onClick={() => navigate('/news')}
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
+            >
+              <FontAwesomeIcon icon={faNewspaper} />
+              Toutes les actualités
+            </motion.button>
+          </div>
+        </div>
+      </motion.section> */}
+
+      {/* Identité du club — pôle boxe + socio-éducatif (une seule section) */}
+      <motion.section
+        className="content-section section-white club-identity"
+        initial={{ opacity: 0, y: 40 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+        viewport={{ once: true }}
+      >
+        <div className="container">
+          <header className="club-identity__intro">
+            <h2 className="club-identity__title">Bien plus qu’un club de boxe</h2>
+            <p className="club-identity__lead">
+              Association sportive à Poitiers, nous réunissons passion de la boxe, accompagnement éducatif
+              et valeurs de respect — pour progresser ensemble, sur le ring comme dans la vie.
+            </p>
+          </header>
+
+          <div className="club-identity__grid">
+            <article className="club-identity-card">
+              <div className="club-identity-card__media">
+                <img src={therapie} alt="Entraînement et pôle boxe au club" width={800} height={600} loading="lazy" decoding="async" />
+              </div>
+              <div className="club-identity-card__body">
+                <h3 className="club-identity-card__heading">
+                  <span className="club-identity-card__emoji" aria-hidden>
+                    🥊
+                  </span>{' '}
+                  Pôle Boxe
+                </h3>
+                <p className="club-identity-card__text">
+                  De la boxe éducative à la compétition : encadrement structuré, entraînements techniques
+                  et préparation aux galas officiels.
+                </p>
+                <button type="button" className="btn btn-primary" onClick={() => handleNavigate('/activite')}>
+                  Découvrir
+                </button>
+              </div>
+            </article>
+
+            <article className="club-identity-card">
+              <div className="club-identity-card__media">
+                <img src={social} alt="Accompagnement socio-éducatif au club" width={800} height={600} loading="lazy" decoding="async" />
+              </div>
+              <div className="club-identity-card__body">
+                <h3 className="club-identity-card__heading">
+                  <span className="club-identity-card__emoji" aria-hidden>
+                    🤝
+                  </span>{' '}
+                  Pôle socio-éducatif
+                </h3>
+                <p className="club-identity-card__text">
+                  La boxe comme levier d’éducation et d’insertion : accompagnement des jeunes et des familles,
+                  valeurs de discipline et d’engagement citoyen.
+                </p>
+                <button type="button" className="btn btn-primary" onClick={() => handleNavigate('/actualite')}>
+                  Découvrir
+                </button>
+              </div>
+            </article>
+          </div>
+        </div>
+      </motion.section>
+
+      {/* Carte + CTA conversion */}
+      <motion.section
+        className="content-section section-dark home-map-cta"
         initial={{ opacity: 0, y: 50 }}
         whileInView={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
         viewport={{ once: true }}
       >
         <div className="container">
-          <motion.h2
-            className="section-title"
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            viewport={{ once: true }}
-          >
-            <FontAwesomeIcon icon={faMapMarkerAlt} />
-            Où nous trouver ?
-          </motion.h2>
-          
-          <motion.div
-            ref={mapMountRef}
-            className="map-container"
-            initial={{ opacity: 0, scale: 0.9 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.6, delay: 0.4 }}
-            viewport={{ once: true }}
-          >
-            {mapReady ? (
-              <iframe
-                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2741.968787766348!2d0.3724682999999999!3d46.5878544!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x47fdbf8354a062bd%3A0x3083448a662d0747!2sAF%20BOXING%20CLUB%2086%20-%20Salle%20Nelson%20Mandela!5e0!3m2!1sfr!2sfr!4v1753109311699!5m2!1sfr!2sfr"
-                width="100%"
-                height="400"
-                style={{ border: 0, borderRadius: '20px' }}
-                allowFullScreen=""
-                loading="lazy"
-                referrerPolicy="no-referrer-when-downgrade"
-                title="AF Boxing Club 86"
-              />
-            ) : (
-              <div style={{ height: 400, borderRadius: 20, background: 'rgba(255,255,255,0.06)' }} />
-            )}
-          </motion.div>
+          <div className="home-map-cta__layout">
+            <div className="home-map-cta__copy">
+              <h2 className="home-map-cta__title">Venez nous rencontrer</h2>
+              <p className="home-map-cta__text">
+                Passez à la salle Nelson Mandela : nous répondrons à vos questions sur les cours, les horaires
+                et l’inscription.
+              </p>
+              <motion.button
+                type="button"
+                className="btn btn-primary home-map-cta__btn"
+                onClick={() => handleNavigate('/contact')}
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
+              >
+                <FontAwesomeIcon icon={faEnvelope} />
+                Contact
+              </motion.button>
+            </div>
+
+            <motion.div
+              ref={mapMountRef}
+              className="map-container home-map-cta__map"
+              initial={{ opacity: 0, scale: 0.98 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.6, delay: 0.1 }}
+              viewport={{ once: true }}
+            >
+              {mapReady ? (
+                <iframe
+                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2741.968787766348!2d0.3724682999999999!3d46.5878544!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x47fdbf8354a062bd%3A0x3083448a662d0747!2sAF%20BOXING%20CLUB%2086%20-%20Salle%20Nelson%20Mandela!5e0!3m2!1sfr!2sfr!4v1753109311699!5m2!1sfr!2sfr"
+                  width="100%"
+                  height="400"
+                  style={{ border: 0, borderRadius: '20px' }}
+                  allowFullScreen=""
+                  loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
+                  title="AF Boxing Club 86 — Salle Nelson Mandela, Poitiers"
+                />
+              ) : (
+                <div style={{ height: 400, borderRadius: 20, background: 'rgba(255,255,255,0.06)' }} />
+              )}
+            </motion.div>
+          </div>
         </div>
       </motion.section>
     

@@ -1,25 +1,5 @@
 import React from 'react';
-import logoPoitiers from '../assets/LOGOPOITIERS.jpg';
-import logoFFBoxe from '../assets/FFBOXE.png';
-import logoEkidom from '../assets/ekidom.jpg';
-
-const PARTNERS = [
-  {
-    name: 'Ville de Poitiers',
-    logo: logoPoitiers,
-    href: 'https://poitiers.fr',
-  },
-  {
-    name: 'FFBOXE',
-    logo: logoFFBoxe,
-    href: 'https://ffboxe.fr',
-  },
-  {
-    name: 'Ekidom',
-    logo: logoEkidom,
-    href: 'https://www.ekidom.fr',
-  },
-];
+import { PARTNERS } from '../data/partners';
 
 const PartnersLogos = ({ className = '' }) => {
   return (

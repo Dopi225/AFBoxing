@@ -65,7 +65,8 @@
         display: flex;
         align-items: center;
         gap: 1rem;
-        transition: all 0.3s ease;
+        transition: background var(--transition-normal), color var(--transition-normal),
+          transform var(--transition-fast);
         font-size: 1rem;
         position: relative;
 

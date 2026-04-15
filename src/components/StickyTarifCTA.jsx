@@ -2,6 +2,7 @@ import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEuroSign } from '@fortawesome/free-solid-svg-icons';
+import '../style/StickyTarifCTA.scss';
 
 const StickyTarifCTA = () => {
   const navigate = useNavigate();

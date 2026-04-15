@@ -62,7 +62,7 @@
     }
 
     .partner-card {
-      background: white;
+      background: var(--surface-elevated);
       border-radius: 20px;
       overflow: hidden;
       box-shadow: var(--shadow-md);
@@ -174,7 +174,7 @@
 
 .partners-values {
   padding: var(--spacing-xxl) 0;
-  background: white;
+  background: var(--surface-elevated);
 
   .values-content {
     h2 {

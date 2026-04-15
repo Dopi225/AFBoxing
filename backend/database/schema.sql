@@ -41,7 +41,9 @@ CREATE TABLE IF NOT EXISTS schedule (
   day VARCHAR(20) NOT NULL,
   time_range VARCHAR(50) NOT NULL,
   activity VARCHAR(100) NOT NULL,
-  level VARCHAR(100) DEFAULT NULL
+  level VARCHAR(100) DEFAULT NULL,
+  activity_id VARCHAR(100) DEFAULT NULL,
+  INDEX idx_schedule_activity_id (activity_id)
 ) ENGINE=InnoDB;
 
 -- Palmarès
@@ -123,10 +125,13 @@ CREATE TABLE IF NOT EXISTS pricing (
   note TEXT DEFAULT NULL,
   category VARCHAR(50) NOT NULL DEFAULT 'boxing',
   enabled TINYINT(1) NOT NULL DEFAULT 1,
+  activity_id VARCHAR(100) DEFAULT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   INDEX idx_category (category),
-  INDEX idx_enabled (enabled)
+  INDEX idx_enabled (enabled),
+  INDEX idx_pricing_activity_id (activity_id),
+  UNIQUE KEY uq_pricing_activity_id (activity_id)
 ) ENGINE=InnoDB;
 
 -- Données par défaut pour les tarifs

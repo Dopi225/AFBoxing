@@ -1,9 +1,11 @@
 import React from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faClock, faCalendarAlt, faUsers, faFistRaised, faGraduationCap, faHeart, faMusic, faBrain, faWheelchair } from '@fortawesome/free-solid-svg-icons';
 import { motion } from 'framer-motion';
-import { scheduleApi } from '../services/apiService';
+import { scheduleApi, activitiesApi } from '../services/apiService';
 import SectionHeader from './SectionHeader';
+import '../style/Horaire.scss';
 
 const defaultSchedule = [
   { day: 'Lundi', activities: [] },
@@ -16,21 +18,60 @@ const defaultSchedule = [
 ];
 
 const Horaire = () => {
+  const [searchParams] = useSearchParams();
   const [schedule, setSchedule] = React.useState(defaultSchedule);
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState('');
   const [activeFilter, setActiveFilter] = React.useState('Tous');
+  const [activityNamesFromDb, setActivityNamesFromDb] = React.useState([]);
   const [viewMode, setViewMode] = React.useState('semaine'); // 'semaine' | 'aujourdhui'
   const [layoutMode, setLayoutMode] = React.useState(() => (window.innerWidth >= 900 ? 'table' : 'cartes')); // 'table' | 'cartes'
 
-  const activityTypes = [
-    'Boxe Éducative',
-    'Boxe Loisir',
-    'Boxe Amateur',
-    'Handiboxe',
-    'Aeroboxe',
-    'Boxe Thérapie'
-  ];
+  const filterLabels = React.useMemo(() => {
+    const fromSchedule = schedule.flatMap((d) => (d.activities || []).map((a) => a.activity)).filter(Boolean);
+    const merged = new Set([...activityNamesFromDb, ...fromSchedule]);
+    return Array.from(merged).sort((a, b) => a.localeCompare(b, 'fr'));
+  }, [activityNamesFromDb, schedule]);
+
+  React.useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const acts = await activitiesApi.list();
+        if (cancelled || !Array.isArray(acts)) return;
+        const names = acts
+          .filter((a) => a.enabled !== false)
+          .map((a) => ((a.scheduleActivityName || '').trim() || a.title || '').trim())
+          .filter(Boolean);
+        setActivityNamesFromDb([...new Set(names)]);
+      } catch {
+        if (!cancelled) setActivityNamesFromDb([]);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  /** Deep link depuis les fiches activité : /horaire?activite=Nom+exact+planning */
+  React.useEffect(() => {
+    const raw = searchParams.get('activite');
+    if (!raw) return;
+    const decoded = decodeURIComponent(String(raw).trim());
+    if (!decoded) return;
+    const pool = filterLabels.length ? filterLabels : [decoded];
+    const exact = pool.find((t) => t === decoded);
+    if (exact) {
+      setActiveFilter(exact);
+      return;
+    }
+    const ci = pool.find((t) => t.toLowerCase() === decoded.toLowerCase());
+    if (ci) {
+      setActiveFilter(ci);
+      return;
+    }
+    setActiveFilter(decoded);
+  }, [searchParams, filterLabels]);
 
   const FRENCH_DAYS = ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'];
   const todayName = FRENCH_DAYS[new Date().getDay()];
@@ -287,7 +328,7 @@ const Horaire = () => {
                 >
                   Tous
                 </button>
-                {activityTypes.map((t) => (
+                {filterLabels.map((t) => (
                   <button
                     key={t}
                     type="button"
@@ -329,7 +370,7 @@ const Horaire = () => {
             <div className="schedule-legend" aria-label="Légende des activités">
               <span className="schedule-legend__label">Légende :</span>
               <div className="schedule-legend__items">
-                {activityTypes.map((t) => (
+                {filterLabels.map((t) => (
                   <span key={t} className={`schedule-badge schedule-badge--${getActivityTone(t)}`}>
                     {t}
                   </span>

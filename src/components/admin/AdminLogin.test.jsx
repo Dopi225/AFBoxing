@@ -1,12 +1,13 @@
 import React from 'react';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { cleanup, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import AdminLogin from './AdminLogin';
 
 describe('AdminLogin', () => {
   beforeEach(() => {
+    cleanup();
     localStorage.clear();
     vi.restoreAllMocks();
   });
@@ -28,8 +29,10 @@ describe('AdminLogin', () => {
       </MemoryRouter>
     );
 
-    await user.type(screen.getByPlaceholderText('admin'), 'admin');
-    await user.type(screen.getByPlaceholderText('••••••••'), 'password123');
+    const userInputs = screen.getAllByPlaceholderText('admin');
+    const passInputs = screen.getAllByPlaceholderText('••••••••');
+    await user.type(userInputs[0], 'admin');
+    await user.type(passInputs[0], 'password123');
     await user.click(screen.getByRole('button', { name: /se connecter/i }));
 
     await waitFor(() => {
@@ -51,8 +54,8 @@ describe('AdminLogin', () => {
       </MemoryRouter>
     );
 
-    await user.type(screen.getByPlaceholderText('admin'), 'x');
-    await user.type(screen.getByPlaceholderText('••••••••'), 'y');
+    await user.type(screen.getAllByPlaceholderText('admin')[0], 'x');
+    await user.type(screen.getAllByPlaceholderText('••••••••')[0], 'y');
     await user.click(screen.getByRole('button', { name: /se connecter/i }));
 
     await waitFor(() => {

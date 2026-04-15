@@ -53,7 +53,7 @@
   }
 
   .contact-info {
-    background: white;
+    background: var(--surface-elevated);
     padding: var(--spacing-xl);
     border-radius: 16px;
     box-shadow: var(--shadow-md);
@@ -149,7 +149,7 @@
   }
 
   .contact-form-container {
-    background: white;
+    background: var(--surface-elevated);
     padding: var(--spacing-xl);
     border-radius: 16px;
     box-shadow: var(--shadow-md);
@@ -183,7 +183,7 @@
             border-radius: 12px;
             font-size: 1rem;
             transition: all var(--transition-normal);
-            background: white;
+            background: var(--surface-elevated);
 
             &:focus {
               outline: none;
@@ -226,7 +226,7 @@
     }
 
     .map-container {
-      background: white;
+      background: var(--surface-elevated);
       padding: var(--spacing-md);
       border-radius: 16px;
       box-shadow: var(--shadow-md);

@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faFistRaised, faCalendarAlt, faTrophy, faEnvelope, faFileSignature, faGraduationCap } from '@fortawesome/free-solid-svg-icons';
 import { motion } from 'framer-motion';
-import { scheduleApi, activitiesApi, pricingApi } from '../services/apiService';
+import { activitiesApi } from '../services/apiService';
+import { horaireQueryForScheduleName, tarifQueryForActivityKind } from '../utils/activityPublicLinks';
 import SectionHeader from './SectionHeader';
+import '../style/InfoPage.scss';
 import {
   faFistRaised as faFistRaisedIcon,
   faGraduationCap as faGraduationCapIcon,
@@ -15,13 +17,6 @@ import {
   faUsers,
   faLightbulb
 } from '@fortawesome/free-solid-svg-icons'; 
-
-const formatPrice = (price) => {
-  if (!price) return '—';
-  if (price.amount === 0) return 'Gratuit';
-  if (typeof price.amount === 'number') return `${price.amount}€`;
-  return String(price.amount);
-};
 
 const iconMap = {
   faFistRaised: faFistRaisedIcon,
@@ -38,19 +33,13 @@ const iconMap = {
 // (variable inutilisée autorisée car commence par "_")
 const _MOTION = motion;
 
-const DAY_ORDER = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
-
 const InfoPage = () => {
   const navigate = useNavigate(); 
   const { type } = useParams();
 
   const [info, setInfo] = useState(null);
   const [allActivities, setAllActivities] = useState([]);
-  const [pricing, setPricing] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [scheduleLoading, setScheduleLoading] = useState(false);
-  const [scheduleError, setScheduleError] = useState('');
-  const [scheduleItems, setScheduleItems] = useState([]);
 
   // Charger l'activité depuis l'API
   useEffect(() => {
@@ -63,18 +52,6 @@ const InfoPage = () => {
         if (activity) {
           setInfo(activity);
           setAllActivities(activities);
-          
-          // Charger le tarif correspondant
-          if (activity.meta?.priceKey) {
-            try {
-              const priceData = await pricingApi.get(activity.meta.priceKey);
-              if (priceData) {
-                setPricing(priceData);
-              }
-            } catch {
-              // Tarif non trouvé, on continue sans
-            }
-          }
         } else {
           setInfo(null);
         }
@@ -92,50 +69,6 @@ const InfoPage = () => {
       loadActivity();
     }
   }, [type]);
-
-  // Charger les horaires
-  useEffect(() => {
-    if (!info?.scheduleActivityName) {
-      setScheduleItems([]);
-      setScheduleError('');
-      setScheduleLoading(false);
-      return;
-    }
-
-    const load = async () => {
-      setScheduleLoading(true);
-      setScheduleError('');
-      try {
-        const data = await scheduleApi.list();
-        const list = Array.isArray(data) ? data : (data?.data || []);
-        setScheduleItems(list.filter((s) => s?.activity === info.scheduleActivityName));
-      } catch (err) {
-        setScheduleError(err.message || "Impossible de charger les horaires depuis l'API.");
-        setScheduleItems([]);
-      } finally {
-        setScheduleLoading(false);
-      }
-    };
-
-    load();
-  }, [info]);
-
-  const groupedSchedule = React.useMemo(() => {
-    const groups = new Map();
-    (scheduleItems || []).forEach((s) => {
-      const day = s?.day || '';
-      if (!day) return;
-      if (!groups.has(day)) groups.set(day, []);
-      groups.get(day).push(s);
-    });
-
-    return Array.from(groups.entries())
-      .sort((a, b) => DAY_ORDER.indexOf(a[0]) - DAY_ORDER.indexOf(b[0]))
-      .map(([day, items]) => ({
-        day,
-        items: (items || []).slice().sort((x, y) => String(x?.time || '').localeCompare(String(y?.time || '')))
-      }));
-  }, [scheduleItems]);
 
   if (loading) {
     return (
@@ -175,9 +108,19 @@ const InfoPage = () => {
         subtitle={info.subtitle}
         eyebrow={info.eyebrow}
         actions={[
-          { label: "Tarifs", to: "/tarif", className: "btn-primary", icon: <FontAwesomeIcon icon={faFileSignature} /> },
-          { label: "Contact", to: "/contact", className: "btn-outline", icon: <FontAwesomeIcon icon={faEnvelope} /> },
-          { label: "Horaires", to: "/horaire", className: "btn-secondary", icon: <FontAwesomeIcon icon={faCalendarAlt} /> },
+          {
+            label: 'Tarifs',
+            to: `/tarif${tarifQueryForActivityKind(info.kind)}`,
+            className: 'btn-primary',
+            icon: <FontAwesomeIcon icon={faFileSignature} />,
+          },
+          { label: 'Contact', to: '/contact', className: 'btn-outline', icon: <FontAwesomeIcon icon={faEnvelope} /> },
+          {
+            label: 'Horaires',
+            to: `/horaire${horaireQueryForScheduleName(info.scheduleActivityName)}`,
+            className: 'btn-secondary',
+            icon: <FontAwesomeIcon icon={faCalendarAlt} />,
+          },
         ]}
       >
         <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
@@ -287,39 +230,17 @@ const InfoPage = () => {
                       <h4>Horaires</h4>
                     </div>
                     <div className="section-content">
-                      {info.scheduleActivityName ? (
-                        <>
-                          {scheduleLoading && <span className="section-value">Chargement des horaires (API)…</span>}
-                          {!scheduleLoading && scheduleError && (
-                            <span className="section-value">{scheduleError}</span>
-                          )}
-                          {!scheduleLoading && !scheduleError && groupedSchedule.length === 0 && (
-                            <span className="section-value">Horaires non renseignés pour le moment.</span>
-                          )}
-                          {!scheduleLoading && !scheduleError && groupedSchedule.length > 0 && (
-                            <div className="section-value">
-                              {groupedSchedule.map((g) => (
-                                <div key={g.day} style={{ marginBottom: '0.5rem' }}>
-                                  <strong>{g.day}</strong>{' '}
-                                  {g.items.map((s, idx) => (
-                                    <span key={`${s.time}-${idx}`}>
-                                      {idx === 0 ? '' : ' · '}
-                                      {s.time}{s.level ? ` (${s.level})` : ''}
-                                    </span>
-                                  ))}
-                                </div>
-                              ))}
-                            </div>
-                          )}
-                          <div style={{ marginTop: '0.75rem' }}>
-                            <button className="btn btn-outline" onClick={() => navigate('/horaire')}>
-                              Voir tout le planning
-                            </button>
-                          </div>
-                        </>
-                      ) : (
-                        <span className="section-value">Horaires sur demande — contactez-nous.</span>
-                      )}
+                      <p className="section-value info-practical-lead">
+                        {info.scheduleActivityName
+                          ? 'Planning à jour sur la page Horaires : filtrez sur votre activité pour voir les créneaux.'
+                          : 'Créneaux et disponibilités : consultez le planning complet ou contactez-nous.'}
+                      </p>
+                      <Link
+                        className="btn btn-outline info-practical-link"
+                        to={`/horaire${horaireQueryForScheduleName(info.scheduleActivityName)}`}
+                      >
+                        Voir les horaires
+                      </Link>
                     </div>
                   </motion.div>
                   
@@ -354,17 +275,19 @@ const InfoPage = () => {
                       <div className="section-icon price-icon">
                         <FontAwesomeIcon icon={faTrophy} />
                       </div>
-                      <h4>Tarif</h4>
+                      <h4>Tarifs</h4>
                     </div>
                     <div className="section-content">
-                      {pricing ? (
-                        <div className="price-display">
-                          <span className="price-value">{formatPrice(pricing)}</span>
-                          {pricing?.period ? <span className="price-period">/{pricing.period}</span> : null}
-                        </div>
-                      ) : (
-                        <span className="section-value">Tarif sur demande</span>
-                      )}
+                      <p className="section-value info-practical-lead">
+                        Montants, documents et modalités d’inscription sont détaillés sur la page Tarifs
+                        {info.meta?.priceKey ? ' (offre liée à cette activité).' : '.'}
+                      </p>
+                      <Link
+                        className="btn btn-outline info-practical-link"
+                        to={`/tarif${tarifQueryForActivityKind(info.kind)}`}
+                      >
+                        Voir les tarifs
+                      </Link>
                     </div>
                   </motion.div>
                 </div>

@@ -5,11 +5,18 @@ import viteImagemin from 'vite-plugin-imagemin'
 // https://vite.dev/config/
 export default defineConfig({
   build: {
+    target: 'es2022',
     rollupOptions: {
       output: {
         manualChunks: {
           'react-vendor': ['react', 'react-dom', 'react-router-dom'],
-          'motion': ['framer-motion']
+          motion: ['framer-motion'],
+          icons: [
+            '@fortawesome/fontawesome-svg-core',
+            '@fortawesome/react-fontawesome',
+            '@fortawesome/free-solid-svg-icons',
+            '@fortawesome/free-brands-svg-icons'
+          ]
         }
       }
     }

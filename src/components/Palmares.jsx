@@ -5,6 +5,7 @@ import { OptimizedMotion, CardMotion } from './OptimizedMotion';
 import { useNavigate } from 'react-router-dom';
 import { palmaresApi } from '../services/apiService';
 import SectionHeader from './SectionHeader';
+import '../style/Palmares.scss';
 
 const Palmares = () => {
   const navigate = useNavigate();

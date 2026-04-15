@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSave, faPlus, faTrash, faClock } from '@fortawesome/free-solid-svg-icons';
 import { motion } from 'framer-motion';
-import { scheduleApi } from '../../services/apiService';
+import { scheduleApi, activitiesApi } from '../../services/apiService';
 import { useNotifications } from './NotificationSystem';
 import './ManageSchedule.scss';
 
@@ -16,35 +16,55 @@ const defaultSchedule = [
   { day: 'Dimanche', activities: [] }
 ];
 
-const activityTypes = [
-  'Boxe Éducative', 'Boxe Loisir', 'Boxe Amateur', 'Handiboxe', 'Aeroboxe', 'Boxe Thérapie'
-];
+/** Associe une ligne API planning à une activité (par activityId ou par libellé). */
+const resolveSlotFromApi = (item, activityList) => {
+  const label = item.activity || '';
+  let activityId = item.activityId || '';
+  if (!activityId && label && activityList.length) {
+    const m = activityList.find(
+      (a) =>
+        (a.scheduleActivityName && a.scheduleActivityName === label) ||
+        a.title === label
+    );
+    activityId = m?.id || '';
+  }
+  return {
+    time: item.time,
+    activityId,
+    activity: label,
+    level: item.level || ''
+  };
+};
 
 const ManageSchedule = () => {
   const { success, error: notifyError } = useNotifications();
+  const [activities, setActivities] = useState([]);
   const [schedule, setSchedule] = useState(defaultSchedule);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+
+  const enabledActivities = useMemo(
+    () => (activities || []).filter((a) => a.enabled !== false),
+    [activities]
+  );
 
   useEffect(() => {
     const load = async () => {
       setLoading(true);
       setError('');
       try {
-        const data = await scheduleApi.list();
-        if (data.length === 0) {
+        const [data, acts] = await Promise.all([scheduleApi.list(), activitiesApi.list()]);
+        setActivities(Array.isArray(acts) ? acts : []);
+
+        if (!data.length) {
           setSchedule(defaultSchedule);
         } else {
-          const byDay = defaultSchedule.map(day => ({
+          const byDay = defaultSchedule.map((day) => ({
             day: day.day,
             activities: data
-              .filter(item => item.day === day.day)
-              .map(item => ({
-                time: item.time,
-                activity: item.activity,
-                level: item.level || ''
-              }))
+              .filter((item) => item.day === day.day)
+              .map((item) => resolveSlotFromApi(item, Array.isArray(acts) ? acts : []))
           }));
           setSchedule(byDay);
         }
@@ -58,10 +78,12 @@ const ManageSchedule = () => {
   }, []);
 
   const addActivity = (dayIndex) => {
+    const pick = enabledActivities[0];
     const newSchedule = [...schedule];
     newSchedule[dayIndex].activities.push({
       time: '18h00-19h00',
-      activity: 'Boxe Loisir',
+      activityId: pick?.id || '',
+      activity: pick ? (pick.scheduleActivityName || pick.title) : '',
       level: 'Tous niveaux'
     });
     setSchedule(newSchedule);
@@ -79,18 +101,34 @@ const ManageSchedule = () => {
     setSchedule(newSchedule);
   };
 
+  const setActivityFromId = (dayIndex, actIndex, activityId) => {
+    const act = activities.find((a) => a.id === activityId);
+    const newSchedule = [...schedule];
+    newSchedule[dayIndex].activities[actIndex] = {
+      ...newSchedule[dayIndex].activities[actIndex],
+      activityId,
+      activity: act ? (act.scheduleActivityName || act.title) : ''
+    };
+    setSchedule(newSchedule);
+  };
+
   const saveSchedule = async () => {
     setSaving(true);
     try {
       const flat = [];
-      schedule.forEach(day => {
-        day.activities.forEach(activity => {
-          flat.push({
+      schedule.forEach((day) => {
+        day.activities.forEach((slot) => {
+          const row = {
             day: day.day,
-            time: activity.time,
-            activity: activity.activity,
-            level: activity.level
-          });
+            time: slot.time,
+            level: slot.level
+          };
+          if (slot.activityId) {
+            row.activityId = slot.activityId;
+          } else {
+            row.activity = slot.activity;
+          }
+          flat.push(row);
         });
       });
       await scheduleApi.bulkSave(flat);
@@ -106,12 +144,24 @@ const ManageSchedule = () => {
   return (
     <div className="manage-schedule">
       <div className="page-header">
-        <h2>Gestion du Planning</h2>
-        <button className="btn-primary" onClick={saveSchedule} disabled={saving}>
+        <div>
+          <h2>Gestion du planning</h2>
+          <p className="page-subtitle">
+            Chaque créneau est lié à une <strong>activité</strong> définie dans « Activités ». Le libellé affiché sur le
+            site reprend le champ « nom pour le planning » de l’activité.
+          </p>
+        </div>
+        <button type="button" className="btn-primary" onClick={saveSchedule} disabled={saving || !enabledActivities.length}>
           <FontAwesomeIcon icon={faSave} />
           {saving ? '💾 Sauvegarde...' : '💾 Sauvegarder le planning'}
         </button>
       </div>
+
+      {!enabledActivities.length && !loading && (
+        <p className="manage-schedule__warning">
+          Aucune activité activée : créez d’abord des activités dans la section Activités.
+        </p>
+      )}
 
       {loading && (
         <div className="schedule-list">
@@ -135,7 +185,7 @@ const ManageSchedule = () => {
           >
             <div className="day-header">
               <h3>{day.day}</h3>
-              <button className="btn-add" onClick={() => addActivity(dayIndex)}>
+              <button type="button" className="btn-add" onClick={() => addActivity(dayIndex)} disabled={!enabledActivities.length}>
                 <FontAwesomeIcon icon={faPlus} />
                 Ajouter
               </button>
@@ -145,32 +195,38 @@ const ManageSchedule = () => {
               {day.activities.length === 0 ? (
                 <p className="empty-message">Aucune activité programmée</p>
               ) : (
-                day.activities.map((activity, actIndex) => (
+                day.activities.map((slot, actIndex) => (
                   <div key={actIndex} className="activity-item">
                     <div className="activity-time">
                       <FontAwesomeIcon icon={faClock} />
                       <input
                         type="text"
-                        value={activity.time}
+                        value={slot.time}
                         onChange={(e) => updateActivity(dayIndex, actIndex, 'time', e.target.value)}
                         placeholder="18h00-19h00"
                       />
                     </div>
                     <select
-                      value={activity.activity}
-                      onChange={(e) => updateActivity(dayIndex, actIndex, 'activity', e.target.value)}
+                      className="activity-select"
+                      value={slot.activityId || ''}
+                      onChange={(e) => setActivityFromId(dayIndex, actIndex, e.target.value)}
+                      aria-label="Activité du club"
                     >
-                      {activityTypes.map(type => (
-                        <option key={type} value={type}>{type}</option>
+                      <option value="">— Choisir une activité —</option>
+                      {enabledActivities.map((a) => (
+                        <option key={a.id} value={a.id}>
+                          {a.scheduleActivityName || a.title}
+                        </option>
                       ))}
                     </select>
                     <input
                       type="text"
-                      value={activity.level}
+                      value={slot.level}
                       onChange={(e) => updateActivity(dayIndex, actIndex, 'level', e.target.value)}
-                      placeholder="Niveau"
+                      placeholder="Niveau / groupe"
                     />
                     <button
+                      type="button"
                       className="btn-delete"
                       onClick={() => removeActivity(dayIndex, actIndex)}
                     >
@@ -189,4 +245,3 @@ const ManageSchedule = () => {
 };
 
 export default ManageSchedule;
-

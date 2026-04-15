@@ -18,11 +18,10 @@ import './App.scss';
 const InfoPage = React.lazy(() => import('./components/InfoPage'));
 const NewsPage = React.lazy(() => import('./components/NewsPage'));
 import ScrollToTop from './components/ScrollToTop';
-import BackToTopButton from './components/BackToTopButton';
-import ThemeFloatButton from './components/ThemeFloatButton';
 import HeroSkipButton from './components/HeroSkipButton';
-import StickyTarifCTA from './components/StickyTarifCTA';
+import DeferredPublicWidgets from './components/DeferredPublicWidgets';
 import ErrorBoundary from './components/ErrorBoundary';
+import RouteFallback from './components/RouteFallback';
 
 // Admin components
 const AdminLogin = React.lazy(() => import('./components/admin/AdminLogin'));
@@ -37,17 +36,10 @@ const GlobalSearch = React.lazy(() => import('./components/admin/GlobalSearch'))
 const ManageSettings = React.lazy(() => import('./components/admin/ManageSettings'));
 const ManageUsers = React.lazy(() => import('./components/admin/ManageUsers'));
 const ManageActivities = React.lazy(() => import('./components/admin/ManageActivities'));
+const ManagePricing = React.lazy(() => import('./components/admin/ManagePricing'));
 const ActivityLog = React.lazy(() => import('./components/admin/ActivityLog'));
 const NotFound = React.lazy(() => import('./components/NotFound'));
 const AdminAuthGate = React.lazy(() => import('./components/admin/AdminAuthGate'));
-
-const RouteFallback = () => (
-  <div className="container" style={{ padding: '4rem 1rem' }}>
-    <div className="modern-card" style={{ textAlign: 'center' }}>
-      <p style={{ margin: 0, fontWeight: 700 }}>Chargement…</p>
-    </div>
-  </div>
-);
 
 function App() {
   return (
@@ -91,6 +83,7 @@ function App() {
                 <Route path="gallery" element={<ManageGallery />} />
                 <Route path="contacts" element={<ManageContacts />} />
                 <Route path="activities" element={<ManageActivities />} />
+                <Route path="pricing" element={<ManagePricing />} />
                 <Route path="history" element={<ActivityLog />} />
                 <Route path="search" element={<GlobalSearch />} />
                 <Route path="settings" element={<ManageSettings />} />
@@ -101,9 +94,7 @@ function App() {
           </Routes>
         </Suspense>
         <HeroSkipButton />
-        <StickyTarifCTA />
-        <ThemeFloatButton />
-        <BackToTopButton />
+        <DeferredPublicWidgets />
         </ErrorBoundary>
       </Router>
     </MotionConfig>

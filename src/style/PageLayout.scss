@@ -72,7 +72,7 @@
   padding: var(--spacing-xxl) 0;
 
   &.section-white {
-    background: white;
+    background: var(--surface-elevated);
   }
 
   &.section-gray {
@@ -125,7 +125,7 @@
 
 /* Cartes standardisées */
 .card {
-  background: white;
+  background: var(--surface-elevated);
   border-radius: 20px;
   padding: var(--spacing-xl);
   box-shadow: var(--shadow-md);
@@ -172,7 +172,7 @@
 /* CTA Section standardisée */
 .cta-section {
   padding: var(--spacing-xxl) 0;
-  background: white;
+  background: var(--surface-elevated);
 
   .cta-grid {
     display: grid;

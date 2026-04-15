@@ -62,7 +62,7 @@
     }
 
     .day-card {
-      background: white;
+      background: var(--surface-elevated);
       border-radius: 16px;
       padding: var(--spacing-lg);
       box-shadow: var(--shadow-md);
@@ -376,7 +376,7 @@
   }
 
   .schedule-table-wrap {
-    background: white;
+    background: var(--surface-elevated);
     border-radius: 18px;
     box-shadow: var(--shadow-md);
     overflow: hidden;
@@ -438,7 +438,7 @@
 
 .schedule-info {
   padding: var(--spacing-xxl) 0;
-  background: white;
+  background: var(--surface-elevated);
 
   .info-content {
     h2 {

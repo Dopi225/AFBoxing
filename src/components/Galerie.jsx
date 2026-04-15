@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, memo } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTimes, faChevronLeft, faChevronRight,  faUsers, faTrophy, faHeart } from '@fortawesome/free-solid-svg-icons';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -6,6 +6,32 @@ import { motion, AnimatePresence } from 'framer-motion';
 // Import des images (⚡ privilégier des assets légers pour garder une galerie fluide)
 import { galleryApi } from '../services/apiService';
 import SectionHeader from './SectionHeader';
+import { EmptyState, ErrorState } from './PageStates';
+import '../style/Galerie.scss';
+
+const GalleryTile = memo(function GalleryTile({ image, index, onOpen }) {
+  return (
+    <motion.div
+      className="gallery-item"
+      initial={{ opacity: 0, scale: 0.98 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.98 }}
+      transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+      onClick={() => onOpen(image, index)}
+    >
+      <div className="image-container">
+        <img src={image.src} alt={image.title} loading="lazy" decoding="async" />
+        <div className="image-overlay">
+          <div className="overlay-content">
+            <h3>{image.title}</h3>
+            <p>{image.description}</p>
+            <span className="category-badge">{image.category}</span>
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  );
+});
 
 const Galerie = () => {
   const [selectedImage, setSelectedImage] = useState(null);
@@ -48,10 +74,10 @@ const Galerie = () => {
     ? galleryImages 
     : galleryImages.filter(img => img.category === activeCategory);
 
-  const openLightbox = (image, index) => {
+  const openLightbox = useCallback((image, index) => {
     setSelectedImage(image);
     setCurrentIndex(index);
-  };
+  }, []);
 
   const closeLightbox = () => {
     setSelectedImage(null);
@@ -98,39 +124,30 @@ const Galerie = () => {
 
           {/* Grille de photos */}
           {loading && (
-            <div className="gallery-grid">
-              <p>Chargement de la galerie...</p>
+            <div className="gallery-grid gallery-grid--skeleton" aria-busy="true" aria-live="polite">
+              {Array.from({ length: 8 }).map((_, i) => (
+                <div key={i} className="skeleton skeleton--gallery" />
+              ))}
             </div>
           )}
           {error && !loading && (
-            <div className="gallery-grid">
-              <p>{error}</p>
-            </div>
+            <ErrorState title="Galerie indisponible" message={error} onRetry={() => window.location.reload()} />
           )}
-          {!loading && !error && (
+          {!loading && !error && filteredImages.length === 0 && (
+            <EmptyState title="Aucune photo dans cette catégorie">
+              Essayez un autre filtre ou revenez plus tard.
+            </EmptyState>
+          )}
+          {!loading && !error && filteredImages.length > 0 && (
             <div className="gallery-grid">
               <AnimatePresence>
                 {filteredImages.map((image, index) => (
-                  <motion.div
+                  <GalleryTile
                     key={`${image.src}-${index}`}
-                    className="gallery-item"
-                    initial={{ opacity: 0, scale: 0.8 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.8 }}
-                    transition={{ duration: 0.3 }}
-                    onClick={() => openLightbox(image, index)}
-                  >
-                    <div className="image-container">
-                      <img src={image.src} alt={image.title} loading="lazy" decoding="async" />
-                      <div className="image-overlay">
-                        <div className="overlay-content">
-                          <h3>{image.title}</h3>
-                          <p>{image.description}</p>
-                          <span className="category-badge">{image.category}</span>
-                        </div>
-                      </div>
-                    </div>
-                  </motion.div>
+                    image={image}
+                    index={index}
+                    onOpen={openLightbox}
+                  />
                 ))}
               </AnimatePresence>
             </div>
@@ -180,17 +197,17 @@ const Galerie = () => {
           <div className="stats-grid">
             <div className="stat-item">
               <FontAwesomeIcon icon={faUsers} className="stat-icon" />
-              <div className="stat-number">150+</div>
+              <div className="stat-number">80+</div>
               <div className="stat-label">Membres actifs</div>
             </div>
             <div className="stat-item">
               <FontAwesomeIcon icon={faTrophy} className="stat-icon" />
-              <div className="stat-number">25+</div>
-              <div className="stat-label">Titres remportés</div>
+              <div className="stat-number">15+</div>
+              <div className="stat-label">Combats remportés</div>
             </div>
             <div className="stat-item">
               <FontAwesomeIcon icon={faHeart} className="stat-icon" />
-              <div className="stat-number">10+</div>
+              <div className="stat-number">5+</div>
               <div className="stat-label">Années d'expérience</div>
             </div>
           </div>

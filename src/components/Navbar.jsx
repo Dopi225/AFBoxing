@@ -3,6 +3,7 @@ import { Link, NavLink, useLocation } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBars, faTimes, faChevronDown } from '@fortawesome/free-solid-svg-icons';
 import image2 from '../assets/logo-removeb.png';
+import '../style/Navbar.scss';
 import { prefetchPublicRoute } from '../utils/routePrefetch';
 
 const Navbar = () => {

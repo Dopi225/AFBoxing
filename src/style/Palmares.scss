@@ -113,7 +113,7 @@
     }
 
     .achievement-card {
-      background: white;
+      background: var(--surface-elevated);
       border-radius: 25px;
       padding: 0;
       box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
@@ -140,7 +140,7 @@
 
       .card-header {
         padding: var(--spacing-xl) var(--spacing-xl) var(--spacing-lg);
-        background: linear-gradient(135deg, #fff 0%, #f8f9fa 100%);
+        background: linear-gradient(135deg, var(--surface-elevated) 0%, var(--secondary-gray) 100%);
         position: relative;
 
         .result-badge {
@@ -185,7 +185,7 @@
             align-items: center;
             gap: var(--spacing-sm);
             padding: var(--spacing-md);
-            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            background: linear-gradient(135deg, var(--secondary-gray), var(--secondary-light));
             border-radius: 12px;
             font-size: 0.9rem;
             border-left: 4px solid var(--primary-red);
@@ -233,7 +233,7 @@
             font-size: 1rem;
             font-style: italic;
             padding: var(--spacing-md);
-            background: linear-gradient(135deg, #f8f9fa, #fff);
+            background: linear-gradient(135deg, var(--secondary-gray), var(--surface-elevated));
             border-radius: 12px;
             border-left: 4px solid var(--primary-red);
           }
@@ -361,7 +361,7 @@
 
 .palmares-cta {
   padding: var(--spacing-xxl) 0;
-  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  background: linear-gradient(135deg, var(--secondary-gray) 0%, var(--secondary-light) 100%);
   position: relative;
 
   &::before {
@@ -382,7 +382,7 @@
     z-index: 2;
 
     .cta-card {
-      background: white;
+      background: var(--surface-elevated);
       padding: var(--spacing-xxl);
       border-radius: 25px;
       text-align: center;
@@ -553,4 +553,18 @@
       }
     }
   }
+}
+
+:root[data-theme='dark'] .palmares-hero .hero-content h1 {
+  background: linear-gradient(45deg, #d4a520, #ffd700, #fff8dc, #ffd700, #a67c00);
+  background-size: 200% 200%;
+}
+
+:root[data-theme='dark'] .palmares-stats .stat-number {
+  background: linear-gradient(45deg, #d4a520, #ffd700, #fff8dc, #ffd700, #a67c00);
+  background-size: 200% 200%;
+}
+
+:root[data-theme='dark'] .palmares-main .achievement-info .info-item:hover {
+  background: linear-gradient(135deg, var(--secondary-light), rgba(255, 255, 255, 0.1));
 }

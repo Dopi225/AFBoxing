@@ -31,7 +31,7 @@
 
 .mission-section {
   padding: var(--spacing-xxl) 0;
-  background: white;
+  background: var(--surface-elevated);
 
   .mission-content {
     max-width: 800px;
@@ -123,7 +123,7 @@
     gap: var(--spacing-xl);
 
     .value-card {
-      background: white;
+      background: var(--surface-elevated);
       padding: var(--spacing-xl);
       border-radius: 16px;
       text-align: center;
@@ -158,7 +158,7 @@
 
 .activities-section {
   padding: var(--spacing-xxl) 0;
-  background: white;
+  background: var(--surface-elevated);
 
   h2 {
     text-align: center;
@@ -271,7 +271,7 @@
 
 .cta-section {
   padding: var(--spacing-xxl) 0;
-  background: white;
+  background: var(--surface-elevated);
 
   .cta-grid {
     display: grid;

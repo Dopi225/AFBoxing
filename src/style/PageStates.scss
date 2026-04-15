@@ -1,0 +1,170 @@
+/* États publics : squelettes, vide, erreur — AF Boxing */
+
+@keyframes afb-shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.skeleton {
+  border-radius: var(--border-radius-md);
+  background: linear-gradient(
+    110deg,
+    var(--secondary-gray) 0%,
+    rgba(255, 255, 255, 0.85) 45%,
+    var(--secondary-gray) 90%
+  );
+  background-size: 200% 100%;
+  animation: afb-shimmer 1.35s ease-in-out infinite;
+}
+
+:root[data-theme='dark'] .skeleton {
+  background: linear-gradient(
+    110deg,
+    rgba(255, 255, 255, 0.06) 0%,
+    rgba(255, 255, 255, 0.12) 45%,
+    rgba(255, 255, 255, 0.06) 90%
+  );
+  background-size: 200% 100%;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton {
+    animation: none;
+    background: var(--secondary-gray);
+  }
+
+  :root[data-theme='dark'] .skeleton {
+    background: rgba(255, 255, 255, 0.08);
+  }
+}
+
+.skeleton--title {
+  height: 2.25rem;
+  max-width: 18rem;
+  margin: 0 auto 1rem;
+}
+
+.skeleton--eyebrow {
+  height: 0.85rem;
+  max-width: 10rem;
+  margin: 0 auto 1.25rem;
+  border-radius: 999px;
+}
+
+.skeleton--line {
+  height: 0.95rem;
+  max-width: 36rem;
+  margin: 0 auto 0.65rem;
+}
+
+.skeleton--line.short {
+  max-width: 22rem;
+}
+
+.skeleton--card {
+  min-height: 160px;
+  border-radius: var(--border-radius-lg);
+}
+
+.skeleton--gallery {
+  min-height: 200px;
+  aspect-ratio: 4 / 3;
+  border-radius: var(--border-radius-lg);
+}
+
+.skeleton--hero {
+  min-height: 42vh;
+  border-radius: 0 0 var(--border-radius-xxl) var(--border-radius-xxl);
+  margin-bottom: var(--spacing-xl);
+}
+
+.route-fallback {
+  padding: var(--spacing-xl) var(--spacing-md) calc(var(--spacing-xxl) + 2rem);
+  flex: 1;
+}
+
+.route-fallback__inner {
+  max-width: 960px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.route-fallback__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--spacing-md);
+  margin-top: var(--spacing-xl);
+}
+
+.route-fallback__label {
+  margin-top: var(--spacing-lg);
+  font-size: 0.9rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+/* Blocs réutilisables */
+.afb-empty-state,
+.afb-error-state {
+  max-width: 28rem;
+  margin: var(--spacing-xl) auto;
+  padding: var(--spacing-xl) var(--spacing-md);
+  text-align: center;
+  border-radius: var(--border-radius-xl);
+  border: 1px solid rgba(11, 11, 11, 0.08);
+  background: var(--surface-elevated);
+  box-shadow: var(--shadow-sm);
+}
+
+.afb-empty-state__title {
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  color: var(--primary-black);
+  margin-bottom: var(--spacing-sm);
+}
+
+.afb-empty-state__text {
+  color: var(--text-light);
+  font-size: 1rem;
+  line-height: 1.55;
+  margin-bottom: var(--spacing-md);
+}
+
+.afb-error-state {
+  border-color: rgba(220, 0, 0, 0.25);
+  background: #fff8f8;
+}
+
+.afb-error-state__title {
+  font-family: var(--font-display);
+  color: var(--primary-red-dark);
+  font-size: 1.15rem;
+  margin-bottom: var(--spacing-xs);
+}
+
+.afb-error-state__text {
+  color: var(--text-light);
+  font-size: 0.95rem;
+  line-height: 1.5;
+  margin-bottom: var(--spacing-md);
+}
+
+:root[data-theme='dark'] .afb-empty-state,
+:root[data-theme='dark'] .afb-error-state {
+  background: var(--surface-elevated);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+:root[data-theme='dark'] .afb-error-state {
+  background: rgba(80, 20, 20, 0.35);
+}
+
+:root[data-theme='dark'] .afb-empty-state__title {
+  color: var(--text-dark);
+}

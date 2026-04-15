@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faFistRaised, faGraduationCap, faFileAlt, faDownload, faCheckCircle } from '@fortawesome/free-solid-svg-icons';
 import Modal from './Modal';
 import { pricingApi } from '../services/apiService';
 import SectionHeader from './SectionHeader';
+import '../style/Tarif.scss';
+
 const formatPrice = (price) => {
   if (!price) return '—';
   if (price.amount === 0) return 'Gratuit';
@@ -11,7 +14,49 @@ const formatPrice = (price) => {
   return String(price.amount);
 };
 
+/** Données de secours si l’API est indisponible (même structure que l’API groupée). */
+const FALLBACK_PRICING = {
+  boxing: {
+    educative: { label: 'Boxe Éducative', amount: 80, period: 'an', note: 'Licence comprise – Certificat médical obligatoire' },
+    loisir: { label: 'Boxe Loisir', amount: 120, period: 'an', note: 'Licence comprise – Certificat médical obligatoire' }
+  },
+  social: {
+    periscolaire: { label: 'Programme Social-Éducatif', amount: 30, period: 'an', note: 'Tarif dégressif selon quotient familial (CAF)' }
+  }
+};
+
+const BOXING_KEY_ORDER = ['educative', 'loisir', 'amateur', 'handiboxe', 'aeroboxe', 'therapie'];
+
+const sortedCategoryEntries = (grouped, category) => {
+  const o = grouped?.[category];
+  if (!o || typeof o !== 'object') return [];
+  const order = category === 'boxing' ? BOXING_KEY_ORDER : [];
+  return Object.entries(o).sort(([a], [b]) => {
+    const ia = order.indexOf(a);
+    const ib = order.indexOf(b);
+    const va = ia === -1 ? 500 : ia;
+    const vb = ib === -1 ? 500 : ib;
+    if (va !== vb) return va - vb;
+    return a.localeCompare(b);
+  });
+};
+
+const minAmountInCategory = (grouped, category) => {
+  const entries = sortedCategoryEntries(grouped, category);
+  const nums = entries.map(([, v]) => v?.amount).filter((a) => typeof a === 'number' && !Number.isNaN(a));
+  return nums.length ? Math.min(...nums) : null;
+};
+
+const aggregateFooterNote = (entries) => {
+  const notes = entries.map(([, v]) => v?.note).filter(Boolean);
+  if (!notes.length) return null;
+  const first = notes[0];
+  if (notes.every((n) => n === first)) return first;
+  return 'Les modalités peuvent varier selon la formule (licence, certificat médical, etc.).';
+};
+
 const Tarif = () => {
+  const [searchParams] = useSearchParams();
   const [modalOpen, setModalOpen] = useState(false);
   const [modalTitle, setModalTitle] = useState('');
   const [modalContent, setModalContent] = useState(null);
@@ -25,16 +70,6 @@ const Tarif = () => {
   }, [modalOpen]);
 
   useEffect(() => {
-    const fallbackPricing = {
-      boxing: {
-        educative: { label: 'Boxe Éducative', amount: 80, period: 'an', note: 'Licence comprise – Certificat médical obligatoire' },
-        loisir: { label: 'Boxe Loisir', amount: 120, period: 'an', note: 'Licence comprise – Certificat médical obligatoire' }
-      },
-      social: {
-        periscolaire: { label: 'Programme Social-Éducatif', amount: 30, period: 'an', note: 'Tarif dégressif selon quotient familial (CAF)' }
-      }
-    };
-
     const loadPricing = async () => {
       setPricingLoading(true);
       setPricingStale(false);
@@ -45,7 +80,7 @@ const Tarif = () => {
         if (import.meta.env.DEV) {
           console.warn('Error loading pricing:', err);
         }
-        setPricing(fallbackPricing);
+        setPricing(FALLBACK_PRICING);
         setPricingStale(true);
       } finally {
         setPricingLoading(false);
@@ -55,12 +90,34 @@ const Tarif = () => {
     loadPricing();
   }, []);
 
+  /** Aligné avec InfoPage / activityPublicLinks : ?programme=boxe|boxing|social */
+  useEffect(() => {
+    const p = (searchParams.get('programme') || '').toLowerCase();
+    if (!p || pricingLoading) return;
+    const id = p === 'social' ? 'programme-social' : 'programme-boxe';
+    const el = typeof document !== 'undefined' ? document.getElementById(id) : null;
+    if (el) {
+      requestAnimationFrame(() => {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      });
+    }
+  }, [searchParams, pricingLoading]);
+
+  const startBoxing = pricing ? minAmountInCategory(pricing, 'boxing') : null;
+  const startSocial = pricing ? minAmountInCategory(pricing, 'social') : null;
+
   const openModal = (type) => {
     if (!pricing) return;
-    
-    const boxingEduc = pricing.boxing?.educative || { label: 'Boxe Éducative', amount: 80, period: 'an', note: 'Licence comprise – Certificat médical obligatoire' };
-    const boxingAdult = pricing.boxing?.loisir || pricing.boxing?.amateur || { label: 'Boxe Loisir', amount: 120, period: 'an', note: 'Licence comprise – Certificat médical obligatoire' };
-    const social = pricing.social?.periscolaire || { label: 'Programme Social-Éducatif', amount: 30, period: 'an', note: 'Tarif dégressif selon quotient familial (CAF)' };
+
+    const boxingRowsRaw = sortedCategoryEntries(pricing, 'boxing');
+    const boxingRows =
+      boxingRowsRaw.length > 0 ? boxingRowsRaw : sortedCategoryEntries(FALLBACK_PRICING, 'boxing');
+    const socialRowsRaw = sortedCategoryEntries(pricing, 'social');
+    const socialRows =
+      socialRowsRaw.length > 0 ? socialRowsRaw : sortedCategoryEntries(FALLBACK_PRICING, 'social');
+
+    const boxingFooterNote = aggregateFooterNote(boxingRows);
+    const socialFooterNote = aggregateFooterNote(socialRows);
 
     if (type === 'boxe') {
       setModalTitle("Inscription Boxe Anglaise");
@@ -69,21 +126,26 @@ const Tarif = () => {
           <div className="pricing-section">
             <h3><FontAwesomeIcon icon={faFistRaised} /> Tarifs</h3>
             <div className="pricing-grid">
-              <div className="pricing-card">
-                <h4>Boxe Éducative</h4>
-                <div className="price">{formatPrice(boxingEduc)}<span>/{boxingEduc.period}</span></div>
-                <p>Enfants et adolescents (-18 ans)</p>
-              </div>
-              <div className="pricing-card featured">
-                <h4>Boxe Loisir/Amateur</h4>
-                <div className="price">{formatPrice(boxingAdult)}<span>/{boxingAdult.period}</span></div>
-                <p>Adultes (18 ans et plus)</p>
-              </div>
+              {boxingRows.map(([key, item]) => (
+                <div
+                  key={key}
+                  className={`pricing-card${key === 'loisir' || key === 'amateur' ? ' featured' : ''}`}
+                >
+                  <h4>{item.label}</h4>
+                  <div className="price">
+                    {formatPrice(item)}
+                    <span>/{item.period || 'an'}</span>
+                  </div>
+                  {item.note && <p className="pricing-card-note">{item.note}</p>}
+                </div>
+              ))}
             </div>
-            <div className="pricing-note">
-              <FontAwesomeIcon icon={faCheckCircle} />
-              <span>{boxingEduc.note}</span>
-            </div>
+            {boxingFooterNote && (
+              <div className="pricing-note">
+                <FontAwesomeIcon icon={faCheckCircle} />
+                <span>{boxingFooterNote}</span>
+              </div>
+            )}
           </div>
 
           <div className="documents-section">
@@ -112,16 +174,23 @@ const Tarif = () => {
           <div className="pricing-section">
             <h3><FontAwesomeIcon icon={faGraduationCap} /> Tarifs</h3>
             <div className="pricing-grid">
-              <div className="pricing-card">
-                <h4>Activité Périscolaire</h4>
-                <div className="price">{formatPrice(social)}<span>/{social.period}</span></div>
-                <p>Aide aux devoirs, sorties, etc.</p>
+              {socialRows.map(([key, item]) => (
+                <div key={key} className="pricing-card">
+                  <h4>{item.label}</h4>
+                  <div className="price">
+                    {formatPrice(item)}
+                    <span>/{item.period || 'an'}</span>
+                  </div>
+                  {item.note && <p className="pricing-card-note">{item.note}</p>}
+                </div>
+              ))}
+            </div>
+            {socialFooterNote && (
+              <div className="pricing-note">
+                <FontAwesomeIcon icon={faCheckCircle} />
+                <span>{socialFooterNote}</span>
               </div>
-            </div>
-            <div className="pricing-note">
-              <FontAwesomeIcon icon={faCheckCircle} />
-              <span>{social.note}</span>
-            </div>
+            )}
           </div>
 
           <div className="documents-section">
@@ -179,7 +248,11 @@ const Tarif = () => {
           )}
           
           <div className={`pricing-cards${pricingLoading ? ' pricing-cards--muted' : ''}`} aria-busy={pricingLoading}>
-            <div className="pricing-card main-card" onClick={() => openModal('boxe')}>
+            <div
+              id="programme-boxe"
+              className="pricing-card main-card"
+              onClick={() => openModal('boxe')}
+            >
               <div className="card-header">
                 <FontAwesomeIcon icon={faFistRaised} className="card-icon" />
                 <h3>Boxe Anglaise</h3>
@@ -188,7 +261,7 @@ const Tarif = () => {
                 <div className="price-highlight">
                   <span className="price-from">À partir de</span>
                   <div className="price">
-                    {pricing?.boxing?.educative ? formatPrice(pricing.boxing.educative) : '80€'}
+                    {startBoxing != null ? `${startBoxing}€` : pricing?.boxing?.educative ? formatPrice(pricing.boxing.educative) : '80€'}
                     <span>/an</span>
                   </div>
                 </div>
@@ -204,7 +277,11 @@ const Tarif = () => {
               </div>
             </div>
 
-            <div className="pricing-card main-card" onClick={() => openModal('social')}>
+            <div
+              id="programme-social"
+              className="pricing-card main-card"
+              onClick={() => openModal('social')}
+            >
               <div className="card-header">
                 <FontAwesomeIcon icon={faGraduationCap} className="card-icon" />
                 <h3>Programme Social-Éducatif</h3>
@@ -213,7 +290,7 @@ const Tarif = () => {
                 <div className="price-highlight">
                   <span className="price-from">À partir de</span>
                   <div className="price">
-                    {pricing?.social?.periscolaire ? formatPrice(pricing.social.periscolaire) : '30€'}
+                    {startSocial != null ? `${startSocial}€` : pricing?.social?.periscolaire ? formatPrice(pricing.social.periscolaire) : '30€'}
                     <span>/an</span>
                   </div>
                 </div>

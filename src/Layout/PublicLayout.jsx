@@ -1,11 +1,17 @@
 // layouts/PublicLayout.jsx
-import Navbar from "../components/Navbar";
-import { Outlet } from "react-router-dom";
-import Footer from "../components/Footer";
-import { Helmet } from "react-helmet-async";
-import AdminStaffShortcut from "../components/AdminStaffShortcut";
+import React, { Suspense } from 'react';
+import Navbar from '../components/Navbar';
+import { Outlet, useLocation } from 'react-router-dom';
+import Footer from '../components/Footer';
+import { Helmet } from 'react-helmet-async';
+const AdminStaffShortcut = React.lazy(() => import('../components/AdminStaffShortcut'));
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
+import { PREMIUM_EASE } from '../components/OptimizedMotion';
 
 const PublicLayout = () => {
+  const location = useLocation();
+  const reduceMotion = useReducedMotion();
+
   return (
     <>
       <Helmet>
@@ -16,9 +22,25 @@ const PublicLayout = () => {
         />
       </Helmet>
       <Navbar />
-      <Outlet />
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={location.pathname}
+          className="public-layout-outlet"
+          initial={reduceMotion ? false : { opacity: 0 }}
+          animate={reduceMotion ? undefined : { opacity: 1 }}
+          exit={reduceMotion ? undefined : { opacity: 0 }}
+          transition={{
+            duration: reduceMotion ? 0 : 0.22,
+            ease: PREMIUM_EASE,
+          }}
+        >
+          <Outlet />
+        </motion.div>
+      </AnimatePresence>
       <Footer />
-      <AdminStaffShortcut />
+      <Suspense fallback={null}>
+        <AdminStaffShortcut />
+      </Suspense>
     </>
   );
 };

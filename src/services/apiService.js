@@ -118,6 +118,42 @@ const handleResponse = async (response) => {
   return data;
 };
 
+/** Cache mémoire pour listes GET fréquentes (TTL court). Désactivé si un token est présent (admin / données à jour). */
+const PUBLIC_LIST_CACHE_TTL_MS = 45_000;
+const publicListCache = new Map();
+const publicListInflight = new Map();
+
+/**
+ * @template T
+ * @param {string} cacheKey
+ * @param {() => Promise<T>} producer
+ * @returns {Promise<T>}
+ */
+function takeCachedPublicList(cacheKey, producer) {
+  if (getToken()) {
+    return producer();
+  }
+  const now = Date.now();
+  const hit = publicListCache.get(cacheKey);
+  if (hit && now - hit.at < PUBLIC_LIST_CACHE_TTL_MS) {
+    return Promise.resolve(hit.data);
+  }
+  const pending = publicListInflight.get(cacheKey);
+  if (pending) return pending;
+  const p = producer()
+    .then((data) => {
+      publicListCache.set(cacheKey, { at: Date.now(), data });
+      publicListInflight.delete(cacheKey);
+      return data;
+    })
+    .catch((err) => {
+      publicListInflight.delete(cacheKey);
+      throw err;
+    });
+  publicListInflight.set(cacheKey, p);
+  return p;
+}
+
 export const authApi = {
   login: async (username, password) => {
     const res = await fetch(`${API_BASE_URL}/api/auth/login`, {
@@ -169,15 +205,18 @@ export const newsApi = {
     const page = opts.page ?? 1;
     const perPage = opts.per_page ?? 500;
     const q = new URLSearchParams({ page: String(page), per_page: String(perPage) });
-    const res = await fetch(`${API_BASE_URL}/api/news?${q}`);
-    const raw = await handleResponse(res);
-    if (opts.withMeta && raw && typeof raw === 'object' && Array.isArray(raw.data)) {
-      return raw;
-    }
-    if (raw && typeof raw === 'object' && Array.isArray(raw.data)) {
-      return raw.data;
-    }
-    return Array.isArray(raw) ? raw : [];
+    const cacheKey = `news|${q.toString()}|m${opts.withMeta ? '1' : '0'}`;
+    return takeCachedPublicList(cacheKey, async () => {
+      const res = await fetch(`${API_BASE_URL}/api/news?${q}`);
+      const raw = await handleResponse(res);
+      if (opts.withMeta && raw && typeof raw === 'object' && Array.isArray(raw.data)) {
+        return raw;
+      }
+      if (raw && typeof raw === 'object' && Array.isArray(raw.data)) {
+        return raw.data;
+      }
+      return Array.isArray(raw) ? raw : [];
+    });
   },
   get: async (id) => {
     const res = await fetch(`${API_BASE_URL}/api/news/${id}`);
@@ -209,10 +248,11 @@ export const newsApi = {
 };
 
 export const palmaresApi = {
-  list: async () => {
-    const res = await fetch(`${API_BASE_URL}/api/palmares`);
-    return handleResponse(res);
-  },
+  list: async () =>
+    takeCachedPublicList('palmares', async () => {
+      const res = await fetch(`${API_BASE_URL}/api/palmares`);
+      return handleResponse(res);
+    }),
   create: async (payload) => {
     const res = await fetch(`${API_BASE_URL}/api/palmares`, {
       method: 'POST',
@@ -239,10 +279,11 @@ export const palmaresApi = {
 };
 
 export const scheduleApi = {
-  list: async () => {
-    const res = await fetch(`${API_BASE_URL}/api/schedule`);
-    return handleResponse(res);
-  },
+  list: async () =>
+    takeCachedPublicList('schedule', async () => {
+      const res = await fetch(`${API_BASE_URL}/api/schedule`);
+      return handleResponse(res);
+    }),
   bulkSave: async (items) => {
     const res = await fetch(`${API_BASE_URL}/api/schedule`, {
       method: 'POST',
@@ -277,10 +318,11 @@ export const scheduleApi = {
 };
 
 export const galleryApi = {
-  list: async () => {
-    const res = await fetch(`${API_BASE_URL}/api/gallery`);
-    return handleResponse(res);
-  },
+  list: async () =>
+    takeCachedPublicList('gallery', async () => {
+      const res = await fetch(`${API_BASE_URL}/api/gallery`);
+      return handleResponse(res);
+    }),
   create: async (payload) => {
     const res = await fetch(`${API_BASE_URL}/api/gallery`, {
       method: 'POST',
@@ -353,12 +395,13 @@ export const uploadApi = {
 };
 
 export const activitiesApi = {
-  list: async () => {
-    const res = await fetch(`${API_BASE_URL}/api/activities`, {
-      headers: buildHeaders()
-    });
-    return handleResponse(res);
-  },
+  list: async () =>
+    takeCachedPublicList('activities', async () => {
+      const res = await fetch(`${API_BASE_URL}/api/activities`, {
+        headers: buildHeaders()
+      });
+      return handleResponse(res);
+    }),
   get: async (id) => {
     const res = await fetch(`${API_BASE_URL}/api/activities/${id}`, {
       headers: buildHeaders()
@@ -391,13 +434,13 @@ export const activitiesApi = {
 };
 
 export const settingsApi = {
-  list: async () => {
-    // Les paramètres sont publics, pas besoin d'authentification
-    const res = await fetch(`${API_BASE_URL}/api/settings`, {
-      headers: buildHeaders(false)
-    });
-    return handleResponse(res);
-  },
+  list: async () =>
+    takeCachedPublicList('settings', async () => {
+      const res = await fetch(`${API_BASE_URL}/api/settings`, {
+        headers: buildHeaders(false)
+      });
+      return handleResponse(res);
+    }),
   get: async (key) => {
     const res = await fetch(`${API_BASE_URL}/api/settings/${key}`, {
       headers: buildHeaders()
@@ -485,12 +528,35 @@ export const usersApi = {
 };
 
 export const pricingApi = {
-  list: async () => {
-    const res = await fetch(`${API_BASE_URL}/api/pricing`);
+  list: async () =>
+    takeCachedPublicList('pricing', async () => {
+      const res = await fetch(`${API_BASE_URL}/api/pricing`);
+      return handleResponse(res);
+    }),
+  /** Liste détaillée (admin) : une ligne par tarif + activité liée */
+  adminList: async () => {
+    const res = await fetch(`${API_BASE_URL}/api/pricing/admin-list`, {
+      headers: buildHeaders(true, true)
+    });
+    return handleResponse(res);
+  },
+  /** Liste plate (admin) : clés tarifs pour lier une activité à un tarif */
+  catalog: async () => {
+    const res = await fetch(`${API_BASE_URL}/api/pricing/catalog`, {
+      headers: buildHeaders(true, true)
+    });
     return handleResponse(res);
   },
   get: async (key) => {
     const res = await fetch(`${API_BASE_URL}/api/pricing/${key}`);
+    return handleResponse(res);
+  },
+  create: async (data) => {
+    const res = await fetch(`${API_BASE_URL}/api/pricing`, {
+      method: 'POST',
+      headers: buildHeaders(),
+      body: JSON.stringify(data)
+    });
     return handleResponse(res);
   },
   update: async (pricings) => {

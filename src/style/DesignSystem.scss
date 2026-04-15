@@ -1,71 +1,5 @@
 /* Système de Design Unifié - AF Boxing Club */
-/* Palette strictement alignée sur : rouge / noir / blanc / gris foncé */
-
-/* Variables CSS */
-:root {
-  /* Typographie (alignée sur index.css / Google Fonts) */
-  --font-primary: "Plus Jakarta Sans", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-display: "Playfair Display", Georgia, "Times New Roman", serif;
-
-  /* Couleurs principales (charte) — rouge légèrement profond pour rendu premium à l’écran */
-  --primary-red: #dc0000;
-  --primary-red-dark: #a80000;
-  --primary-black: #0b0b0b;
-  --primary-white: #ffffff;
-
-  /* Surfaces */
-  --surface-base: #f7f7f8;
-  --surface-elevated: #ffffff;
-  --surface-glass: rgba(255, 255, 255, 0.72);
-
-  /* Gris (fonds / textes secondaires) */
-  --secondary-gray: #f0f0f2;
-  --secondary-dark: #222222;
-  --secondary-light: #e5e5e5;
-
-  /* Couleurs de texte */
-  --text-dark: #111111;
-  --text-light: #555555;
-  --text-muted: #888888;
-
-  /* Back-office : accents rôle / états */
-  --admin-accent: var(--primary-red);
-
-  /* Courbes & profondeur */
-  --ease-premium: cubic-bezier(0.22, 1, 0.36, 1);
-
-  /* Espacements */
-  --spacing-xs: 0.5rem;
-  --spacing-sm: 1rem;
-  --spacing-md: 1.5rem;
-  --spacing-lg: 2rem;
-  --spacing-xl: 3rem;
-  --spacing-xxl: 4rem;
-
-  /* Ombres (superposition douce, style premium) */
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04), 0 4px 12px rgba(0, 0, 0, 0.06);
-  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.04), 0 12px 32px rgba(0, 0, 0, 0.1);
-  --shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.06), 0 24px 56px rgba(0, 0, 0, 0.12);
-  --shadow-xl: 0 12px 24px rgba(0, 0, 0, 0.08), 0 32px 80px rgba(0, 0, 0, 0.14);
-
-  /* Transitions optimisées */
-  --transition-fast: 0.15s ease;
-  --transition-normal: 0.2s ease;
-  --transition-slow: 0.3s ease;
-
-  /* Bordures */
-  --border-radius-sm: 8px;
-  --border-radius-md: 12px;
-  --border-radius-lg: 16px;
-  --border-radius-xl: 20px;
-  --border-radius-xxl: 24px;
-
-  /* Dégradés */
-  --gradient-primary: linear-gradient(135deg, var(--primary-red), var(--primary-red-dark));
-  --gradient-dark: linear-gradient(135deg, #000000, #111111, #222222);
-  --gradient-light: linear-gradient(180deg, #f4f4f6 0%, #fafafb 45%, #ffffff 100%);
-  --gradient-hero: linear-gradient(135deg, var(--primary-black), var(--primary-red));
-}
+/* Tokens : src/style/tokens.css (chargé via main.jsx) */
 
 /* Classes utilitaires pour le design unifié */
 
@@ -216,7 +150,7 @@
   }
   
   &.section-white {
-    background: white;
+    background: var(--surface-elevated);
   }
   
   &.section-gray {
@@ -549,7 +483,7 @@
   }
   
   &.btn-white {
-    background: white;
+    background: var(--primary-white);
     color: var(--primary-red);
     box-shadow: var(--shadow-md);
     
@@ -806,5 +740,11 @@ h6 {
     background: rgba(30, 90, 160, 0.22);
     border-color: rgba(120, 170, 230, 0.35);
     color: var(--text-dark);
+  }
+
+  .admin-state--error {
+    background: rgba(72, 22, 22, 0.42);
+    border-color: rgba(220, 100, 100, 0.35);
+    color: #ffc9c9;
   }
 }
