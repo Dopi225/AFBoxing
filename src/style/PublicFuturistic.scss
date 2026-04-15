@@ -1,0 +1,737 @@
+/* Couche « futuriste » — site public, charte rouge / noir (sombre + clair adouci) */
+
+@mixin afb-grid-overlay {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background-image: repeating-linear-gradient(
+    -8deg,
+    transparent,
+    transparent 47px,
+    rgba(255, 255, 255, 0.028) 47px,
+    rgba(255, 255, 255, 0.028) 48px
+  );
+  opacity: 0.5;
+  mask-image: linear-gradient(180deg, transparent, #000 8%, #000 92%, transparent);
+}
+
+/* Tout enfant direct au-dessus du calque ::after (évite titres masqués) */
+@mixin afb-container-z {
+  > * {
+    position: relative;
+    z-index: 1;
+  }
+}
+
+@mixin afb-surface-raised {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse 100% 78% at 50% -22%, rgba(230, 70, 70, 0.15), transparent 56%),
+    radial-gradient(ellipse 46% 38% at 0% 98%, rgba(140, 0, 0, 0.08), transparent 48%),
+    radial-gradient(ellipse 44% 36% at 100% 94%, rgba(60, 0, 0, 0.11), transparent 46%),
+    linear-gradient(185deg, var(--surface-base) 0%, #0e0e16 44%, var(--surface-base) 100%);
+  color: var(--text-dark);
+
+  &::after {
+    @include afb-grid-overlay;
+  }
+
+  @include afb-container-z;
+}
+
+@mixin afb-surface-muted {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse 92% 72% at 78% 10%, rgba(200, 45, 45, 0.12), transparent 54%),
+    radial-gradient(ellipse 52% 42% at 6% 90%, rgba(90, 0, 0, 0.09), transparent 48%),
+    linear-gradient(180deg, #0a0a10 0%, #14141f 50%, #0c0e16 100%);
+  color: var(--text-dark);
+
+  &::after {
+    @include afb-grid-overlay;
+  }
+
+  @include afb-container-z;
+}
+
+/* --- Grille + halos très doux (thème clair) --- */
+@mixin afb-grid-overlay-light {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background-image: repeating-linear-gradient(
+    -8deg,
+    transparent,
+    transparent 47px,
+    rgba(200, 0, 0, 0.035) 47px,
+    rgba(200, 0, 0, 0.035) 48px
+  );
+  opacity: 0.4;
+  mask-image: linear-gradient(180deg, transparent, #000 6%, #000 94%, transparent);
+}
+
+@mixin afb-surface-raised-light {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse 100% 78% at 50% -20%, rgba(220, 60, 60, 0.08), transparent 56%),
+    radial-gradient(ellipse 46% 38% at 0% 98%, rgba(200, 0, 0, 0.045), transparent 48%),
+    radial-gradient(ellipse 44% 36% at 100% 94%, rgba(120, 0, 0, 0.05), transparent 46%),
+    linear-gradient(185deg, #ffffff 0%, #f5f5f8 45%, #ffffff 100%);
+
+  &::after {
+    @include afb-grid-overlay-light;
+  }
+
+  @include afb-container-z;
+}
+
+@mixin afb-surface-muted-light {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse 92% 72% at 78% 10%, rgba(220, 45, 45, 0.06), transparent 54%),
+    radial-gradient(ellipse 52% 42% at 6% 90%, rgba(180, 0, 0, 0.045), transparent 48%),
+    linear-gradient(180deg, #f2f2f6 0%, #eaeaef 50%, #f4f4f8 100%);
+
+  &::after {
+    @include afb-grid-overlay-light;
+  }
+
+  @include afb-container-z;
+}
+
+:root[data-theme='dark'] {
+  .section-header {
+    box-shadow: inset 0 0 140px rgba(160, 20, 20, 0.14);
+  }
+
+  .content-section.section-dark {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    background:
+      radial-gradient(ellipse 95% 75% at 50% -28%, rgba(220, 50, 50, 0.2), transparent 52%),
+      radial-gradient(ellipse 50% 40% at 100% 80%, rgba(80, 0, 0, 0.14), transparent 48%),
+      var(--gradient-dark);
+
+    &::after {
+      @include afb-grid-overlay;
+      opacity: 0.35;
+    }
+
+    @include afb-container-z;
+  }
+
+  .content-section:not(.home-quicklinks):not(.section-dark) {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    background:
+      radial-gradient(ellipse 100% 80% at 50% -20%, rgba(220, 55, 55, 0.13), transparent 55%),
+      radial-gradient(ellipse 48% 40% at 0% 92%, rgba(120, 0, 0, 0.08), transparent 48%),
+      radial-gradient(ellipse 46% 38% at 100% 88%, rgba(70, 0, 0, 0.1), transparent 46%),
+      linear-gradient(185deg, var(--surface-base) 0%, #0c0c14 46%, var(--surface-base) 100%);
+    color: var(--text-dark);
+
+    &::after {
+      @include afb-grid-overlay;
+    }
+
+    @include afb-container-z;
+  }
+
+  /* Titres : couleur sémantique + relief (lisibles sur halos / calques) */
+  .section-title {
+    color: var(--text-dark);
+    position: relative;
+    z-index: 2;
+    text-shadow:
+      0 0 40px rgba(220, 0, 0, 0.18),
+      0 2px 1px rgba(0, 0, 0, 0.45);
+  }
+
+  .content-section.section-dark .section-title,
+  .section-dark .section-title {
+    color: #fff;
+    text-shadow: 0 0 36px rgba(220, 0, 0, 0.25);
+  }
+
+  .mission-section h2,
+  .values-section h2,
+  .activities-section h2,
+  .cta-section h2,
+  .activities-main h2,
+  .schedule-section h2,
+  .activities-cta h2,
+  .social-activities h2,
+  .social-cta h2,
+  .team-values h2,
+  .team-cta h2,
+  .gallery-section h2,
+  .gallery-stats h2,
+  .news-main h2,
+  .news-cta h2,
+  .pricing-section h2,
+  .info-section h2,
+  .schedule-main h2,
+  .schedule-info h2,
+  .palmares-main h2,
+  .palmares-cta h2,
+  .partners-main h2,
+  .partners-values h2,
+  .partners-cta h2,
+  .team-section h2,
+  .info-content h2 {
+    color: var(--text-dark);
+    position: relative;
+    z-index: 2;
+    text-shadow: 0 2px 1px rgba(0, 0, 0, 0.35);
+  }
+
+  .palmares-stats h2 {
+    color: #fff;
+    position: relative;
+    z-index: 2;
+  }
+
+  .modern-card {
+    background: linear-gradient(158deg, rgba(26, 26, 36, 0.94) 0%, rgba(12, 12, 18, 0.98) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow:
+      0 0 0 1px rgba(220, 0, 0, 0.14),
+      0 16px 48px rgba(0, 0, 0, 0.45),
+      0 0 80px rgba(220, 0, 0, 0.06);
+  }
+
+  .about-hero,
+  .activities-hero,
+  .social-hero,
+  .gallery-hero,
+  .news-hero,
+  .schedule-hero,
+  .palmares-hero,
+  .partners-hero,
+  .pricing-hero {
+    box-shadow: inset 0 0 120px rgba(140, 20, 20, 0.12);
+  }
+
+  .mission-section {
+    @include afb-surface-raised;
+  }
+
+  .values-section,
+  .team-section {
+    @include afb-surface-muted;
+  }
+
+  .activities-section,
+  .cta-section {
+    @include afb-surface-raised;
+  }
+
+  .activities-main,
+  .schedule-section,
+  .activities-cta {
+    @include afb-surface-muted;
+  }
+
+  .activities-cta .cta-card {
+    background: linear-gradient(158deg, rgba(22, 22, 32, 0.95) 0%, rgba(10, 10, 16, 0.98) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow:
+      0 0 0 1px rgba(220, 0, 0, 0.12),
+      0 12px 40px rgba(0, 0, 0, 0.45);
+  }
+
+  .social-activities {
+    @include afb-surface-muted;
+  }
+
+  .social-cta {
+    @include afb-surface-raised;
+  }
+
+  .team-values {
+    @include afb-surface-raised;
+  }
+
+  .team-cta {
+    @include afb-surface-muted;
+  }
+
+  .gallery-section {
+    @include afb-surface-muted;
+  }
+
+  .gallery-section .filter-btn {
+    background: rgba(14, 14, 20, 0.92);
+    color: #ff8f8f;
+    border-color: rgba(220, 0, 0, 0.42);
+
+    &:hover,
+    &.active {
+      color: #fff;
+      border-color: rgba(255, 120, 120, 0.55);
+      box-shadow: 0 0 28px rgba(220, 0, 0, 0.22);
+    }
+  }
+
+  .gallery-stats {
+    @include afb-surface-raised;
+  }
+
+  .news-main {
+    @include afb-surface-muted;
+  }
+
+  .news-cta {
+    @include afb-surface-raised;
+  }
+
+  .news-cta .cta-card {
+    background: linear-gradient(158deg, rgba(22, 22, 32, 0.95) 0%, rgba(10, 10, 16, 0.98) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow:
+      0 0 0 1px rgba(220, 0, 0, 0.12),
+      0 12px 40px rgba(0, 0, 0, 0.45);
+  }
+
+  .pricing-section {
+    @include afb-surface-muted;
+  }
+
+  .info-section {
+    @include afb-surface-raised;
+  }
+
+  .schedule-main {
+    @include afb-surface-muted;
+  }
+
+  .schedule-info {
+    @include afb-surface-raised;
+  }
+
+  .palmares-main {
+    @include afb-surface-muted;
+
+    &::before {
+      background: linear-gradient(180deg, rgba(220, 0, 0, 0.14), transparent);
+      height: 120px;
+    }
+  }
+
+  .palmares-stats {
+    box-shadow: inset 0 0 100px rgba(200, 30, 30, 0.1);
+  }
+
+  .palmares-cta {
+    @include afb-surface-muted;
+
+    &::before {
+      background: linear-gradient(180deg, rgba(220, 0, 0, 0.12), transparent);
+    }
+  }
+
+  .partners-main {
+    @include afb-surface-muted;
+  }
+
+  .partners-values {
+    @include afb-surface-raised;
+  }
+
+  .partners-cta {
+    @include afb-surface-muted;
+  }
+
+  .footer {
+    box-shadow:
+      inset 0 0 100px rgba(120, 0, 0, 0.1),
+      0 -1px 0 rgba(220, 0, 0, 0.12);
+  }
+
+  .sticky-tarif-cta {
+    background: linear-gradient(180deg, transparent, rgba(8, 8, 12, 0.92) 32%, rgba(12, 12, 18, 0.98));
+    border-top-color: rgba(220, 0, 0, 0.2);
+    box-shadow:
+      0 -12px 40px rgba(0, 0, 0, 0.5),
+      0 0 0 1px rgba(220, 0, 0, 0.06);
+  }
+
+  .info-content {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    background:
+      radial-gradient(ellipse 90% 70% at 50% -15%, rgba(220, 50, 50, 0.1), transparent 52%),
+      linear-gradient(180deg, var(--surface-base) 0%, #0a0a12 100%);
+    color: var(--text-dark);
+
+    &::after {
+      @include afb-grid-overlay;
+      opacity: 0.45;
+    }
+
+    @include afb-container-z;
+
+    .main-content .content-card {
+      background: var(--surface-elevated);
+      border: 1px solid rgba(220, 0, 0, 0.16);
+      box-shadow:
+        0 0 0 1px rgba(220, 0, 0, 0.08),
+        0 20px 56px rgba(0, 0, 0, 0.45);
+    }
+
+    .info-sidebar .info-card {
+      background: var(--surface-elevated);
+      border: 1px solid rgba(220, 0, 0, 0.14);
+      box-shadow:
+        0 0 0 1px rgba(220, 0, 0, 0.06),
+        0 18px 48px rgba(0, 0, 0, 0.42);
+    }
+
+    .info-sidebar .info-section {
+      background: rgba(255, 255, 255, 0.04);
+      border-color: rgba(255, 255, 255, 0.08);
+    }
+
+    .info-bullets li {
+      color: var(--text-light);
+    }
+  }
+
+  .info-hero {
+    box-shadow: inset 0 0 140px rgba(160, 20, 20, 0.12);
+  }
+
+  .error-section {
+    background:
+      radial-gradient(ellipse 80% 50% at 50% 0%, rgba(220, 0, 0, 0.08), transparent 50%),
+      var(--surface-base);
+    color: var(--text-dark);
+
+    p {
+      color: var(--text-light);
+    }
+  }
+
+  .not-found-page__title {
+    text-shadow: 0 0 48px rgba(220, 0, 0, 0.12);
+  }
+
+  .member-card,
+  .news-card,
+  .partner-card,
+  .gallery-item,
+  .day-card,
+  .achievement-card,
+  .social-activities .activity-card,
+  .activities-main .activity-card,
+  .values-section .value-card,
+  .partners-values .value-item,
+  .mission-quote {
+    background: var(--surface-elevated);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    box-shadow:
+      0 0 0 1px rgba(220, 0, 0, 0.1),
+      0 12px 40px rgba(0, 0, 0, 0.4);
+  }
+
+  .mission-quote blockquote {
+    color: var(--text-dark);
+  }
+
+  .activities-section .activity-card {
+    background: linear-gradient(158deg, rgba(24, 24, 34, 0.96) 0%, rgba(12, 12, 18, 0.98) 100%);
+    border-color: rgba(220, 0, 0, 0.15);
+  }
+
+  .cta-section .cta-card {
+    background: linear-gradient(158deg, rgba(22, 22, 32, 0.95) 0%, rgba(10, 10, 16, 0.98) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow:
+      0 0 0 1px rgba(220, 0, 0, 0.1),
+      0 12px 36px rgba(0, 0, 0, 0.42);
+  }
+
+  .pricing-section .pricing-cards .pricing-card {
+    background: var(--surface-elevated);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow:
+      0 0 0 1px rgba(220, 0, 0, 0.1),
+      0 12px 36px rgba(0, 0, 0, 0.4);
+  }
+
+  .pricing-section .pricing-cards .pricing-card.featured,
+  .modal-content .pricing-grid .pricing-card.featured {
+    border-color: rgba(220, 0, 0, 0.45);
+    box-shadow:
+      0 0 0 1px rgba(220, 0, 0, 0.25),
+      0 16px 48px rgba(0, 0, 0, 0.45),
+      0 0 60px rgba(220, 0, 0, 0.08);
+  }
+
+  .modal-content .pricing-grid .pricing-card {
+    background: var(--surface-elevated);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  .gallery-stats .stat-item {
+    background: linear-gradient(158deg, rgba(22, 22, 32, 0.92) 0%, rgba(12, 12, 18, 0.96) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    box-shadow: 0 0 32px rgba(220, 0, 0, 0.06);
+  }
+
+  .team-values .value-item {
+    background: linear-gradient(158deg, rgba(22, 22, 32, 0.95) 0%, rgba(12, 12, 18, 0.98) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    box-shadow: 0 0 0 1px rgba(220, 0, 0, 0.08);
+  }
+
+  .info-section .info-card {
+    background: linear-gradient(158deg, rgba(22, 22, 32, 0.95) 0%, rgba(12, 12, 18, 0.98) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+  }
+}
+
+/* --- Thème clair : mêmes halos / grilles, plus doux --- */
+:root:not([data-theme='dark']) {
+  .section-header {
+    box-shadow: inset 0 0 100px rgba(200, 40, 40, 0.05);
+  }
+
+  .content-section.section-dark {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+
+    &::after {
+      @include afb-grid-overlay-light;
+      opacity: 0.22;
+    }
+
+    @include afb-container-z;
+  }
+
+  .content-section:not(.home-quicklinks):not(.section-dark) {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    background:
+      radial-gradient(ellipse 100% 72% at 50% -12%, rgba(220, 50, 50, 0.06), transparent 52%),
+      var(--gradient-light);
+
+    &::after {
+      @include afb-grid-overlay-light;
+    }
+
+    @include afb-container-z;
+  }
+
+  .content-section.section-white:not(.home-quicklinks) {
+    background:
+      radial-gradient(ellipse 100% 65% at 50% -8%, rgba(220, 45, 45, 0.045), transparent 50%),
+      #fff;
+  }
+
+  .content-section.section-gray:not(.home-quicklinks) {
+    background:
+      radial-gradient(ellipse 90% 55% at 85% 0%, rgba(220, 35, 35, 0.035), transparent 48%),
+      var(--secondary-gray);
+  }
+
+  .section-title {
+    position: relative;
+    z-index: 2;
+    text-shadow: 0 0 28px rgba(220, 0, 0, 0.07);
+  }
+
+  .modern-card {
+    box-shadow:
+      0 0 0 1px rgba(220, 0, 0, 0.06),
+      var(--shadow-md);
+  }
+
+  .about-hero,
+  .activities-hero,
+  .social-hero,
+  .gallery-hero,
+  .news-hero,
+  .schedule-hero,
+  .palmares-hero,
+  .partners-hero,
+  .pricing-hero {
+    box-shadow: inset 0 0 80px rgba(200, 30, 30, 0.05);
+  }
+
+  .mission-section {
+    @include afb-surface-raised-light;
+  }
+
+  .values-section,
+  .team-section {
+    @include afb-surface-muted-light;
+  }
+
+  .activities-section,
+  .cta-section {
+    @include afb-surface-raised-light;
+  }
+
+  .activities-main,
+  .schedule-section,
+  .activities-cta {
+    @include afb-surface-muted-light;
+  }
+
+  .social-activities {
+    @include afb-surface-muted-light;
+  }
+
+  .social-cta {
+    @include afb-surface-raised-light;
+  }
+
+  .team-values {
+    @include afb-surface-raised-light;
+  }
+
+  .team-cta {
+    @include afb-surface-muted-light;
+  }
+
+  .gallery-section {
+    @include afb-surface-muted-light;
+  }
+
+  .gallery-section .filter-btn {
+    box-shadow: 0 0 0 1px rgba(220, 0, 0, 0.06);
+  }
+
+  .gallery-stats {
+    @include afb-surface-raised-light;
+  }
+
+  .news-main {
+    @include afb-surface-muted-light;
+  }
+
+  .news-cta {
+    @include afb-surface-raised-light;
+  }
+
+  .pricing-section {
+    @include afb-surface-muted-light;
+  }
+
+  .info-section {
+    @include afb-surface-raised-light;
+  }
+
+  .schedule-main {
+    @include afb-surface-muted-light;
+  }
+
+  .schedule-info {
+    @include afb-surface-raised-light;
+  }
+
+  .palmares-main {
+    @include afb-surface-muted-light;
+
+    &::before {
+      background: linear-gradient(180deg, rgba(220, 0, 0, 0.08), transparent);
+    }
+  }
+
+  .palmares-stats {
+    box-shadow: inset 0 0 72px rgba(180, 30, 30, 0.06);
+  }
+
+  .palmares-cta {
+    @include afb-surface-muted-light;
+
+    &::before {
+      background: linear-gradient(180deg, rgba(220, 0, 0, 0.07), transparent);
+    }
+  }
+
+  .partners-main {
+    @include afb-surface-muted-light;
+  }
+
+  .partners-values {
+    @include afb-surface-raised-light;
+  }
+
+  .partners-cta {
+    @include afb-surface-muted-light;
+  }
+
+  .footer {
+    box-shadow: inset 0 0 80px rgba(60, 0, 0, 0.05);
+  }
+
+  .sticky-tarif-cta {
+    background: linear-gradient(180deg, transparent, rgba(255, 255, 255, 0.88) 35%, rgba(255, 255, 255, 0.96));
+    border-top-color: rgba(220, 0, 0, 0.1);
+    box-shadow:
+      0 -8px 28px rgba(0, 0, 0, 0.06),
+      0 0 0 1px rgba(220, 0, 0, 0.04);
+  }
+
+  .info-content {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    background:
+      radial-gradient(ellipse 88% 65% at 50% -10%, rgba(220, 45, 45, 0.05), transparent 50%),
+      linear-gradient(180deg, #fafbfc 0%, #ffffff 100%);
+
+    &::after {
+      @include afb-grid-overlay-light;
+    }
+
+    @include afb-container-z;
+  }
+
+  .info-hero {
+    box-shadow: inset 0 0 100px rgba(180, 25, 25, 0.05);
+  }
+
+  .error-section {
+    background:
+      radial-gradient(ellipse 80% 50% at 50% 0%, rgba(220, 0, 0, 0.04), transparent 50%),
+      #f3f4f6;
+  }
+
+  .not-found-page__title {
+    text-shadow: 0 0 28px rgba(220, 0, 0, 0.06);
+  }
+
+  .content-section.home-quicklinks {
+    position: relative;
+    overflow: hidden;
+    background:
+      radial-gradient(ellipse 100% 78% at 50% -18%, rgba(220, 50, 50, 0.06), transparent 54%),
+      linear-gradient(185deg, #fafafa 0%, #ffffff 100%);
+
+    &::after {
+      @include afb-grid-overlay-light;
+    }
+
+    @include afb-container-z;
+  }
+}

@@ -15,6 +15,12 @@ export default [
     ],
   },
   {
+    files: ['e2e/**/*.js', 'playwright.config.js', 'vite.config.js'],
+    languageOptions: {
+      globals: globals.node,
+    },
+  },
+  {
     files: ['**/*.{js,jsx}'],
     languageOptions: {
       ecmaVersion: 2020,

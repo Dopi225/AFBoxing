@@ -1,9 +1,7 @@
 import React, { Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { MotionConfig } from 'framer-motion';
-// import Navbar from './components/Navbar';
-// import Footer from './components/Footer';
-import  PublicLayout  from "./Layout/PublicLayout";
+import PublicLayout from './Layout/PublicLayout';
 const AssociationDeBoxe = React.lazy(() => import('./components/AssociationDeBoxe'));
 const Apropos = React.lazy(() => import('./components/Apropos'));
 const Activite = React.lazy(() => import('./components/Activite'));
@@ -16,12 +14,12 @@ const Contact = React.lazy(() => import('./components/Contact'));
 const Partenaire = React.lazy(() => import('./components/Partenaire'));
 const Palmares = React.lazy(() => import('./components/Palmares'));
 
-import '@fortawesome/fontawesome-free/css/all.min.css';
 import './App.scss';
 const InfoPage = React.lazy(() => import('./components/InfoPage'));
 const NewsPage = React.lazy(() => import('./components/NewsPage'));
 import ScrollToTop from './components/ScrollToTop';
 import BackToTopButton from './components/BackToTopButton';
+import ThemeFloatButton from './components/ThemeFloatButton';
 import HeroSkipButton from './components/HeroSkipButton';
 import StickyTarifCTA from './components/StickyTarifCTA';
 import ErrorBoundary from './components/ErrorBoundary';
@@ -55,12 +53,11 @@ function App() {
   return (
     <MotionConfig
       reducedMotion="user"
-      transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+      transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
     >
       <Router>
         <ErrorBoundary>
         <ScrollToTop />
-        {/* <Navbar /> */}
         <Suspense fallback={<RouteFallback />}>
           <Routes>
              {/* 🌍 Site public */}
@@ -105,8 +102,8 @@ function App() {
         </Suspense>
         <HeroSkipButton />
         <StickyTarifCTA />
+        <ThemeFloatButton />
         <BackToTopButton />
-        {/* <Footer /> */}
         </ErrorBoundary>
       </Router>
     </MotionConfig>

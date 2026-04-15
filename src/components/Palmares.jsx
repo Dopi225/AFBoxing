@@ -5,7 +5,6 @@ import { OptimizedMotion, CardMotion } from './OptimizedMotion';
 import { useNavigate } from 'react-router-dom';
 import { palmaresApi } from '../services/apiService';
 import SectionHeader from './SectionHeader';
-import amateurBg from '../assets/coach1.jpg';
 
 const Palmares = () => {
   const navigate = useNavigate();
@@ -77,7 +76,6 @@ const Palmares = () => {
         title="Palmarès"
         subtitle="Nos succès et nos moments marquants en compétition : résultats, dates, lieux et boxeurs."
         eyebrow="Sérieux • Performance • Fierté"
-        image={amateurBg}
         actions={[
           { label: "Activités", to: "/activite", className: "btn-primary" },
           { label: "Contact", to: "/contact", className: "btn-outline" },

@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-// eslint-disable-next-line no-unused-vars
 import { motion } from 'framer-motion';
 import {
   faNewspaper,
@@ -19,13 +18,13 @@ import {
   faInfoCircle,
   faFistRaised
 } from '@fortawesome/free-solid-svg-icons';
-import { newsApi, palmaresApi, contactsApi, galleryApi, scheduleApi } from '../../services/apiService';
+import { newsApi, palmaresApi, contactsApi, galleryApi, scheduleApi, authApi } from '../../services/apiService';
 import { useNotifications } from './NotificationSystem';
 import './DashboardHome.scss';
 
 const DashboardHome = () => {
   const navigate = useNavigate();
-  const { success, error: notifyError } = useNotifications();
+  const { error: notifyError } = useNotifications();
   const [stats, setStats] = useState({
     news: 0,
     palmares: 0,
@@ -42,6 +41,19 @@ const DashboardHome = () => {
     uploads: 'checking'
   });
   const [loading, setLoading] = useState(true);
+  const [dashboardSearch, setDashboardSearch] = useState('');
+  const [userRole, setUserRole] = useState('admin');
+
+  useEffect(() => {
+    let cancelled = false;
+    void authApi.getMe().then((res) => {
+      const r = res?.user?.role;
+      if (!cancelled && (r === 'admin' || r === 'editor')) setUserRole(r);
+    }).catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     const loadStats = async () => {
@@ -79,8 +91,6 @@ const DashboardHome = () => {
           database: 'ok',
           uploads: 'ok'
         });
-
-        success('Tableau de bord actualisé');
       } catch {
         notifyError('Erreur lors du chargement des statistiques');
         setHealthStatus({
@@ -94,12 +104,21 @@ const DashboardHome = () => {
     };
 
     loadStats();
-    // Actualisation automatique toutes les 5 minutes
     const interval = setInterval(loadStats, 5 * 60 * 1000);
     return () => clearInterval(interval);
-  }, [success, notifyError]);
+  }, [notifyError]);
 
-  const quickActions = [
+  const submitDashboardSearch = (e) => {
+    e.preventDefault();
+    const q = dashboardSearch.trim();
+    if (q) {
+      navigate(`/admin/search?q=${encodeURIComponent(q)}`);
+    } else {
+      navigate('/admin/search');
+    }
+  };
+
+  const quickActionsAll = [
     {
       icon: faNewspaper,
       label: 'Actualités',
@@ -131,6 +150,7 @@ const DashboardHome = () => {
       icon: faEnvelope,
       label: 'Contacts',
       path: '/admin/contacts',
+      adminOnly: true,
       count: stats.unreadContacts,
       badge: stats.unreadContacts > 0,
       color: 'var(--primary-red-dark)'
@@ -143,6 +163,8 @@ const DashboardHome = () => {
     }
   ];
 
+  const quickActions = quickActionsAll.filter((a) => !a.adminOnly || userRole === 'admin');
+
   const healthItems = [
     { label: 'API', status: healthStatus.api },
     { label: 'Base de données', status: healthStatus.database },
@@ -150,7 +172,7 @@ const DashboardHome = () => {
   ];
 
   const alerts = [];
-  if (stats.unreadContacts > 0) {
+  if (userRole === 'admin' && stats.unreadContacts > 0) {
     alerts.push({
       type: 'info',
       message: `${stats.unreadContacts} nouveau${stats.unreadContacts > 1 ? 'x' : ''} message${stats.unreadContacts > 1 ? 's' : ''} non lu${stats.unreadContacts > 1 ? 's' : ''}`,
@@ -168,13 +190,14 @@ const DashboardHome = () => {
   if (loading) {
     return (
       <div className="dashboard-home">
-        <div className="empty-state">
-          <p>Chargement du tableau de bord...</p>
+        <div className="admin-state--loading" role="status" aria-live="polite">
+          <span className="admin-state__spinner" aria-hidden />
+          <p>Chargement du tableau de bord…</p>
         </div>
       </div>
     );
   }
-
+ 
   return (
     <div className="dashboard-home">
       <motion.div
@@ -184,28 +207,40 @@ const DashboardHome = () => {
       >
         <div>
           <h2>Tableau de bord</h2>
-          <p>Vue d'ensemble et contrôle du site</p>
+          <p>
+            Vue d&apos;ensemble et contrôle du site
+            {userRole === 'editor' && (
+              <span className="dashboard-header__role"> — accès éditeur (contenu public)</span>
+            )}
+          </p>
         </div>
         <div className="dashboard-header__actions">
+          <form className="dashboard-header__search" onSubmit={submitDashboardSearch} role="search">
+            <label htmlFor="dashboard-global-search" className="visually-hidden">
+              Rechercher dans tout le contenu
+            </label>
+            <input
+              id="dashboard-global-search"
+              type="search"
+              className="dashboard-header__search-input"
+              placeholder="Rechercher…"
+              value={dashboardSearch}
+              onChange={(e) => setDashboardSearch(e.target.value)}
+              autoComplete="off"
+              enterKeyHint="search"
+            />
+            <button type="submit" className="btn-icon btn-icon--search" title="Lancer la recherche" aria-label="Lancer la recherche">
+              <FontAwesomeIcon icon={faSearch} />
+            </button>
+          </form>
           <button
+            type="button"
             className="btn-icon"
             onClick={() => navigate('/admin/settings')}
             title="Paramètres"
+            aria-label="Paramètres"
           >
             <FontAwesomeIcon icon={faCog} />
-          </button>
-          <button
-            className="btn-icon"
-            onClick={() => {
-              const searchTerm = prompt('Rechercher dans tous les contenus...');
-              if (searchTerm) {
-                // TODO: Implémenter recherche globale
-                navigate(`/admin/search?q=${encodeURIComponent(searchTerm)}`);
-              }
-            }}
-            title="Recherche globale"
-          >
-            <FontAwesomeIcon icon={faSearch} />
           </button>
         </div>
       </motion.div>

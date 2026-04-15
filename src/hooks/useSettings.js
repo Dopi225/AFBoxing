@@ -1,6 +1,30 @@
 import { useState, useEffect } from 'react';
 import { settingsApi } from '../services/apiService';
 
+const CACHE_KEY = 'afboxing_settings_v1';
+const CACHE_TTL_MS = 5 * 60 * 1000;
+
+const readCache = () => {
+  try {
+    const raw = sessionStorage.getItem(CACHE_KEY);
+    if (!raw) return null;
+    const { t, data } = JSON.parse(raw);
+    if (typeof t !== 'number' || !data) return null;
+    if (Date.now() - t > CACHE_TTL_MS) return null;
+    return data;
+  } catch {
+    return null;
+  }
+};
+
+const writeCache = (data) => {
+  try {
+    sessionStorage.setItem(CACHE_KEY, JSON.stringify({ t: Date.now(), data }));
+  } catch {
+    /* ignore */
+  }
+};
+
 const defaultSettings = {
   contact: {
     address: '2 rue Gabriel Morain, 86000 Poitiers',
@@ -18,15 +42,15 @@ const defaultSettings = {
 };
 
 export const useSettings = () => {
-  const [settings, setSettings] = useState(defaultSettings);
-  const [loading, setLoading] = useState(true);
+  const cached = readCache();
+  const [settings, setSettings] = useState(() => cached || defaultSettings);
+  const [loading, setLoading] = useState(!cached);
 
   useEffect(() => {
     const loadSettings = async () => {
       try {
         const data = await settingsApi.list();
-        
-        // Convertir les données de l'API en format attendu
+
         const loaded = {
           contact: {
             address: data.contact?.['contact.address'] || defaultSettings.contact.address,
@@ -42,13 +66,16 @@ export const useSettings = () => {
             tagline: data.site?.['site.tagline'] || defaultSettings.site.tagline
           }
         };
-        
+
         setSettings(loaded);
+        writeCache(loaded);
       } catch (err) {
         if (import.meta.env.DEV) {
           console.warn('[useSettings] API indisponible, valeurs par défaut.', err);
         }
-        setSettings(defaultSettings);
+        if (!readCache()) {
+          setSettings(defaultSettings);
+        }
       } finally {
         setLoading(false);
       }

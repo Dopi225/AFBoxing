@@ -4,11 +4,6 @@ import { faTimes, faChevronLeft, faChevronRight,  faUsers, faTrophy, faHeart } f
 import { motion, AnimatePresence } from 'framer-motion';
 
 // Import des images (⚡ privilégier des assets légers pour garder une galerie fluide)
-// import coach1 from '../assets/coach1.jpg';
-// import coach2 from '../assets/coach2.jpg';
-// import social from '../assets/social.jpg';
-import club from '../assets/club.jpeg';
-// import about from '../assets/about.jpg';
 import { galleryApi } from '../services/apiService';
 import SectionHeader from './SectionHeader';
 
@@ -80,7 +75,6 @@ const Galerie = () => {
         title="Galerie"
         subtitle="Un aperçu de la vie du club : entraînements, inclusion, événements et moments partagés."
         eyebrow="Ambiance • Progression • Communauté"
-        image={club}
         actions={[
           { label: "Voir les activités", to: "/activite", className: "btn-primary", icon: <FontAwesomeIcon icon={faUsers} /> },
           { label: "Tarifs", to: "/tarif", className: "btn-secondary", icon: <FontAwesomeIcon icon={faHeart} /> },

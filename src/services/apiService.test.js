@@ -53,6 +53,19 @@ describe('apiService / authApi', () => {
     expect(localStorage.getItem(TOKEN_KEY)).toBeNull();
   });
 
+  it('agrège les erreurs 422 de validation', async () => {
+    localStorage.setItem(TOKEN_KEY, 'tok');
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue({
+      ok: false,
+      status: 422,
+      json: async () => ({
+        errors: { email: 'Invalide', name: 'Requis' }
+      })
+    });
+
+    await expect(authApi.getMe()).rejects.toThrow(/email: Invalide/);
+  });
+
   it('expose le message 403 (format structuré)', async () => {
     vi.spyOn(globalThis, 'fetch').mockResolvedValue({
       ok: false,

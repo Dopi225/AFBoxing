@@ -8,7 +8,6 @@ import SectionHeader from './SectionHeader';
 import logoPoitiers from '../assets/LOGOPOITIERS.jpg';
 import logoFFBoxe from '../assets/FFBOXE.png';
 import logoEkidom from '../assets/ekidom.jpg';
-import partenaireHero from '../assets/partenaire1.jpg';
 
 const partenaires = [
   { 
@@ -81,7 +80,6 @@ const Partenaire = () => {
         title="Partenaires"
         subtitle="Merci à ceux qui nous soutiennent et partagent nos valeurs sportives, humaines et inclusives."
         eyebrow="Confiance & engagement"
-        image={partenaireHero}
         actions={[
           { label: "Devenir partenaire", to: "/contact", className: "btn-primary", icon: <FontAwesomeIcon icon={faHandshake} /> },
           { label: "Contact", to: "/contact", className: "btn-outline", icon: <FontAwesomeIcon icon={faEnvelope} /> },

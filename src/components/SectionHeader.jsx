@@ -19,7 +19,8 @@ const SectionHeader = ({
   actions = [],
   children,
 }) => {
-  const style = image ? { '--section-header-image': `url(${image})` } : undefined;
+  const hasHeroImage = Boolean(image);
+  const style = hasHeroImage ? { '--section-header-image': `url(${image})` } : undefined;
 
   return (
     <section
@@ -28,13 +29,14 @@ const SectionHeader = ({
         `section-header--${tone}`,
         `section-header--${align}`,
         compact ? 'section-header--compact' : '',
+        !hasHeroImage ? 'section-header--minimal' : '',
         className,
       ]
         .filter(Boolean)
         .join(' ')}
       style={style}
     >
-      <div className="container" style={{height: 390}}>
+      <div className="container section-header__inner">
         <OptimizedMotion variant={fadeInUp}>
           <div className="section-header__content">
             {eyebrow ? <div className="section-header__eyebrow">{eyebrow}</div> : null}

@@ -3,6 +3,7 @@ import Navbar from "../components/Navbar";
 import { Outlet } from "react-router-dom";
 import Footer from "../components/Footer";
 import { Helmet } from "react-helmet-async";
+import AdminStaffShortcut from "../components/AdminStaffShortcut";
 
 const PublicLayout = () => {
   return (
@@ -17,6 +18,7 @@ const PublicLayout = () => {
       <Navbar />
       <Outlet />
       <Footer />
+      <AdminStaffShortcut />
     </>
   );
 };

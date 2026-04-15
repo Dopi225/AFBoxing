@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faFistRaised, faGraduationCap, faNewspaper, faMapMarkerAlt, faCalendarAlt, faClock, faCamera, faArrowRight, faEnvelope } from '@fortawesome/free-solid-svg-icons';
+import { faFistRaised, faGraduationCap, faNewspaper, faMapMarkerAlt, faCalendarAlt, faClock, faCamera, faArrowRight, faEnvelope, faPlay } from '@fortawesome/free-solid-svg-icons';
+// eslint-disable-next-line no-unused-vars -- motion.* utilisé dans le JSX (faux positif ESLint sur les namespaces)
 import { motion } from 'framer-motion';
 import PartnersLogos from './PartnersLogos';
 import videaste from '../assets/club.mp4';
@@ -8,17 +9,13 @@ import posterImage from '../assets/club.jpeg';
 import logo from '../assets/logo-removeb.png';
 import { useNavigate } from 'react-router-dom';
 import { newsApi, scheduleApi } from '../services/apiService';
-import educative from '../assets/s1.png';
-import loisir from '../assets/s2.png';
-import amateur from '../assets/s3.png';
-import handi from '../assets/s4.png';
-import aero from '../assets/gants.png';
+// import educative from '../assets/s1.png';
+// import loisir from '../assets/s2.png';
+// import amateur from '../assets/s3.png';
+// import handi from '../assets/s4.png';
+// import aero from '../assets/gants.png';
 import therapie from '../assets/p1.png';
 import social from '../assets/social.jpg';
-
-// Fix ESLint no-unused-vars dans certains setups: l'analyse ne voit pas `motion.*` en JSX.
-// (variable inutilisée autorisée car commence par "_")
-const _MOTION = motion;
 
 export const CTAButton = ({ icon, label, onClick, delay = 0 }) => (
   <motion.a
@@ -41,8 +38,8 @@ const formatDate = (dateStr) => {
   return date.toLocaleDateString('fr-FR', {
     year: 'numeric',
     month: 'long',
-    day: '2-digit'
-  }).toUpperCase();
+    day: 'numeric'
+  });
 };
 
 const FRENCH_DAYS = ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'];
@@ -85,7 +82,9 @@ const AssociationDeBoxe = () => {
   const [isMobile, setIsMobile] = useState(() => (typeof window !== 'undefined' ? window.innerWidth <= 768 : false));
   const [videoLoaded, setVideoLoaded] = useState(false);
   const [videoError, setVideoError] = useState(false);
-  const [shouldLoadVideo, setShouldLoadVideo] = useState(false);
+  /** Vidéo lourde : uniquement après action utilisateur (pas de téléchargement MP4 au chargement). */
+  const [videoRequested, setVideoRequested] = useState(false);
+  const [reducedMotion, setReducedMotion] = useState(false);
   const initialSlow = useMemo(() => {
     if (typeof navigator === 'undefined') return false;
     const connection = navigator.connection;
@@ -101,8 +100,18 @@ const AssociationDeBoxe = () => {
     const mobile = typeof window !== 'undefined' ? window.innerWidth <= 768 : false;
     return mobile || initialSlow;
   });
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
+    setReducedMotion(mq.matches);
+    const handler = () => setReducedMotion(mq.matches);
+    mq.addEventListener('change', handler);
+    return () => mq.removeEventListener('change', handler);
+  }, []);
   const [latestNews, setLatestNews] = useState([]);
   const [newsError, setNewsError] = useState('');
+  const [newsLoading, setNewsLoading] = useState(true);
   const [schedulePreview, setSchedulePreview] = useState({
     todayName: '',
     todaySessions: [],
@@ -112,7 +121,6 @@ const AssociationDeBoxe = () => {
   const [scheduleError, setScheduleError] = useState('');
   const mapMountRef = useRef(null);
   const [mapReady, setMapReady] = useState(false);
-  const [activities, setActivities] = useState([]);
 
   // Détecter si on est sur mobile
   useEffect(() => {
@@ -160,46 +168,16 @@ const AssociationDeBoxe = () => {
     return () => observer.disconnect();
   }, [mapReady]);
 
-  // Timeout pour la vidéo (5 secondes max)
+  // Si la vidéo est demandée mais ne démarre pas, revenir au poster
   useEffect(() => {
+    if (!videoRequested || showImageFallback) return;
     const videoTimeout = setTimeout(() => {
       if (!videoLoaded && !videoError) {
         setShowImageFallback(true);
       }
-    }, 5000); // 5 secondes
-
+    }, 8000);
     return () => clearTimeout(videoTimeout);
-  }, [videoLoaded, videoError]);
-
-  // Évite de démarrer le téléchargement vidéo immédiatement (meilleure fluidité au 1er rendu)
-  useEffect(() => {
-    if (showImageFallback) {
-      setShouldLoadVideo(false);
-      return;
-    }
-
-    let cancelled = false;
-    let idleId;
-    let timerId;
-
-    const enable = () => {
-      if (!cancelled) setShouldLoadVideo(true);
-    };
-
-    if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
-      idleId = window.requestIdleCallback(enable, { timeout: 1500 });
-    } else {
-      timerId = setTimeout(enable, 800);
-    }
-
-    return () => {
-      cancelled = true;
-      if (typeof window !== 'undefined' && 'cancelIdleCallback' in window && idleId) {
-        window.cancelIdleCallback(idleId);
-      }
-      if (timerId) clearTimeout(timerId);
-    };
-  }, [showImageFallback]);
+  }, [videoRequested, videoLoaded, videoError, showImageFallback]);
 
   // Gestion du chargement de la vidéo
   const handleVideoLoad = () => {
@@ -211,6 +189,14 @@ const AssociationDeBoxe = () => {
     setVideoError(true);
     setShowImageFallback(true);
   };
+
+  const canOfferVideo =
+    !showImageFallback &&
+    !isMobile &&
+    !isSlowConnection &&
+    !reducedMotion;
+
+  const showHeroVideo = videoRequested && canOfferVideo;
 
   const handleNavigate = (path) => {
     navigate(path);
@@ -251,43 +237,49 @@ const AssociationDeBoxe = () => {
   //   { id: 'therapie', title: 'Boxe thérapie', desc: 'Bien-être • gestion du stress', image: therapie, to: '/info/therapie' },
   // ];
 
-  // Charger les dernières actualités depuis l'API (données dynamiques)
+  // Actualités + planning en parallèle (un seul double aller-retour réseau)
   useEffect(() => {
-    const loadNews = async () => {
+    let cancelled = false;
+
+    const run = async () => {
+      setNewsLoading(true);
+      setScheduleLoading(true);
+      setNewsError('');
+      setScheduleError('');
+
       try {
-        setNewsError('');
-        const items = await newsApi.list();
-        const list = Array.isArray(items) ? items : (items?.data || []);
+        const [newsSettled, schedSettled] = await Promise.allSettled([newsApi.list(), scheduleApi.list()]);
+        if (cancelled) return;
+
+        if (newsSettled.status === 'rejected') {
+          setNewsError('Impossible de charger les actualités pour le moment.');
+          setLatestNews([]);
+        } else {
+          setNewsError('');
+        }
+
+        const newsItems = newsSettled.status === 'fulfilled' ? newsSettled.value : [];
+        const list = Array.isArray(newsItems) ? newsItems : (newsItems?.data || []);
         const sorted = list
-          .slice() // copier pour ne pas muter la source
+          .slice()
           .sort((a, b) => new Date(b.date) - new Date(a.date))
           .slice(0, 3);
-        setLatestNews(sorted);
-      } catch (err) {
-        if (import.meta.env.DEV) {
-          console.warn('Erreur chargement actualités accueil', err);
+        if (newsSettled.status === 'fulfilled') {
+          setLatestNews(sorted);
         }
-        setNewsError("Impossible de charger les actualités.");
-      }
-    };
 
-    loadNews();
-  }, []);
+        if (schedSettled.status === 'rejected') {
+          setScheduleError('Impossible de charger le planning pour le moment.');
+        } else {
+          setScheduleError('');
+        }
 
-  // Aperçu planning : "Aujourd'hui" + "Prochains créneaux"
-  useEffect(() => {
-    const loadSchedulePreview = async () => {
-      try {
-        setScheduleError('');
-        setScheduleLoading(true);
-
-        const items = await scheduleApi.list();
-        const list = normalizeList(items);
-
+        const scheduleItems = schedSettled.status === 'fulfilled' ? schedSettled.value : [];
+        const sched = normalizeList(scheduleItems);
         const now = new Date();
         const todayName = FRENCH_DAYS[now.getDay()] || '';
 
-        const todaySessions = list
+        const todaySessions = sched
           .filter((s) => s?.day === todayName)
           .slice()
           .sort((a, b) => (parseStartMinutes(a?.time) ?? 9999) - (parseStartMinutes(b?.time) ?? 9999))
@@ -298,7 +290,7 @@ const AssociationDeBoxe = () => {
             level: s.level || ''
           }));
 
-        const nextSessions = list
+        const nextSessions = sched
           .map((s) => {
             const nextDate = buildNextOccurrence(s?.day, s?.time);
             if (!nextDate) return null;
@@ -314,26 +306,38 @@ const AssociationDeBoxe = () => {
           .sort((a, b) => a.nextDate - b.nextDate)
           .slice(0, 3);
 
-        setSchedulePreview({ todayName, todaySessions, nextSessions });
+        if (schedSettled.status === 'fulfilled') {
+          setSchedulePreview({ todayName, todaySessions, nextSessions });
+        }
       } catch (err) {
         if (import.meta.env.DEV) {
-          console.warn('Erreur chargement planning accueil', err);
+          console.warn('Erreur chargement accueil (news/schedule)', err);
         }
-        setScheduleError("Impossible de charger le planning pour le moment.");
+        if (!cancelled) {
+          setNewsError('Impossible de charger les actualités pour le moment.');
+          setScheduleError('Impossible de charger le planning pour le moment.');
+          setLatestNews([]);
+        }
       } finally {
-        setScheduleLoading(false);
+        if (!cancelled) {
+          setNewsLoading(false);
+          setScheduleLoading(false);
+        }
       }
     };
 
-    loadSchedulePreview();
+    void run();
+    return () => {
+      cancelled = true;
+    };
   }, []);
   
   return (
     <div className='container-fluid'>
       {/* Hero Section Moderne */}
       <section className="hero-section">
-        {showImageFallback || !shouldLoadVideo ? (
-          <div 
+        {!showHeroVideo ? (
+          <div
             className="background-video mobile-fallback"
             style={{
               backgroundImage: `url(${posterImage})`,
@@ -343,23 +347,35 @@ const AssociationDeBoxe = () => {
             }}
           />
         ) : (
-          <video 
-            // Pas d'autoplay sur mobile ou connexion lente
-            autoPlay={!(isMobile || isSlowConnection)} 
-            muted 
-            loop 
-            playsInline 
+          <video
+            autoPlay
+            muted
+            loop
+            playsInline
             className="background-video"
             poster={posterImage}
             preload="metadata"
             onLoadedData={handleVideoLoad}
             onCanPlay={handleVideoLoad}
             onError={handleVideoError}
-            controls={isMobile || isSlowConnection}
           >
             <source src={videaste} type="video/mp4" />
             Votre navigateur ne supporte pas la lecture vidéo.
           </video>
+        )}
+
+        {canOfferVideo && !videoRequested && (
+          <div className="hero-video-cta">
+            <button
+              type="button"
+              className="hero-video-cta__btn"
+              onClick={() => setVideoRequested(true)}
+            >
+              <FontAwesomeIcon icon={faPlay} aria-hidden />
+              <span>Voir la vidéo d’ambiance</span>
+            </button>
+            <span className="hero-video-cta__hint">Optionnel — charge une vidéo HD</span>
+          </div>
         )}
 
         <div className="container">
@@ -381,7 +397,14 @@ const AssociationDeBoxe = () => {
                 whileHover={{ scale: 1.1, rotate: 5 }}
                 whileTap={{ scale: 0.95 }}
               > 
-                <img src={logo} alt="AF Boxing Club 86" /> 
+                <img
+                  src={logo}
+                  alt="AF Boxing Club 86"
+                  width={500}
+                  height={500}
+                  decoding="async"
+                  fetchPriority="high"
+                />
               </motion.div>
             </motion.div>
             
@@ -460,7 +483,7 @@ const AssociationDeBoxe = () => {
         viewport={{ once: true }}
       >
         <div className="container">
-          <h2 className="section-title">Accès rapide</h2>
+          <h2 id="home-quicklinks-heading" className="section-title">Accès rapide</h2>
           <p className="home-quicklinks-subtitle">
             Accédez rapidement aux infos clés : activités, socio-éducatif, galerie et vie du club.
           </p>
@@ -489,6 +512,73 @@ const AssociationDeBoxe = () => {
         </div>
       </motion.section>
 
+      {/* Dernières actualités (données API) */}
+      <motion.section
+        className="content-section section-white home-news-strip"
+        initial={{ opacity: 0, y: 40 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+        viewport={{ once: true }}
+        aria-labelledby="home-news-heading"
+      >
+        <div className="container">
+          <h2 id="home-news-heading" className="section-title">
+            À la une
+          </h2>
+          <p className="home-news-strip__subtitle">
+            Les dernières infos du club — rester informé des événements et annonces.
+          </p>
+
+          {newsLoading && (
+            <div className="home-news-loading" role="status" aria-live="polite">
+              <span className="afb-spinner" aria-hidden />
+              <span>Chargement des actualités…</span>
+            </div>
+          )}
+
+          {!newsLoading && newsError && (
+            <div className="public-banner public-banner--warning" role="alert">
+              {newsError}
+            </div>
+          )}
+
+          {!newsLoading && !newsError && latestNews.length === 0 && (
+            <p className="home-news-empty">
+              Aucune actualité publiée pour le moment. Consultez bientôt cette section ou la page Actualités.
+            </p>
+          )}
+
+          {!newsLoading && !newsError && latestNews.length > 0 && (
+            <div className="home-news-grid">
+              {latestNews.map((n) => (
+                <article key={n.id} className="modern-card home-news-card">
+                  <div className="home-news-card__date">
+                    {formatDate(n.date || n.created_at)}
+                  </div>
+                  <h3 className="home-news-card__title">{n.title}</h3>
+                  <p className="home-news-card__excerpt">
+                    {(n.summary || '').length > 160 ? `${String(n.summary).slice(0, 160)}…` : n.summary}
+                  </p>
+                </article>
+              ))}
+            </div>
+          )}
+
+          <div className="home-news-strip__cta">
+            <motion.button
+              type="button"
+              className="btn btn-primary"
+              onClick={() => navigate('/news')}
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
+            >
+              <FontAwesomeIcon icon={faNewspaper} />
+              Toutes les actualités
+            </motion.button>
+          </div>
+        </div>
+      </motion.section>
+
       {/* Pôle boxe */}
       <motion.section
         className="content-section section-white home-social"
@@ -500,7 +590,7 @@ const AssociationDeBoxe = () => {
         <div className="container">
           <div className="home-split">
             <div className="home-split__media">
-              <img src={therapie} alt="Pôle Boxe" loading="lazy" />
+              <img src={therapie} alt="Pôle Boxe" width={2000} height={2000} loading="lazy" decoding="async" />
             </div>
             <div className="home-split__content">
               <div className="home-eyebrow">Pôle Boxe</div>
@@ -541,7 +631,7 @@ const AssociationDeBoxe = () => {
         <div className="container">
           <div className="home-split">
             <div className="home-split__media">
-              <img src={social} alt="Pôle socio-éducatif" loading="lazy" />
+              <img src={social} alt="Pôle socio-éducatif" width={4223} height={3167} loading="lazy" decoding="async" />
             </div>
             <div className="home-split__content">
               <div className="home-eyebrow">Pôle socio-éducatif</div>

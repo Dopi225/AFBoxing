@@ -101,6 +101,25 @@
     RewriteRule ^$ index.html [L]
     
     # ============================================
+    # PRIORITÉ 3c : Crawlers — robots.txt / sitemap.xml (évite le fallback SPA)
+    # ============================================
+    RewriteCond %{REQUEST_URI} (^|/)robots\.txt$
+    RewriteCond %{DOCUMENT_ROOT}/dist/robots.txt -f
+    RewriteRule ^.*$ dist/robots.txt [L]
+
+    RewriteCond %{REQUEST_URI} (^|/)robots\.txt$
+    RewriteCond %{DOCUMENT_ROOT}/robots.txt -f
+    RewriteRule ^.*$ robots.txt [L]
+
+    RewriteCond %{REQUEST_URI} (^|/)sitemap\.xml$
+    RewriteCond %{DOCUMENT_ROOT}/dist/sitemap.xml -f
+    RewriteRule ^.*$ dist/sitemap.xml [L]
+
+    RewriteCond %{REQUEST_URI} (^|/)sitemap\.xml$
+    RewriteCond %{DOCUMENT_ROOT}/sitemap.xml -f
+    RewriteRule ^.*$ sitemap.xml [L]
+    
+    # ============================================
     # PRIORITÉ 4 : Servir les fichiers statiques
     # ============================================
     # Servir les fichiers statiques buildés depuis dist/ (supporte aussi un sous-dossier)

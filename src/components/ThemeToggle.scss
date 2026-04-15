@@ -20,11 +20,13 @@
 }
 
 :root[data-theme='dark'] .theme-toggle {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.15);
-  color: var(--text-dark, #e4e4e7);
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.14);
+  color: var(--text-dark, #ececf1);
+  box-shadow: 0 0 0 1px rgba(220, 0, 0, 0.12);
 
   &:hover {
-    background: rgba(255, 255, 255, 0.12);
+    background: rgba(220, 0, 0, 0.15);
+    border-color: rgba(255, 100, 100, 0.35);
   }
 }

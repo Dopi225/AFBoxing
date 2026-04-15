@@ -4,7 +4,6 @@ import { faFistRaised, faGraduationCap, faUsers, faHeart, faTrophy, faHandshake 
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import SectionHeader from './SectionHeader';
-import aboutBg from '../assets/about.jpg';
 
 // Fix ESLint no-unused-vars dans certains setups: l'analyse ne voit pas `motion.*` en JSX.
 // (variable inutilisée autorisée car commence par "_")
@@ -20,7 +19,6 @@ const Apropos = () => {
         title="Le club"
         subtitle="Une structure sportive et socio-éducative à Poitiers, fondée sur le respect, la discipline et la solidarité."
         eyebrow="Sport • Éducation • Inclusion"
-        image={aboutBg}
         actions={[
           { label: "Activités", to: "/activite", className: "btn-primary", icon: <FontAwesomeIcon icon={faFistRaised} /> },
           { label: "Socio-éducatif", to: "/actualite", className: "btn-outline", icon: <FontAwesomeIcon icon={faGraduationCap} /> },

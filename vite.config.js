@@ -4,6 +4,16 @@ import viteImagemin from 'vite-plugin-imagemin'
 
 // https://vite.dev/config/
 export default defineConfig({
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
+          'motion': ['framer-motion']
+        }
+      }
+    }
+  }, 
   plugins: [
     react(),
     // Évite imagemin pendant les tests Vitest (trop lent / inutile)

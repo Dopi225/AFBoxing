@@ -4,7 +4,6 @@ import { faClock, faCalendarAlt, faUsers, faFistRaised, faGraduationCap, faHeart
 import { motion } from 'framer-motion';
 import { scheduleApi } from '../services/apiService';
 import SectionHeader from './SectionHeader';
-import salleBg from '../assets/club.jpeg';
 
 const defaultSchedule = [
   { day: 'Lundi', activities: [] },
@@ -216,7 +215,6 @@ const Horaire = () => {
         title="Horaires"
         subtitle="Consultez le planning complet par activité. Filtrez, basculez entre semaine/aujourd’hui, et trouvez votre prochain entraînement."
         eyebrow="Rapide à lire • Mobile-first"
-        image={salleBg}
         actions={[
           { label: 'Tarifs et inscription', to: '/tarif', className: 'btn-primary' },
           { label: "Contact", to: "/contact", className: "btn-secondary" },

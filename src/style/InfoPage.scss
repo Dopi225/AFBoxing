@@ -17,8 +17,9 @@
   &::after {
     opacity: 0.28; /* texture plus discrète sur InfoPage */
   }
-  .container {
-    height: 431px !important;
+  .section-header__inner {
+    height: auto !important;
+    min-height: 220px;
   }
   .section-header__content {
     max-width: 920px;

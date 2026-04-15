@@ -7,7 +7,6 @@ import { contactsApi, scheduleApi } from '../services/apiService';
 import { useNavigate } from 'react-router-dom';
 import { useSettings } from '../hooks/useSettings';
 import SectionHeader from './SectionHeader';
-import contactBg from '../assets/club.jpeg';
 
 const Contact = () => {
   const navigate = useNavigate();
@@ -96,7 +95,6 @@ const Contact = () => {
         title="Contact"
         subtitle="Essai, inscription ou question : on vous répond rapidement. Retrouvez aussi l’adresse, les réseaux et un aperçu des prochains créneaux."
         eyebrow="Club & Association"
-        image={contactBg}
         actions={[
           { label: "Horaires", to: "/horaire", className: "btn-primary", icon: <FontAwesomeIcon icon={faClock} /> },
           { label: 'Tarifs et inscription', to: '/tarif', className: 'btn-secondary', icon: <FontAwesomeIcon icon={faPaperPlane} /> },
@@ -131,7 +129,14 @@ const Contact = () => {
                   <FontAwesomeIcon icon={faMapMarkerAlt} className="contact-icon" />
                   <div>
                     <h4>Adresse</h4>
-                    <p>{settingsLoading ? 'Chargement...' : settings.contact.address}</p>
+                    {settingsLoading ? (
+                      <p className="public-inline-loading">
+                        <span className="afb-spinner afb-spinner--sm" aria-hidden />
+                        <span>Chargement…</span>
+                      </p>
+                    ) : (
+                      <p>{settings.contact.address}</p>
+                    )}
                   </div>
                 </motion.div>
 
@@ -146,7 +151,10 @@ const Contact = () => {
                   <div>
                     <h4>Téléphone</h4>
                     {settingsLoading ? (
-                      <span>Chargement...</span>
+                      <span className="public-inline-loading">
+                        <span className="afb-spinner afb-spinner--sm" aria-hidden />
+                        Chargement…
+                      </span>
                     ) : (
                       <a href={`tel:${settings.contact.phone.replace(/\s/g, '')}`}>{settings.contact.phone}</a>
                     )}
@@ -164,7 +172,10 @@ const Contact = () => {
                   <div>
                     <h4>Email</h4>
                     {settingsLoading ? (
-                      <span>Chargement...</span>
+                      <span className="public-inline-loading">
+                        <span className="afb-spinner afb-spinner--sm" aria-hidden />
+                        Chargement…
+                      </span>
                     ) : (
                       <a href={`mailto:${settings.contact.email}`}>{settings.contact.email}</a>
                     )}
@@ -180,9 +191,18 @@ const Contact = () => {
                 >
                   <FontAwesomeIcon icon={faClock} className="contact-icon" />
                   <div>
-                    <h4>Prochains créneaux (API)</h4>
-                    {scheduleLoading && <p>Chargement…</p>}
-                    {!scheduleLoading && scheduleError && <p>{scheduleError}</p>}
+                    <h4>Prochains créneaux</h4>
+                    {scheduleLoading && (
+                      <p className="public-inline-loading" role="status" aria-live="polite">
+                        <span className="afb-spinner afb-spinner--sm" aria-hidden />
+                        Chargement du planning…
+                      </p>
+                    )}
+                    {!scheduleLoading && scheduleError && (
+                      <div className="public-banner public-banner--warning" role="alert">
+                        {scheduleError}
+                      </div>
+                    )}
                     {!scheduleLoading && !scheduleError && nextSessions.length === 0 && (
                       <p>Planning non renseigné pour le moment.</p>
                     )}
@@ -209,10 +229,13 @@ const Contact = () => {
                   transition={{ duration: 0.4, delay: 0.5 }}
                   viewport={{ once: true }}
                 >
-                  <h4>Suivez-nous</h4>
+                  <p className="contact-social-title">Suivez-nous</p>
                   <div className="social-icons">
                     {settingsLoading ? (
-                      <p>Chargement des réseaux sociaux...</p>
+                      <p className="public-inline-loading">
+                        <span className="afb-spinner afb-spinner--sm" aria-hidden />
+                        Chargement des réseaux…
+                      </p>
                     ) : (
                       <>
                         {settings.social.facebook && (

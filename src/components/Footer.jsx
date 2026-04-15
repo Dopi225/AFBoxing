@@ -8,6 +8,7 @@ import { useSettings } from '../hooks/useSettings';
 import image2 from '../assets/logo-removeb.png';
 import ThemeToggle from './ThemeToggle';
 import './ThemeToggle.scss';
+import { prefetchPublicRoute } from '../utils/routePrefetch';
 
 const Footer = () => {
   const { settings } = useSettings();
@@ -27,7 +28,7 @@ const Footer = () => {
           viewport={{ once: true }}
         >
           <Link to="/" className="logo footer-logo-link" aria-label="Retour à l’accueil">
-            <img src={image2} alt="" loading="lazy" />
+            <img src={image2} alt="" width={500} height={500} loading="lazy" decoding="async" />
           </Link>
           <p>Boxer pour mieux vivre ensemble à Poitiers.</p>
           <ThemeToggle />
@@ -40,18 +41,18 @@ const Footer = () => {
           transition={{ duration: 0.6, delay: 0.1 }}
           viewport={{ once: true }}
         >
-          <h4 onClick={() => setShowNav(!showNav)} className="accordion-header">
+          <p onClick={() => setShowNav(!showNav)} className="accordion-header footer-col-heading" role="presentation">
             Plan du site {isMobile && (showNav ? <FontAwesomeIcon icon={faChevronUp} /> : <FontAwesomeIcon icon={faChevronDown} />)}
-          </h4>
+          </p>
           {(showNav || !isMobile) && (
             <ul>
-              <li><Link to="/apropos">Le club</Link></li>
-              <li><Link to="/activite">Activités</Link></li>
-              <li><Link to="/horaire">Horaires</Link></li>
-              <li><Link to="/galerie">Galerie</Link></li>
-              <li><Link to="/news">Actualités</Link></li>
-              <li><Link to="/contact">Contact</Link></li>
-              <li><Link to="/tarif">Tarifs et inscription</Link></li>
+              <li><Link to="/apropos" onMouseEnter={() => prefetchPublicRoute('/apropos')}>Le club</Link></li>
+              <li><Link to="/activite" onMouseEnter={() => prefetchPublicRoute('/activite')}>Activités</Link></li>
+              <li><Link to="/horaire" onMouseEnter={() => prefetchPublicRoute('/horaire')}>Horaires</Link></li>
+              <li><Link to="/galerie" onMouseEnter={() => prefetchPublicRoute('/galerie')}>Galerie</Link></li>
+              <li><Link to="/news" onMouseEnter={() => prefetchPublicRoute('/news')}>Actualités</Link></li>
+              <li><Link to="/contact" onMouseEnter={() => prefetchPublicRoute('/contact')}>Contact</Link></li>
+              <li><Link to="/tarif" onMouseEnter={() => prefetchPublicRoute('/tarif')}>Tarifs et inscription</Link></li>
             </ul>
           )}
         </motion.div>
@@ -63,9 +64,9 @@ const Footer = () => {
           transition={{ duration: 0.6, delay: 0.3 }}
           viewport={{ once: true }}
         >
-          <h4 onClick={() => setShowContact(!showContact)} className="accordion-header">
+          <p onClick={() => setShowContact(!showContact)} className="accordion-header footer-col-heading" role="presentation">
             Contact {isMobile && (showContact ? <FontAwesomeIcon icon={faChevronUp} /> : <FontAwesomeIcon icon={faChevronDown} />)}
-          </h4>
+          </p>
           {(showContact || !isMobile) && (
             <ul>
               <li>
@@ -95,16 +96,26 @@ const Footer = () => {
           transition={{ duration: 0.6, delay: 0.4 }}
           viewport={{ once: true }}
         >
-          <h4>Suivez-nous</h4>
+          <p className="footer-col-heading">Suivez-nous</p>
           <div className="social-icons">
             {settings.social.facebook && (
-              <a href={settings.social.facebook} target="_blank" rel="noopener noreferrer">
-                <FontAwesomeIcon icon={faFacebookF} />
+              <a
+                href={settings.social.facebook}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Facebook — AF Boxing Club 86"
+              >
+                <FontAwesomeIcon icon={faFacebookF} aria-hidden />
               </a>
             )}
             {settings.social.instagram && (
-              <a href={settings.social.instagram} target="_blank" rel="noopener noreferrer">
-                <FontAwesomeIcon icon={faInstagram} />
+              <a
+                href={settings.social.instagram}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Instagram — AF Boxing Club 86"
+              >
+                <FontAwesomeIcon icon={faInstagram} aria-hidden />
               </a>
             )}
           </div>

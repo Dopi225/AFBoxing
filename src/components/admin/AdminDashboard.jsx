@@ -17,7 +17,6 @@ import {
   faHistory,
   faUsers
 } from '@fortawesome/free-solid-svg-icons';
-// eslint-disable-next-line no-unused-vars
 import { motion } from 'framer-motion';
 import { authApi, newsApi, palmaresApi, contactsApi, galleryApi } from '../../services/apiService';
 import { NotificationProvider } from './NotificationSystem';
@@ -74,6 +73,14 @@ const AdminDashboard = () => {
     initDashboard();
   }, [navigate]);
 
+  useEffect(() => {
+    const onKey = (e) => {
+      if (e.key === 'Escape') setSidebarOpen(false);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
+
   const handleLogout = async () => {
     await authApi.logout();
     navigate('/admin/login');
@@ -127,16 +134,17 @@ const AdminDashboard = () => {
         <meta name="robots" content="noindex, nofollow" />
       </Helmet>
       <div className="admin-dashboard">
-      {/* Sidebar */}
-      <motion.aside
-        className={`admin-sidebar ${sidebarOpen ? 'open' : ''}`}
-        initial={false}
-        animate={{ x: sidebarOpen ? 0 : -5 }}
-      >
+      {/* Sidebar — ouverture/fermeture gérée en CSS (mobile) pour éviter les conflits avec Framer Motion */}
+      <aside className={`admin-sidebar ${sidebarOpen ? 'open' : ''}`}>
         <div className="sidebar-header">
           <h2>Administration</h2>
-          <button className="close-sidebar" onClick={() => setSidebarOpen(false)}>
-            <FontAwesomeIcon icon={faTimes} />
+          <button
+            type="button"
+            className="close-sidebar"
+            onClick={() => setSidebarOpen(false)}
+            aria-label="Fermer le menu latéral"
+          >
+            <FontAwesomeIcon icon={faTimes} aria-hidden />
           </button>
         </div>
 
@@ -169,23 +177,43 @@ const AdminDashboard = () => {
         </nav>
 
         <div className="sidebar-footer">
-          <button className="logout-btn" onClick={handleLogout}>
+          <button type="button" className="logout-btn" onClick={handleLogout}>
             <FontAwesomeIcon icon={faSignOutAlt} />
             <span>Déconnexion</span>
           </button>
         </div>
-      </motion.aside>
+      </aside>
 
       {/* Main Content */}
       <div className="admin-main">
         {/* Top Bar */}
         <header className="admin-header">
-          <button className="menu-toggle" onClick={() => setSidebarOpen(!sidebarOpen)}>
-            <FontAwesomeIcon icon={faBars} />
+          <button
+            type="button"
+            className="menu-toggle"
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+            aria-label={sidebarOpen ? 'Fermer le menu' : 'Ouvrir le menu'}
+            aria-expanded={sidebarOpen}
+          >
+            <FontAwesomeIcon icon={faBars} aria-hidden />
           </button>
-          <h1>Panneau d'Administration</h1>
+          <h1>Panneau d&apos;administration</h1>
           <div className="header-user">
-            <span>Bienvenue, {currentUser?.username || 'Admin'}</span>
+            <span className="header-user__hello">
+              {currentUser?.username || 'Admin'}
+              {currentUser?.role === 'admin' && (
+                <span className="header-user__role" title="Accès complet (contacts, paramètres, utilisateurs)">
+                  {' '}
+                  — Administrateur
+                </span>
+              )}
+              {currentUser?.role === 'editor' && (
+                <span className="header-user__role" title="Contenu public (actualités, planning, galerie, activités)">
+                  {' '}
+                  — Éditeur
+                </span>
+              )}
+            </span>
           </div>
         </header>
 

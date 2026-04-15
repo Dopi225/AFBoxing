@@ -1,6 +1,8 @@
 import { useEffect, useState, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { useLocation } from 'react-router-dom';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faArrowDown } from '@fortawesome/free-solid-svg-icons';
 
 const HERO_SELECTORS = [
   '.hero-section',
@@ -77,7 +79,7 @@ function HeroSkipButton() {
       aria-controls={nodes.target.id || undefined}
     >
       <span>Accéder au contenu</span>
-      <i className="fas fa-arrow-down" aria-hidden="true" />
+      <FontAwesomeIcon icon={faArrowDown} aria-hidden />
     </button>
   );
 

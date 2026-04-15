@@ -1,5 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300..800;1,300..800&family=Playfair+Display:ital,wght@0,400..700;1,400..700&display=swap');
-
 :root {
   /* Couleurs principales */
   --primary-red: #dc0000;
@@ -308,16 +306,53 @@ textarea:focus-visible {
   outline-offset: 2px;
 }
 
-/* Thème sombre (voir ThemeToggle.jsx) */
+/* Thème sombre (voir ThemeToggle.jsx) — tokens alignés site public + cartes */
 :root[data-theme="dark"] {
+  color-scheme: dark;
   --primary-black: #f4f4f5;
-  --text-dark: #e4e4e7;
-  --text-light: #a1a1aa;
-  --secondary-gray: #27272a;
-  --white: #18181b;
+  --primary-red: #e81e1e;
+  --primary-red-dark: #b80000;
+  --text-dark: #ececf1;
+  --text-light: #b4b4c0;
+  --text-muted: #8e8e9a;
+  --secondary-gray: #1e1e24;
+  --secondary-light: #2a2a32;
+  --white: #0e0e12;
+  --surface-base: #08080c;
+  --surface-elevated: #12121a;
+  --surface-glass: rgba(22, 22, 30, 0.82);
 }
 
 :root[data-theme="dark"] body {
-  background-color: #09090b;
+  background-color: var(--surface-base);
+  background-image:
+    radial-gradient(ellipse 100% 60% at 50% -15%, rgba(220, 0, 0, 0.14), transparent 55%),
+    radial-gradient(ellipse 80% 50% at 100% 50%, rgba(80, 20, 20, 0.08), transparent 45%);
   color: var(--text-dark);
+}
+
+:root[data-theme="dark"] a:hover {
+  color: #ff6b6b;
+}
+
+:root[data-theme="dark"] .btn-secondary {
+  background: var(--surface-elevated);
+  color: var(--text-dark);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+:root[data-theme="dark"] .btn-outline {
+  color: var(--text-dark);
+  border-color: rgba(255, 255, 255, 0.22);
+}
+
+:root[data-theme="dark"] .btn-outline:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-dark);
+}
+
+:root[data-theme="dark"] .modal-box {
+  background: var(--surface-elevated);
+  color: var(--text-dark);
+  border: 1px solid rgba(255, 255, 255, 0.08);
 }

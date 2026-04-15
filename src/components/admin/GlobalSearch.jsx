@@ -35,7 +35,14 @@ const GlobalSearch = () => {
 
   const performSearch = async (term) => {
     if (!term.trim()) {
-      setResults({ news: [], palmares: [], gallery: [], contacts: [], schedule: [] });
+      setResults({
+        news: [],
+        palmares: [],
+        gallery: [],
+        contacts: [],
+        schedule: [],
+        activities: []
+      });
       return;
     }
 

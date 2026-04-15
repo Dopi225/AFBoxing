@@ -9,7 +9,6 @@ import {
   faCheckSquare,
   faSquare
 } from '@fortawesome/free-solid-svg-icons';
-// eslint-disable-next-line no-unused-vars
 import { motion } from 'framer-motion';
 import { newsApi, uploadApi } from '../../services/apiService';
 import { useNotifications } from './NotificationSystem';
@@ -301,20 +300,25 @@ const ManageNews = () => {
 
       <div className="news-list">
         {loading && (
-          <div className="empty-state">
-            <p>Chargement des actualités...</p>
+          <div className="admin-state--loading" role="status" aria-live="polite">
+            <span className="admin-state__spinner" aria-hidden />
+            <p>Chargement des actualités…</p>
           </div>
         )}
         {error && !loading && (
-          <div className="empty-state">
-            <p>{error}</p>
+          <div className="admin-state--error" role="alert">
+            {error}
           </div>
         )}
         {!loading && !error && (
           <>
             {filteredNews.length === 0 ? (
-              <div className="empty-state">
-                <p>{news.length === 0 ? 'Aucune actualité pour le moment.' : 'Aucun résultat avec les filtres sélectionnés.'}</p>
+              <div className="admin-state--empty">
+                <p>
+                  {news.length === 0
+                    ? 'Aucune actualité pour le moment. Utilisez « Ajouter une actualité » pour publier.'
+                    : 'Aucun résultat avec les filtres sélectionnés. Modifiez la recherche ou les dates.'}
+                </p>
               </div>
             ) : (
               <>

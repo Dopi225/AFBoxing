@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faChevronUp } from '@fortawesome/free-solid-svg-icons';
 
 function BackToTopButton() {
   const [isVisible, setIsVisible] = useState(false);
@@ -30,7 +32,7 @@ function BackToTopButton() {
       onClick={handleClick}
       aria-label="Revenir en haut de la page"
     >
-      <i className="fas fa-chevron-up" aria-hidden="true" />
+      <FontAwesomeIcon icon={faChevronUp} aria-hidden />
     </button>
   );
 }

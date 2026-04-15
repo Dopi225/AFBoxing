@@ -6,7 +6,6 @@ import { faFistRaised, faGraduationCap, faHeart, faMusic, faBrain, faWheelchair,
 import { motion } from 'framer-motion';
 import { scheduleApi, activitiesApi } from '../services/apiService';
 import SectionHeader from './SectionHeader';
-import pratique from '../assets/pratique.jpg'; 
 
 const iconMap = {
   faFistRaised,
@@ -111,7 +110,6 @@ const Activite = () => {
         title="Activités"
         subtitle="Des séances pour tous les profils : jeunes, adultes, compétition, cardio, inclusion et bien-être — avec un encadrement progressif."
         eyebrow="Boxe • Santé • Inclusion"
-        image={pratique}
         actions={[
           { label: "Horaires", to: "/horaire", className: "btn-primary", icon: <FontAwesomeIcon icon={faCalendarAlt} /> },
           { label: 'Tarifs et inscription', to: '/tarif', className: 'btn-secondary', icon: <FontAwesomeIcon icon={faFistRaised} /> },

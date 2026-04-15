@@ -4,8 +4,6 @@ import { faFistRaised, faGraduationCap, faFileAlt, faDownload, faCheckCircle } f
 import Modal from './Modal';
 import { pricingApi } from '../services/apiService';
 import SectionHeader from './SectionHeader';
-import pricingBg from '../assets/club.jpeg';
-
 const formatPrice = (price) => {
   if (!price) return '—';
   if (price.amount === 0) return 'Gratuit';
@@ -18,14 +16,28 @@ const Tarif = () => {
   const [modalTitle, setModalTitle] = useState('');
   const [modalContent, setModalContent] = useState(null);
   const [pricing, setPricing] = useState(null);
-  
+  const [pricingLoading, setPricingLoading] = useState(true);
+  const [pricingStale, setPricingStale] = useState(false);
+
   useEffect(() => {
     document.body.style.overflow = modalOpen ? 'hidden' : 'auto';
     return () => (document.body.style.overflow = 'auto');
   }, [modalOpen]);
 
   useEffect(() => {
+    const fallbackPricing = {
+      boxing: {
+        educative: { label: 'Boxe Éducative', amount: 80, period: 'an', note: 'Licence comprise – Certificat médical obligatoire' },
+        loisir: { label: 'Boxe Loisir', amount: 120, period: 'an', note: 'Licence comprise – Certificat médical obligatoire' }
+      },
+      social: {
+        periscolaire: { label: 'Programme Social-Éducatif', amount: 30, period: 'an', note: 'Tarif dégressif selon quotient familial (CAF)' }
+      }
+    };
+
     const loadPricing = async () => {
+      setPricingLoading(true);
+      setPricingStale(false);
       try {
         const data = await pricingApi.list();
         setPricing(data);
@@ -33,16 +45,10 @@ const Tarif = () => {
         if (import.meta.env.DEV) {
           console.warn('Error loading pricing:', err);
         }
-        // Fallback sur données par défaut
-        setPricing({
-          boxing: {
-            educative: { label: 'Boxe Éducative', amount: 80, period: 'an', note: 'Licence comprise – Certificat médical obligatoire' },
-            loisir: { label: 'Boxe Loisir', amount: 120, period: 'an', note: 'Licence comprise – Certificat médical obligatoire' }
-          },
-          social: {
-            periscolaire: { label: 'Programme Social-Éducatif', amount: 30, period: 'an', note: 'Tarif dégressif selon quotient familial (CAF)' }
-          }
-        });
+        setPricing(fallbackPricing);
+        setPricingStale(true);
+      } finally {
+        setPricingLoading(false);
       }
     };
 
@@ -148,7 +154,6 @@ const Tarif = () => {
         title="Tarifs & inscriptions"
         subtitle="Tarifs, modalités et documents : choisissez votre programme (boxe ou socio-éducatif) et démarrez simplement."
         eyebrow="Simple • Clair • Accompagné"
-        image={pricingBg}
         actions={[
           { label: "Contact", to: "/contact", className: "btn-secondary" },
           { label: "Horaires", to: "/horaire", className: "btn-outline" },
@@ -159,8 +164,21 @@ const Tarif = () => {
         <div className="container">
           <h2>Choisissez votre programme</h2>
           <p className="section-subtitle">Sélectionnez une catégorie pour voir les tarifs, les documents et les étapes d’inscription.</p>
+
+          {pricingLoading && (
+            <div className="public-inline-loading" style={{ justifyContent: 'center', display: 'flex', padding: '2rem 0' }} role="status" aria-live="polite">
+              <span className="afb-spinner" aria-hidden />
+              <span>Chargement des tarifs…</span>
+            </div>
+          )}
+
+          {pricingStale && !pricingLoading && (
+            <div className="public-banner public-banner--info" role="status">
+              Connexion au serveur impossible : les montants affichés correspondent aux tarifs indicatifs du club. Pour confirmation, contactez-nous.
+            </div>
+          )}
           
-          <div className="pricing-cards">
+          <div className={`pricing-cards${pricingLoading ? ' pricing-cards--muted' : ''}`} aria-busy={pricingLoading}>
             <div className="pricing-card main-card" onClick={() => openModal('boxe')}>
               <div className="card-header">
                 <FontAwesomeIcon icon={faFistRaised} className="card-icon" />

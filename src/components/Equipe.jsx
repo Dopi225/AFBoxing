@@ -57,7 +57,6 @@ const Equipe = () => {
         title="L’équipe"
         subtitle="Des professionnels passionnés (sport & socio-éducatif) pour vous accompagner avec exigence, bienveillance et sécurité."
         eyebrow="Encadrement qualifié"
-        image={coach1}
         actions={[
           { label: "Activités", to: "/activite", className: "btn-primary", icon: <FontAwesomeIcon icon={faFistRaised} /> },
           { label: "Contact", to: "/contact", className: "btn-secondary", icon: <FontAwesomeIcon icon={faEnvelope} /> },

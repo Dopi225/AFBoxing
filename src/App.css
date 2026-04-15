@@ -243,8 +243,15 @@ section {
   max-width: 1200px;
   margin: auto;
 }
-.footer h3, .footer h4 {
+.footer h3,
+.footer h4,
+.footer .footer-col-heading {
   color: #fff;
+}
+.footer .footer-col-heading {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 700;
 }
 .footer p {
   text-align: center;
@@ -330,7 +337,9 @@ section {
   .footer .footer .logo img {
     max-width: 80px;
   }
-  .footer .footer h3, .footer .footer h4 {
+  .footer .footer h3,
+  .footer .footer h4,
+  .footer .footer .footer-col-heading {
     font-size: 1rem;
   }
   .footer .footer p {

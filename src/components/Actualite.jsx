@@ -5,7 +5,6 @@ import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { activitiesApi } from '../services/apiService';
 import SectionHeader from './SectionHeader';
-import socialBg from '../assets/social.jpg';
 
 const iconMap = {
   faGraduationCap,
@@ -72,7 +71,6 @@ const Actualite = () => {
         title="Pôle socio-éducatif"
         subtitle="Accompagner, encourager, créer du lien : des actions concrètes pour soutenir les jeunes et les familles, au-delà du sport."
         eyebrow="Humain • Solidaire • Inclusif"
-        image={socialBg}
         actions={[
           { label: "Tarifs", to: "/tarif", className: "btn-primary", icon: <FontAwesomeIcon icon={faFileSignature} /> },
           { label: "Contact", to: "/contact", className: "btn-outline", icon: <FontAwesomeIcon icon={faEnvelope} /> },

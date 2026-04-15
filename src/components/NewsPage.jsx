@@ -5,7 +5,6 @@ import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { newsApi } from '../services/apiService';
 import SectionHeader from './SectionHeader';
-import newsBg from '../assets/coach1.jpg';
 
 const formatDate = (dateStr) => {
   const date = new Date(dateStr);
@@ -49,7 +48,6 @@ const NewsPage = () => {
         title="Actualités"
         subtitle="Restez informé sur la vie du club : événements, compétitions, actions et temps forts."
         eyebrow="Vie du club"
-        image={newsBg}
         actions={[
           { label: "Retour accueil", to: "/", className: "btn-outline", icon: <FontAwesomeIcon icon={faArrowLeft} /> },
           { label: "Contact", to: "/contact", className: "btn-secondary", icon: <FontAwesomeIcon icon={faEnvelope} /> },

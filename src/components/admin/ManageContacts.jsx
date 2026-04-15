@@ -88,7 +88,8 @@ const ManageContacts = () => {
   if (!adminOk) {
     return (
       <div className="manage-contacts">
-        <div className="empty-state">
+        <div className="admin-state--loading" role="status" aria-live="polite">
+          <span className="admin-state__spinner" aria-hidden />
           <p>Vérification des droits…</p>
         </div>
       </div>
@@ -124,20 +125,25 @@ const ManageContacts = () => {
       <div className="contacts-layout">
         <div className="contacts-list">
           {loading && (
-            <div className="empty-state">
-              <p>Chargement des contacts...</p>
+            <div className="admin-state--loading" role="status" aria-live="polite">
+              <span className="admin-state__spinner" aria-hidden />
+              <p>Chargement des messages…</p>
             </div>
           )}
           {error && !loading && (
-            <div className="empty-state">
-              <p>{error}</p>
+            <div className="admin-state--error" role="alert">
+              {error}
             </div>
           )}
           {!loading && !error && (
             <>
               {filteredContacts.length === 0 ? (
-                <div className="empty-state">
-                  <p>Aucun contact pour le moment.</p>
+                <div className="admin-state--empty">
+                  <p>
+                    {contacts.length === 0
+                      ? 'Aucun message pour le moment. Les envois du formulaire contact apparaîtront ici.'
+                      : 'Aucun message dans cette catégorie.'}
+                  </p>
                 </div>
               ) : (
                 filteredContacts.map((contact, index) => (

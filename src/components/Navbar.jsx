@@ -3,6 +3,7 @@ import { Link, NavLink, useLocation } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBars, faTimes, faChevronDown } from '@fortawesome/free-solid-svg-icons';
 import image2 from '../assets/logo-removeb.png';
+import { prefetchPublicRoute } from '../utils/routePrefetch';
 
 const Navbar = () => {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -31,8 +32,13 @@ const Navbar = () => {
   return (
     <header>
       <nav className="navbar" id="navbar">
-        <Link to="/" className="logo" aria-label="Accueil AF Boxing Club 86">
-          <img src={image2} alt="" loading="lazy" />
+        <Link
+          to="/"
+          className="logo"
+          aria-label="Accueil AF Boxing Club 86"
+          onMouseEnter={() => prefetchPublicRoute('/')}
+        >
+          <img src={image2} alt="" width={500} height={500} loading="lazy" decoding="async" />
         </Link>
 
         <button
@@ -52,7 +58,7 @@ const Navbar = () => {
 
         <ul id="navbar-menu" className={`nav-menu ${menuOpen ? 'active' : ''}`}>
           <li>
-            <NavLink to="/" onClick={() => setMenuOpen(false)}>Accueil</NavLink>
+            <NavLink to="/" onClick={() => setMenuOpen(false)} onMouseEnter={() => prefetchPublicRoute('/')}>Accueil</NavLink>
           </li>
 
           <li className={`nav-dropdown ${clubOpen ? 'open' : ''}`}>
@@ -67,34 +73,34 @@ const Navbar = () => {
             </button>
             <ul className="nav-submenu" role="menu">
               <li role="none">
-                <NavLink role="menuitem" to="/apropos" onClick={() => setMenuOpen(false)}>À propos</NavLink>
+                <NavLink role="menuitem" to="/apropos" onClick={() => setMenuOpen(false)} onMouseEnter={() => prefetchPublicRoute('/apropos')}>À propos</NavLink>
               </li>
               <li role="none">
-                <NavLink role="menuitem" to="/equipe" onClick={() => setMenuOpen(false)}>Équipe</NavLink>
+                <NavLink role="menuitem" to="/equipe" onClick={() => setMenuOpen(false)} onMouseEnter={() => prefetchPublicRoute('/equipe')}>Équipe</NavLink>
               </li>
               <li role="none">
-                <NavLink role="menuitem" to="/actualite" onClick={() => setMenuOpen(false)}>Socio-éducatif</NavLink>
+                <NavLink role="menuitem" to="/actualite" onClick={() => setMenuOpen(false)} onMouseEnter={() => prefetchPublicRoute('/actualite')}>Socio-éducatif</NavLink>
               </li>
               <li role="none">
-                <NavLink role="menuitem" to="/news" onClick={() => setMenuOpen(false)}>Actualités</NavLink>
+                <NavLink role="menuitem" to="/news" onClick={() => setMenuOpen(false)} onMouseEnter={() => prefetchPublicRoute('/news')}>Actualités</NavLink>
               </li>
               <li role="none">
-                <NavLink role="menuitem" to="/palmares" onClick={() => setMenuOpen(false)}>Palmarès</NavLink>
+                <NavLink role="menuitem" to="/palmares" onClick={() => setMenuOpen(false)} onMouseEnter={() => prefetchPublicRoute('/palmares')}>Palmarès</NavLink>
               </li>
             </ul>
           </li>
 
           <li>
-            <NavLink to="/activite" onClick={() => setMenuOpen(false)}>Activités</NavLink>
+            <NavLink to="/activite" onClick={() => setMenuOpen(false)} onMouseEnter={() => prefetchPublicRoute('/activite')}>Activités</NavLink>
           </li>
           <li>
-            <NavLink to="/galerie" onClick={() => setMenuOpen(false)}>Galerie</NavLink>
+            <NavLink to="/galerie" onClick={() => setMenuOpen(false)} onMouseEnter={() => prefetchPublicRoute('/galerie')}>Galerie</NavLink>
           </li>
           <li>
-            <NavLink to="/contact" onClick={() => setMenuOpen(false)}>Contact</NavLink>
+            <NavLink to="/contact" onClick={() => setMenuOpen(false)} onMouseEnter={() => prefetchPublicRoute('/contact')}>Contact</NavLink>
           </li>
           <li className="nav-btn-red">
-            <NavLink to="/tarif" onClick={() => setMenuOpen(false)}>Inscription</NavLink>
+            <NavLink to="/tarif" onClick={() => setMenuOpen(false)} onMouseEnter={() => prefetchPublicRoute('/tarif')}>Inscription</NavLink>
           </li>
         </ul>
       </nav>
