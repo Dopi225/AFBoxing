@@ -1,0 +1,315 @@
+/* Couche thème admin — clair/sombre via tokens.css */
+@use 'mixins' as *;
+
+.admin-dashboard,
+.admin-login {
+  --admin-font-size-base: 1.0625rem;
+  --admin-field-gap: 1.25rem;
+  --admin-touch-min: 48px;
+  font-size: var(--admin-font-size-base);
+  line-height: 1.5;
+}
+
+.admin-dashboard {
+  background: var(--admin-shell-bg);
+  color: var(--text-dark);
+
+  .admin-header {
+    background: var(--surface-elevated);
+    border-bottom: 1px solid var(--border-subtle);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .admin-content {
+    color: var(--text-dark);
+  }
+
+  .modern-card {
+    background: var(--surface-elevated);
+    border: 1px solid var(--border-subtle);
+    color: var(--text-dark);
+  }
+
+  .muted,
+  .admin-state--loading {
+    color: var(--text-muted);
+  }
+
+  .error-text {
+    color: var(--status-error-fg);
+  }
+
+  .admin-state--error {
+    background: var(--status-error-bg);
+    color: var(--status-error-fg);
+    border: 1px solid var(--status-error-border);
+  }
+
+  .empty-state {
+    background: var(--surface-elevated);
+    color: var(--text-muted);
+    border-color: var(--border-subtle);
+  }
+
+  .data-table th {
+    background: var(--surface-muted);
+    color: var(--text-muted);
+  }
+
+  .data-table tbody tr:hover {
+    background: var(--surface-hover);
+  }
+
+  .data-table-card {
+    background: var(--surface-elevated);
+    border-color: var(--border-subtle);
+  }
+
+  input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='hidden']):not([type='submit']):not([type='button']):not([type='reset']),
+  textarea,
+  select {
+    border-color: var(--field-border);
+    font-size: var(--admin-font-size-base);
+    min-height: var(--admin-touch-min);
+    padding: 0.75rem 1rem;
+
+    @include field-control;
+
+    &:focus {
+      border-color: var(--border-input-focus);
+      box-shadow: var(--focus-ring-shadow);
+      outline: 2px solid transparent;
+    }
+  }
+
+  textarea {
+    min-height: 6rem;
+  }
+
+  .btn,
+  .btn-primary,
+  .btn-secondary,
+  .btn-danger,
+  .btn-edit,
+  .btn-delete,
+  .nav-item,
+  .action-btn,
+  .menu-toggle,
+  .logout-btn {
+    min-height: var(--admin-touch-min);
+    font-size: 1rem;
+  }
+
+  .form-label {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+  }
+
+  .form-error {
+    font-size: 0.9375rem;
+    font-weight: 500;
+    margin-top: 0.5rem;
+  }
+
+  .nav-section-label {
+    padding: 1rem 1.25rem 0.35rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-muted);
+    pointer-events: none;
+  }
+
+  .header-user__role-help {
+    display: block;
+    font-size: 0.8125rem;
+    font-weight: 400;
+    color: var(--text-muted);
+    margin-top: 0.15rem;
+  }
+
+  .btn-secondary {
+    background: var(--btn-secondary-bg);
+    color: var(--btn-secondary-fg);
+    border-color: var(--primary-red);
+
+    &:hover:not(:disabled) {
+      background: var(--primary-red);
+      color: var(--text-on-dark);
+    }
+  }
+
+  .btn-primary,
+  .btn-danger {
+    color: var(--text-on-dark);
+  }
+}
+
+.admin-login {
+  background: var(--admin-shell-bg);
+  color: var(--text-dark);
+
+  .login-container {
+    background: var(--surface-elevated);
+    border: 1px solid var(--border-subtle);
+    box-shadow: var(--shadow-lg);
+  }
+
+  .error-message {
+    background: var(--status-error-bg);
+    color: var(--status-error-fg);
+    border: 1px solid var(--status-error-border);
+  }
+
+  input {
+    background: var(--surface-elevated);
+    border-color: var(--border-input);
+    color: var(--input-fg);
+  }
+}
+
+/* Toggle compact dans header admin */
+.theme-toggle--compact {
+  margin-top: 0;
+  padding: 0.4rem 0.75rem;
+  font-size: 0.8rem;
+}
+
+.admin-header__theme {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.admin-login__theme {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  z-index: 2;
+}
+
+.admin-login {
+  position: relative;
+}
+
+/* Utilitaires admin partagés */
+.admin-dashboard,
+.admin-login {
+  .stat-badge--info {
+    background: var(--status-info-bg);
+    color: var(--status-info-fg);
+    border: 1px solid var(--status-info-border);
+  }
+
+  .stat-badge--warning {
+    background: var(--status-warning-bg);
+    color: var(--status-warning-fg);
+    border: 1px solid var(--status-warning-border);
+  }
+
+  .stat-badge--success {
+    background: var(--status-success-bg);
+    color: var(--status-success-fg);
+    border: 1px solid var(--status-success-border);
+  }
+
+  .stat-badge--error {
+    background: var(--status-error-bg);
+    color: var(--status-error-fg);
+    border: 1px solid var(--status-error-border);
+  }
+}
+
+/* Surfaces admin partagées — dark via tokens */
+.admin-dashboard {
+  .page-header,
+  .settings-section {
+    background: var(--surface-elevated);
+    border-color: var(--border-subtle);
+    color: var(--text-dark);
+  }
+
+  .page-header {
+    padding: var(--spacing-lg);
+    border-radius: var(--border-radius-lg);
+    margin-bottom: var(--spacing-lg);
+  }
+
+  .admin-content {
+    padding: var(--spacing-md) var(--spacing-lg);
+  }
+
+  .day-card,
+  .contacts-layout,
+  .news-card,
+  .gallery-item {
+    background: var(--surface-elevated);
+    border-color: var(--border-subtle);
+    color: var(--text-dark);
+  }
+
+  .category-filter,
+  .bulk-select-header,
+  .simple-filters {
+    background: var(--surface-elevated);
+    border-color: var(--border-subtle);
+    color: var(--text-dark);
+    margin-bottom: 1.25rem;
+    padding: 1rem;
+    border-radius: 12px;
+    border: 1px solid var(--border-subtle);
+  }
+
+  .simple-filters .form-input {
+    width: 100%;
+    margin-bottom: 0.5rem;
+  }
+
+  .gallery-item-actions {
+    display: flex;
+    gap: 0.5rem;
+    padding: 0.75rem;
+    border-top: 1px solid var(--border-subtle);
+  }
+
+  .manage-schedule__warning {
+    background: var(--status-warning-bg);
+    color: var(--status-warning-fg);
+    border: 1px solid var(--status-warning-border);
+    border-radius: var(--border-radius-md);
+    padding: var(--spacing-md);
+  }
+
+  .form-hint--sm {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    font-weight: var(--font-weight-normal);
+  }
+
+  .form-hint--sm.form-hint--inline {
+    margin-left: var(--spacing-sm);
+  }
+
+  .form-field--valid input,
+  .form-field--valid textarea,
+  input.form-field--valid,
+  textarea.form-field--valid {
+    border-color: var(--status-success-fg);
+  }
+
+  .form-valid-msg {
+    font-size: 0.75rem;
+    color: var(--status-success-fg);
+    margin-top: var(--spacing-xs);
+  }
+
+  .form-group--dimmed {
+    opacity: 0.6;
+  }
+
+  .admin-state--error--spaced {
+    margin-top: var(--spacing-md);
+  }
+}

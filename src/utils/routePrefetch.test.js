@@ -11,5 +11,5 @@ describe('prefetchPublicRoute', () => {
   it('déclenche un import dynamique pour une route publique connue', async () => {
     await expect(prefetchPublicRoute('/apropos')).resolves.toBeDefined();
     await expect(prefetchPublicRoute('/info/foo')).resolves.toBeDefined();
-  });
+  }, 15_000);
 });

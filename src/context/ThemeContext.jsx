@@ -11,12 +11,15 @@ const STORAGE_KEY = 'afboxing_theme';
 
 export function applyTheme(mode) {
   const root = document.documentElement;
+  const meta = document.querySelector('meta[name="theme-color"]');
   if (mode === 'dark') {
     root.setAttribute('data-theme', 'dark');
     root.style.colorScheme = 'dark';
+    if (meta) meta.setAttribute('content', '#08080c');
   } else {
     root.removeAttribute('data-theme');
     root.style.colorScheme = 'light';
+    if (meta) meta.setAttribute('content', '#0b0b0b');
   }
 }
 

@@ -1,38 +1,55 @@
 import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPlus, faEdit, faTrash, faCalendarAlt, faMapMarkerAlt, faUser } from '@fortawesome/free-solid-svg-icons';
-import { motion } from 'framer-motion';
-import { palmaresApi } from '../../services/apiService';
-import { useNotifications } from './NotificationSystem';
+import { faPlus, faEdit, faTrash, faCalendarAlt, faMapMarkerAlt, faUser, faTrophy } from '@fortawesome/free-solid-svg-icons';
+import { palmaresApi, uploadApi } from '../../services/apiService';
+import { useAdminNotify } from '../../hooks/useAdminNotify';
+import { todayISO } from '../../utils/adminAutoFill';
+import { PALMARES_CATEGORIES, PALMARES_RESULTS } from '../../constants/adminCopy';
 import ConfirmDialog from './ConfirmDialog';
+import PageHeader from '../ui/PageHeader';
+import { TextInput, TextArea, SelectField } from '../ui/FormField';
+import { LoadingState, ErrorState } from '../PageStates';
+import { WizardModal, ImageUploadField, EmptyStateGuided, HighlightableCard } from './guided';
+import { adminBreadcrumbs } from '../../utils/adminBreadcrumbs';
+import { NAV_ITEMS } from '../../constants/adminCopy';
 import './ManagePalmares.scss';
 
+const DEFAULT_FORM = {
+  title: '',
+  date: todayISO(),
+  location: '',
+  category: 'Amateur',
+  result: 'Champion',
+  boxer: '',
+  details: '',
+  image: '',
+};
+
 const ManagePalmares = () => {
-  const { success, error: notifyError } = useNotifications();
+  const { notifySuccess, notifyError } = useAdminNotify('palmares');
+  const [searchParams, setSearchParams] = useSearchParams();
   const [palmares, setPalmares] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState(null);
-  const [formData, setFormData] = useState({
-    title: '',
-    date: new Date().toISOString().split('T')[0],
-    location: '',
-    category: 'Boxe Amateur',
-    result: 'Champion',
-    boxer: '',
-    details: '',
-    image: ''
-  });
-  const [loading, setLoading] = useState(false);
+  const [formData, setFormData] = useState({ ...DEFAULT_FORM });
+  const [file, setFile] = useState(null);
+  const [uploading, setUploading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-
-  const resultOptions = ['Champion', 'Vainqueur', 'Médaillé d\'Argent', 'Médaillé de Bronze', 'Demi-finaliste', 'Quart de finaliste'];
-  const categoryOptions = ['Boxe Amateur', 'Boxe Éducative', 'Handiboxe', 'Aeroboxe', 'Boxe Loisir'];
 
   useEffect(() => {
     loadPalmares();
   }, []);
+
+  useEffect(() => {
+    if (searchParams.get('action') === 'add') {
+      setShowModal(true);
+      setSearchParams({}, { replace: true });
+    }
+  }, [searchParams]);
 
   const loadPalmares = async () => {
     setLoading(true);
@@ -47,43 +64,50 @@ const ManagePalmares = () => {
     }
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSubmit = async () => {
     try {
+      const payload = { ...formData };
+      if (file) {
+        setUploading(true);
+        const result = await uploadApi.uploadImage('palmares', file);
+        payload.image = result.url;
+      }
       if (editingItem) {
-        await palmaresApi.update(editingItem.id, formData);
-        success(`✅ Palmarès "${formData.title}" modifié avec succès !`);
+        await palmaresApi.update(editingItem.id, payload);
+        notifySuccess(`Palmarès « ${payload.title} » enregistré.`);
       } else {
-        await palmaresApi.create(formData);
-        success(`🏆 Palmarès "${formData.title}" créé avec succès !`);
+        await palmaresApi.create(payload);
+        notifySuccess(`Palmarès « ${payload.title} » ajouté.`);
       }
       await loadPalmares();
       handleCloseModal();
     } catch (err) {
-      const errorMessage = err.message || 'Erreur lors de l\'enregistrement du palmarès.';
-      notifyError(`❌ ${errorMessage}`);
+      notifyError(err, 'Impossible d\'enregistrer ce palmarès.');
+    } finally {
+      setUploading(false);
     }
   };
 
   const handleEdit = (item) => {
     setEditingItem(item);
-    setFormData({ ...item });
+    setFormData({ ...DEFAULT_FORM, ...item, image: item.image || '' });
+    setFile(null);
     setShowModal(true);
   };
 
-  const handleDelete = (id) => {
-    setDeleteTarget(id);
+  const handleDelete = (item) => {
+    setDeleteTarget(item);
     setShowDeleteConfirm(true);
   };
 
   const confirmDelete = async () => {
-    if (!deleteTarget) return;
+    if (!deleteTarget?.id) return;
     try {
-      await palmaresApi.remove(deleteTarget);
-      success('🗑️ Palmarès supprimé avec succès');
+      await palmaresApi.remove(deleteTarget.id);
+      notifySuccess('Palmarès supprimé.');
       await loadPalmares();
     } catch (err) {
-      notifyError(err.message || 'Erreur lors de la suppression du palmarès.');
+      notifyError(err, 'Impossible de supprimer ce palmarès.');
     } finally {
       setDeleteTarget(null);
     }
@@ -92,165 +116,185 @@ const ManagePalmares = () => {
   const handleCloseModal = () => {
     setShowModal(false);
     setEditingItem(null);
-    setFormData({
-      title: '',
-      date: new Date().toISOString().split('T')[0],
-      location: '',
-      category: 'Boxe Amateur',
-      result: 'Champion',
-      boxer: '',
-      details: '',
-      image: ''
-    });
+    setFormData({ ...DEFAULT_FORM, date: todayISO() });
+    setFile(null);
   };
+
+  const canProceed = (step) => {
+    if (step === 1) return formData.title.trim() && formData.date && formData.location.trim();
+    if (step === 2) return formData.boxer.trim() && formData.result && formData.category;
+    return true;
+  };
+
+  const wizardSteps = [
+    {
+      title: 'La compétition',
+      description: 'Indiquez de quelle compétition il s\'agit.',
+      content: (
+        <>
+          <TextInput
+            label="Nom de la compétition"
+            name="palmares-title"
+            value={formData.title}
+            onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+            required
+            example="Championnat départemental 2025"
+          />
+          <TextInput
+            label="Date"
+            name="palmares-date"
+            type="date"
+            value={formData.date}
+            onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+            required
+          />
+          <TextInput
+            label="Lieu"
+            name="palmares-location"
+            value={formData.location}
+            onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+            required
+            example="Poitiers"
+          />
+        </>
+      ),
+    },
+    {
+      title: 'Le résultat',
+      description: 'Qui a participé et quel a été le résultat ?',
+      content: (
+        <>
+          <SelectField
+            label="Catégorie"
+            name="palmares-category"
+            value={formData.category}
+            onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+            required
+            options={PALMARES_CATEGORIES}
+          />
+          <SelectField
+            label="Résultat obtenu"
+            name="palmares-result"
+            value={formData.result}
+            onChange={(e) => setFormData({ ...formData, result: e.target.value })}
+            required
+            options={PALMARES_RESULTS}
+          />
+          <TextInput
+            label="Boxeur ou équipe"
+            name="palmares-boxer"
+            value={formData.boxer}
+            onChange={(e) => setFormData({ ...formData, boxer: e.target.value })}
+            required
+            example="Marie Dupont"
+          />
+        </>
+      ),
+    },
+    {
+      title: 'Détails et photo',
+      description: 'Ajoutez des précisions et une photo si vous en avez une.',
+      content: (
+        <>
+          <TextArea
+            label="Détails"
+            name="palmares-details"
+            value={formData.details}
+            onChange={(e) => setFormData({ ...formData, details: e.target.value })}
+            rows={4}
+            optionalLabel="(facultatif)"
+            help="Informations complémentaires sur la compétition ou le parcours."
+          />
+          <ImageUploadField
+            label="Photo"
+            name="palmares-image"
+            value={formData.image}
+            folder="palmares"
+            onFileSelect={setFile}
+            onChange={({ preview }) => setFormData((p) => ({ ...p, image: preview || p.image }))}
+          />
+        </>
+      ),
+    },
+  ];
 
   return (
     <div className="manage-palmares">
-      <div className="page-header">
-        <h2>Gestion des Palmarès</h2>
-        <button className="btn-primary" onClick={() => setShowModal(true)}>
-          <FontAwesomeIcon icon={faPlus} />
-          Ajouter un palmarès
-        </button>
-      </div>
+      <PageHeader
+        title="Palmarès"
+        subtitle="Enregistrez les résultats et victoires du club."
+        breadcrumbs={adminBreadcrumbs(NAV_ITEMS.palmares)}
+        actions={
+          <button type="button" className="btn btn-primary" onClick={() => setShowModal(true)}>
+            <FontAwesomeIcon icon={faPlus} />
+            Ajouter un résultat
+          </button>
+        }
+      />
 
       <div className="palmares-list">
-        {loading && (
-          <div className="empty-state">
-            <p>Chargement des palmarès...</p>
-          </div>
-        )}
+        {loading && <LoadingState label="Chargement des palmarès…" />}
         {error && !loading && (
-          <div className="empty-state">
-            <p>{error}</p>
-          </div>
+          <ErrorState title="Palmarès indisponible" message={error} onRetry={loadPalmares} />
         )}
-        {!loading && !error && (
-          <>
-            {palmares.length === 0 ? (
-              <div className="empty-state">
-                <p>Aucun palmarès pour le moment.</p>
+        {!loading && !error && palmares.length === 0 ? (
+          <EmptyStateGuided
+            icon={faTrophy}
+            title="Aucun palmarès"
+            message="Ajoutez le premier résultat de compétition pour mettre en valeur les succès du club."
+            actionLabel="Ajouter un résultat"
+            onAction={() => setShowModal(true)}
+          />
+        ) : null}
+        {!loading && !error && palmares.map((item) => (
+          <HighlightableCard key={item.id} id={item.id} className="palmares-card">
+            <div className="palmares-content">
+              <div className="result-badge">{item.result}</div>
+              <h3>{item.title}</h3>
+              <div className="palmares-meta">
+                <span><FontAwesomeIcon icon={faCalendarAlt} aria-hidden /> {new Date(item.date).toLocaleDateString('fr-FR')}</span>
+                <span><FontAwesomeIcon icon={faMapMarkerAlt} aria-hidden /> {item.location}</span>
+                <span><FontAwesomeIcon icon={faUser} aria-hidden /> {item.boxer}</span>
               </div>
-            ) : (
-              palmares.map((item, index) => (
-                <motion.div
-                  key={item.id}
-                  className="palmares-card"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.1 }}
-                >
-                  <div className="palmares-content">
-                    <div className="result-badge" style={{
-                      background: item.result === 'Champion' || item.result === 'Vainqueur' ? 'var(--primary-red)' :
-                                  item.result.includes('Argent') ? 'var(--secondary-light)' :
-                                  item.result.includes('Bronze') ? 'var(--secondary-dark)' : 'var(--primary-red-dark)'
-                    }}>
-                      {item.result}
-                    </div>
-                    <h3>{item.title}</h3>
-                    <div className="palmares-meta">
-                      <span><FontAwesomeIcon icon={faCalendarAlt} /> {new Date(item.date).toLocaleDateString('fr-FR')}</span>
-                      <span><FontAwesomeIcon icon={faMapMarkerAlt} /> {item.location}</span>
-                      <span><FontAwesomeIcon icon={faUser} /> {item.boxer}</span>
-                    </div>
-                    <p className="category">{item.category}</p>
-                    <p className="details">{item.details}</p>
-                    <div className="palmares-actions">
-                      <button className="btn-edit" onClick={() => handleEdit(item)}>
-                        <FontAwesomeIcon icon={faEdit} /> Modifier
-                      </button>
-                      <button className="btn-delete" onClick={() => handleDelete(item.id)}>
-                        <FontAwesomeIcon icon={faTrash} /> Supprimer
-                      </button>
-                    </div>
-                  </div>
-                </motion.div>
-              ))
-            )}
-          </>
-        )}
-      </div>
-
-      {showModal && (
-        <div className="modal-overlay" onClick={handleCloseModal}>
-          <motion.div className="modal-content" onClick={(e) => e.stopPropagation()}
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-          >
-            <h3>{editingItem ? 'Modifier' : 'Ajouter'} un palmarès</h3>
-            <form onSubmit={handleSubmit}>
-              <div className="form-group">
-                <label>Titre *</label>
-                <input type="text" value={formData.title} onChange={(e) => setFormData({ ...formData, title: e.target.value })} required />
-              </div>
-              <div className="form-row">
-                <div className="form-group">
-                  <label>Date *</label>
-                  <input type="date" value={formData.date} onChange={(e) => setFormData({ ...formData, date: e.target.value })} required />
-                </div>
-                <div className="form-group">
-                  <label>Lieu *</label>
-                  <input type="text" value={formData.location} onChange={(e) => setFormData({ ...formData, location: e.target.value })} required />
-                </div>
-              </div>
-              <div className="form-row">
-                <div className="form-group">
-                  <label>Catégorie *</label>
-                  <select value={formData.category} onChange={(e) => setFormData({ ...formData, category: e.target.value })} required>
-                    {categoryOptions.map(cat => <option key={cat} value={cat}>{cat}</option>)}
-                  </select>
-                </div>
-                <div className="form-group">
-                  <label>Résultat *</label>
-                  <select value={formData.result} onChange={(e) => setFormData({ ...formData, result: e.target.value })} required>
-                    {resultOptions.map(res => <option key={res} value={res}>{res}</option>)}
-                  </select>
-                </div>
-              </div>
-              <div className="form-group">
-                <label>Boxeur / Équipe *</label>
-                <input type="text" value={formData.boxer} onChange={(e) => setFormData({ ...formData, boxer: e.target.value })} required />
-              </div>
-              <div className="form-group">
-                <label>Détails *</label>
-                <textarea value={formData.details} onChange={(e) => setFormData({ ...formData, details: e.target.value })} rows="4" required />
-              </div>
-              <div className="form-actions">
-                <button type="button" className="btn-cancel" onClick={handleCloseModal}>Annuler</button>
-                <button 
-                  type="submit" 
-                  className="btn-submit"
-                  disabled={!formData.title || !formData.date || !formData.boxer || !formData.details}
-                  style={{ 
-                    opacity: (!formData.title || !formData.date || !formData.boxer || !formData.details) ? 0.5 : 1,
-                    cursor: (!formData.title || !formData.date || !formData.boxer || !formData.details) ? 'not-allowed' : 'pointer'
-                  }}
-                >
-                  {editingItem ? '💾 Modifier' : '🏆 Créer le palmarès'}
+              <p className="category">{item.category}</p>
+              {item.details ? <p className="details">{item.details}</p> : null}
+              <div className="palmares-actions">
+                <button type="button" className="btn-edit" onClick={() => handleEdit(item)}>
+                  <FontAwesomeIcon icon={faEdit} aria-hidden /> Modifier
+                </button>
+                <button type="button" className="btn-delete" onClick={() => handleDelete(item)}>
+                  <FontAwesomeIcon icon={faTrash} aria-hidden /> Supprimer
                 </button>
               </div>
-            </form>
-          </motion.div>
-        </div>
-      )}
+            </div>
+          </HighlightableCard>
+        ))}
+      </div>
+
+      <WizardModal
+        isOpen={showModal}
+        onClose={handleCloseModal}
+        title={editingItem ? 'Modifier le palmarès' : 'Ajouter un résultat'}
+        steps={wizardSteps}
+        onComplete={handleSubmit}
+        isEdit={!!editingItem}
+        canProceed={canProceed}
+        completing={uploading}
+      />
 
       <ConfirmDialog
         isOpen={showDeleteConfirm}
-        onClose={() => {
-          setShowDeleteConfirm(false);
-          setDeleteTarget(null);
-        }}
+        onClose={() => { setShowDeleteConfirm(false); setDeleteTarget(null); }}
         onConfirm={confirmDelete}
-        title="Supprimer le palmarès"
-        message="Êtes-vous sûr de vouloir supprimer ce palmarès ? Cette action est irréversible."
+        title="Supprimer ce palmarès ?"
+        itemLabel={deleteTarget?.title}
+        consequences={['Ce résultat disparaîtra de la page Palmarès du site.', 'Cette action ne peut pas être annulée.']}
         type="danger"
         confirmText="Supprimer"
-        danger={true}
+        danger
       />
     </div>
   );
 };
 
 export default ManagePalmares;
-

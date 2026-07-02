@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faFilter, faTimes, faCalendarAlt, faTag } from '@fortawesome/free-solid-svg-icons';
 import { motion, AnimatePresence } from 'framer-motion';
+import { TextInput, SelectField } from '../ui/FormField';
 import './AdvancedFilters.scss';
 
 const AdvancedFilters = ({ 
@@ -55,7 +56,7 @@ const AdvancedFilters = ({
         onClick={() => setIsOpen(!isOpen)}
       >
         <FontAwesomeIcon icon={faFilter} />
-        <span>Filtres</span>
+        <span>Affiner la recherche</span>
         {hasActiveFilters && <span className="filter-badge">{Object.values(localFilters).filter(v => v && v !== 'date' && v !== 'desc').length}</span>}
       </button>
 
@@ -70,33 +71,36 @@ const AdvancedFilters = ({
           >
             <div className="filters-content">
               {showSearch && (
-                <div className="filter-group">
-                  <label>Recherche</label>
-                  <input
-                    type="text"
-                    value={localFilters.search}
-                    onChange={(e) => handleFilterChange('search', e.target.value)}
-                    placeholder="Rechercher..."
-                  />
-                </div>
+                <TextInput
+                  label="Recherche"
+                  name="filter-search"
+                  value={localFilters.search}
+                  onChange={(e) => handleFilterChange('search', e.target.value)}
+                  placeholder="Rechercher..."
+                  className="filter-group"
+                />
               )}
 
               {showCategory && availableCategories.length > 0 && (
-                <div className="filter-group">
-                  <label>
-                    <FontAwesomeIcon icon={faTag} />
-                    Catégorie
-                  </label>
-                  <select
-                    value={localFilters.category}
-                    onChange={(e) => handleFilterChange('category', e.target.value)}
-                  >
-                    <option value="">Toutes les catégories</option>
-                    {availableCategories.map(cat => (
-                      <option key={cat} value={cat}>{cat}</option>
-                    ))}
-                  </select>
-                </div>
+                <SelectField
+                  label={
+                    <>
+                      <FontAwesomeIcon icon={faTag} /> Catégorie
+                    </>
+                  }
+                  name="filter-category"
+                  value={localFilters.category}
+                  onChange={(e) => handleFilterChange('category', e.target.value)}
+                  className="filter-group"
+                  options={[
+                    { value: '', label: 'Toutes les catégories' },
+                    ...availableCategories.map((cat) =>
+                      typeof cat === 'object' && cat !== null
+                        ? { value: cat.value, label: cat.label }
+                        : { value: cat, label: cat }
+                    ),
+                  ]}
+                />
               )}
 
               {showDateRange && (
@@ -106,14 +110,16 @@ const AdvancedFilters = ({
                     Période
                   </label>
                   <div className="date-inputs">
-                    <input
+                    <TextInput
+                      name="filter-date-from"
                       type="date"
                       value={localFilters.dateFrom}
                       onChange={(e) => handleFilterChange('dateFrom', e.target.value)}
                       placeholder="Du"
                     />
                     <span>au</span>
-                    <input
+                    <TextInput
+                      name="filter-date-to"
                       type="date"
                       value={localFilters.dateTo}
                       onChange={(e) => handleFilterChange('dateTo', e.target.value)}
@@ -126,21 +132,25 @@ const AdvancedFilters = ({
               <div className="filter-group">
                 <label>Trier par</label>
                 <div className="sort-controls">
-                  <select
+                  <SelectField
+                    name="filter-sort-by"
                     value={localFilters.sortBy}
                     onChange={(e) => handleFilterChange('sortBy', e.target.value)}
-                  >
-                    <option value="date">Date</option>
-                    <option value="title">Titre</option>
-                    <option value="created">Date de création</option>
-                  </select>
-                  <select
+                    options={[
+                      { value: 'date', label: 'Date' },
+                      { value: 'title', label: 'Titre' },
+                      { value: 'created', label: 'Date de création' },
+                    ]}
+                  />
+                  <SelectField
+                    name="filter-sort-order"
                     value={localFilters.sortOrder}
                     onChange={(e) => handleFilterChange('sortOrder', e.target.value)}
-                  >
-                    <option value="desc">Décroissant</option>
-                    <option value="asc">Croissant</option>
-                  </select>
+                    options={[
+                      { value: 'desc', label: 'Décroissant' },
+                      { value: 'asc', label: 'Croissant' },
+                    ]}
+                  />
                 </div>
               </div>
 

@@ -3,7 +3,11 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { cleanup, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
+import { ThemeProvider } from '../../context/ThemeContext';
 import AdminLogin from './AdminLogin';
+
+const renderLogin = (ui) =>
+  render(<ThemeProvider>{ui}</ThemeProvider>);
 
 describe('AdminLogin', () => {
   beforeEach(() => {
@@ -20,7 +24,7 @@ describe('AdminLogin', () => {
       json: async () => ({ token: 'ok-token', user: { id: 1, username: 'a', role: 'admin' } })
     });
 
-    render(
+    renderLogin(
       <MemoryRouter initialEntries={['/admin/login']}>
         <Routes>
           <Route path="/admin/login" element={<AdminLogin />} />
@@ -29,10 +33,8 @@ describe('AdminLogin', () => {
       </MemoryRouter>
     );
 
-    const userInputs = screen.getAllByPlaceholderText('admin');
-    const passInputs = screen.getAllByPlaceholderText('••••••••');
-    await user.type(userInputs[0], 'admin');
-    await user.type(passInputs[0], 'password123');
+    await user.type(screen.getByLabelText('Identifiant'), 'admin');
+    await user.type(screen.getByLabelText('Mot de passe'), 'password123');
     await user.click(screen.getByRole('button', { name: /se connecter/i }));
 
     await waitFor(() => {
@@ -48,14 +50,14 @@ describe('AdminLogin', () => {
       json: async () => ({ error: 'Identifiants invalides' })
     });
 
-    render(
+    renderLogin(
       <MemoryRouter>
         <AdminLogin />
       </MemoryRouter>
     );
 
-    await user.type(screen.getAllByPlaceholderText('admin')[0], 'x');
-    await user.type(screen.getAllByPlaceholderText('••••••••')[0], 'y');
+    await user.type(screen.getByLabelText('Identifiant'), 'x');
+    await user.type(screen.getByLabelText('Mot de passe'), 'y');
     await user.click(screen.getByRole('button', { name: /se connecter/i }));
 
     await waitFor(() => {

@@ -1,13 +1,14 @@
 // Service centralisé pour communiquer avec l'API PHP
 
 // Base API :
-// - en prod, on peut fournir VITE_API_BASE_URL (ex: https://domaine.tld)
-// - sinon, on se base sur BASE_URL de Vite pour supporter les déploiements en sous-dossier
+// - en prod, utilise VITE_API_BASE_URL (ex: https://domaine.tld)
+// - en dev, on évite toute URL figée et on se base sur le host courant + BASE_URL
 //   (ex: http://localhost/AF/AFBoxing -> appels vers /AF/AFBoxing/api/...)
 const DEFAULT_BASE_URL = new URL(import.meta.env.BASE_URL || '/', window.location.origin)
   .toString()
   .replace(/\/$/, '');
-const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || DEFAULT_BASE_URL).replace(/\/$/, '');
+const envApiBaseUrl = (import.meta.env.VITE_API_BASE_URL || '').trim().replace(/\/$/, '');
+const API_BASE_URL = (import.meta.env.PROD && envApiBaseUrl ? envApiBaseUrl : DEFAULT_BASE_URL).replace(/\/$/, '');
 
 const TOKEN_STORAGE_KEY = 'afboxing_token';
 

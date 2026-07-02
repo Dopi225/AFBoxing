@@ -30,6 +30,17 @@ const Navbar = () => {
     setClubOpen(false);
   }, [location.pathname]);
 
+  useEffect(() => {
+    const onKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        setClubOpen(false);
+        setMenuOpen(false);
+      }
+    };
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  }, []);
+
   return (
     <header>
       <nav className="navbar" id="navbar">
@@ -100,8 +111,15 @@ const Navbar = () => {
           <li>
             <NavLink to="/contact" onClick={() => setMenuOpen(false)} onMouseEnter={() => prefetchPublicRoute('/contact')}>Contact</NavLink>
           </li>
-          <li className="nav-btn-red">
-            <NavLink to="/tarif" onClick={() => setMenuOpen(false)} onMouseEnter={() => prefetchPublicRoute('/tarif')}>Inscription</NavLink>
+          <li className="nav-cta">
+            <NavLink
+              to="/tarif"
+              className={({ isActive }) => (isActive ? 'btn btn-primary btn-sm active' : 'btn btn-primary btn-sm')}
+              onClick={() => setMenuOpen(false)}
+              onMouseEnter={() => prefetchPublicRoute('/tarif')}
+            >
+              Inscription
+            </NavLink>
           </li>
         </ul>
       </nav>

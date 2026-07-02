@@ -1,26 +1,4 @@
 .activity-log {
-  .page-header {
-    margin-bottom: 2rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    gap: 1rem;
-    flex-wrap: wrap;
-
-    h2 {
-      font-size: 2rem;
-      color: var(--primary-black, #0b0b0b);
-      margin-bottom: 0.5rem;
-      font-weight: 700;
-    }
-
-    .page-subtitle {
-      color: var(--text-light, #555);
-      font-size: 1rem;
-      margin: 0;
-    }
-  }
-
   .logs-list {
     display: flex;
     flex-direction: column;
@@ -28,7 +6,7 @@
   }
 
   .log-item {
-    background: white;
+    background: var(--surface-elevated);
     border-radius: var(--border-radius-md, 12px);
     padding: 1.25rem;
     display: flex;
@@ -68,7 +46,7 @@
 
         .log-action {
           font-weight: 700;
-          color: var(--primary-black, #0b0b0b);
+          color: var(--heading-on-light);
           font-size: 1rem;
         }
 
@@ -109,23 +87,9 @@
       }
     }
   }
+}
 
-  .empty-state {
-    text-align: center;
-    padding: 4rem 2rem;
-    background: white;
-    border-radius: var(--border-radius-lg, 16px);
-    color: var(--text-light, #555);
-
-    svg {
-      color: var(--text-muted, #888);
-      margin-bottom: 1rem;
-    }
-
-    p {
-      margin: 0;
-      font-size: 1.1rem;
-    }
-  }
+:root[data-theme='dark'] .activity-log .log-action {
+  color: var(--heading-on-dark);
 }
 

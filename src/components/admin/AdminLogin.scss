@@ -3,7 +3,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, var(--primary-black) 0%, var(--primary-red) 100%);
+  background: linear-gradient(135deg, var(--color-black-fixed) 0%, var(--primary-red) 100%);
   padding: 2rem;
   position: relative;
   overflow: hidden;
@@ -22,8 +22,7 @@
   .login-container {
     position: relative;
     z-index: 1;
-    /* Toujours une carte claire : les titres/champs sont en encre foncée */
-    background: #ffffff;
+    background: var(--surface-elevated);
     border-radius: var(--border-radius-xxl, 24px);
     padding: 3rem;
     max-width: 450px;
@@ -45,31 +44,31 @@
         align-items: center;
         justify-content: center;
         font-size: 2rem;
-        color: white;
+        color: var(--text-on-dark);
         box-shadow: 0 10px 30px rgba(230, 0, 0, 0.3);
       }
 
       h1 {
         font-size: 2rem;
-        color: #111;
+        color: var(--text-dark);
         margin-bottom: 0.5rem;
         font-weight: 700;
       }
 
       p {
-        color: #4a4a55;
+        color: var(--text-light);
         font-size: 1rem;
       }
     }
 
     .login-form {
       .error-message {
-        background: #fee;
-        color: var(--primary-red);
+        background: var(--status-error-bg);
+        color: var(--status-error-fg);
         padding: 1rem 1.25rem;
         border-radius: var(--border-radius-md);
         margin-bottom: 1.5rem;
-        border: 1px solid rgba(230, 0, 0, 0.2);
+        border: 1px solid var(--status-error-border);
         font-size: 0.9rem;
         line-height: 1.5;
         animation: errorSlideIn 0.3s ease-out;
@@ -79,53 +78,38 @@
       .form-group {
         margin-bottom: 1.5rem;
 
-        label {
-          display: flex;
-          align-items: center;
-          gap: 0.5rem;
-          color: #222;
+        .form-label {
+          color: var(--text-dark);
           font-weight: 600;
           margin-bottom: 0.5rem;
           font-size: 0.95rem;
-
-          svg {
-            color: var(--primary-red);
-          }
         }
 
-        input {
+        .form-input {
           width: 100%;
           padding: 0.875rem 1rem;
-          border: 2px solid var(--secondary-gray);
+          border: 2px solid var(--field-border);
           border-radius: var(--border-radius-md);
           font-size: 1rem;
           transition: all var(--transition-normal);
-          background: white;
-          /* Toujours lisible sur fond blanc (le thème sombre inverse --text-dark) */
-          color: #14141c;
-          caret-color: #14141c;
+          background: var(--field-bg);
+          color: var(--field-fg);
+          caret-color: var(--field-fg);
 
           &:focus {
             outline: none;
-            border-color: var(--primary-red);
-            box-shadow: 0 0 0 3px rgba(230, 0, 0, 0.1);
-            background: #fffef9;
+            border-color: var(--border-input-focus);
+            box-shadow: var(--focus-ring-shadow);
           }
 
           &:disabled {
-            background: var(--secondary-gray);
-            color: #14141c;
+            background: var(--field-bg-disabled);
             cursor: not-allowed;
-            opacity: 0.7;
+            opacity: 0.85;
           }
 
           &::placeholder {
-            color: rgba(0, 0, 0, 0.42);
-            transition: opacity var(--transition-fast);
-          }
-
-          &:focus::placeholder {
-            opacity: 0.6;
+            color: var(--field-placeholder);
           }
         }
       }
@@ -134,7 +118,7 @@
         width: 100%;
         padding: 1rem;
         background: linear-gradient(135deg, var(--primary-red), var(--primary-red-dark));
-        color: white;
+        color: var(--text-on-dark);
         border: none;
         border-radius: var(--border-radius-md);
         font-size: 1.1rem;
@@ -206,7 +190,7 @@
       text-align: center;
 
       p {
-        color: #5c5c68;
+        color: var(--text-muted);
         font-size: 0.85rem;
 
         strong {

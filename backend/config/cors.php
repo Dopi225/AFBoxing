@@ -24,12 +24,12 @@ if (!function_exists('afboxing_apply_cors')) {
         // Origines par défaut (développement local)
         if (empty($allowedOrigins)) {
             $allowedOrigins = [
-                'http://localhost',
-                'http://localhost:5173',
-                'http://localhost:3000',
-                'http://127.0.0.1',
-                'http://127.0.0.1:5173',
-                'https://afboxing86.simacogroup.com',
+                // 'http://localhost',
+                // 'http://localhost:5173',
+                // 'http://localhost:3000',
+                // 'http://127.0.0.1',
+                // 'http://127.0.0.1:5173',
+                'https://afboxing86.com',
             ];
         }
 

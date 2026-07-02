@@ -6,7 +6,7 @@
     align-items: center;
     gap: 0.5rem;
     padding: 0.75rem 1.25rem;
-    background: white;
+    background: var(--surface-elevated);
     border: 2px solid var(--secondary-gray, #f3f3f3);
     border-radius: var(--border-radius-md, 12px);
     cursor: pointer;
@@ -40,7 +40,7 @@
 
   .filters-panel {
     margin-top: 1rem;
-    background: white;
+    background: var(--surface-elevated);
     border-radius: var(--border-radius-md, 12px);
     border: 2px solid var(--secondary-gray, #f3f3f3);
     overflow: hidden;
@@ -75,16 +75,23 @@
       input,
       select {
         padding: 0.75rem 1rem;
-        border: 2px solid var(--secondary-gray, #f3f3f3);
+        border: 2px solid var(--field-border);
         border-radius: var(--border-radius-md, 12px);
         font-size: 0.95rem;
         font-family: inherit;
+        background: var(--field-bg);
+        color: var(--field-fg);
+        caret-color: var(--field-fg);
         transition: all var(--transition-normal, 0.2s ease);
 
         &:focus {
           outline: none;
           border-color: var(--primary-red, #e60000);
           box-shadow: 0 0 0 3px rgba(230, 0, 0, 0.1);
+        }
+
+        &::placeholder {
+          color: var(--field-placeholder);
         }
       }
 
@@ -119,7 +126,7 @@
     .btn-clear-filters {
       grid-column: 1 / -1;
       padding: 0.75rem 1.5rem;
-      background: var(--secondary-gray, #f3f3f3);
+      background: var(--surface-muted);
       border: none;
       border-radius: var(--border-radius-md, 12px);
       cursor: pointer;
@@ -128,12 +135,13 @@
       justify-content: center;
       gap: 0.5rem;
       font-weight: 500;
-      color: var(--text-dark, #111);
+      color: var(--text-dark);
       transition: all var(--transition-normal, 0.2s ease);
       margin-top: 0.5rem;
 
       &:hover {
-        background: #ddd;
+        background: var(--surface-hover);
+        color: var(--primary-red);
       }
     }
   }

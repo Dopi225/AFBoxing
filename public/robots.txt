@@ -4,10 +4,6 @@ Allow: /
 
 # API et back-office : ne pas indexer
 Disallow: /api/
-Disallow: /backend/
-Disallow: /admin
+Disallow: /admin/
 
-# Fichiers de build / outils (si exposés)
-Disallow: /src/
-
-Sitemap: https://afboxing86.simacogroup.com/sitemap.xml
+Sitemap: https://www.afboxingclub86.com/sitemap.xml

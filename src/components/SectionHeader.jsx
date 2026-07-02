@@ -47,7 +47,7 @@ const SectionHeader = ({
             {children ? <div className="section-header__extra">{children}</div> : null}
 
             {actions?.length ? (
-              <div className="section-header__actions">
+              <div className="section-header__actions btn-group btn-group--equal">
                 {actions.map((action, idx) => {
                   const {
                     label,

@@ -1,19 +1,25 @@
 import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useRequireAdmin } from '../../hooks/useRequireAdmin';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEnvelope, faTrash, faCheck, faUser, faPhone, faCalendarAlt } from '@fortawesome/free-solid-svg-icons';
-import { motion as Motion } from 'framer-motion';
 import { contactsApi } from '../../services/apiService';
-import { useNotifications } from './NotificationSystem';
+import { useAdminNotify } from '../../hooks/useAdminNotify';
+import { formatRelativeDate } from '../../constants/adminCopy';
 import ConfirmDialog from './ConfirmDialog';
+import PageHeader from '../ui/PageHeader';
+import { EmptyStateGuided, HighlightableCard } from './guided';
+import { adminBreadcrumbs } from '../../utils/adminBreadcrumbs';
+import { NAV_ITEMS } from '../../constants/adminCopy';
 import './ManageContacts.scss';
 
 const ManageContacts = () => {
   const adminOk = useRequireAdmin();
-  const { success, error: notifyError } = useNotifications();
+  const [searchParams] = useSearchParams();
+  const { notifySuccess, notifyError } = useAdminNotify('contacts');
   const [contacts, setContacts] = useState([]); 
   const [selectedContact, setSelectedContact] = useState(null);
-  const [filter, setFilter] = useState('all'); // all, unread, read
+  const [filter, setFilter] = useState(searchParams.get('filter') === 'unread' ? 'unread' : 'all');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -23,6 +29,13 @@ const ManageContacts = () => {
     if (!adminOk) return;
     loadContacts();
   }, [adminOk]);
+
+  useEffect(() => {
+    const highlightId = searchParams.get('highlight');
+    if (!highlightId || !contacts.length) return;
+    const found = contacts.find((c) => String(c.id) === String(highlightId));
+    if (found) setSelectedContact(found);
+  }, [contacts, searchParams]);
 
   const loadContacts = async () => {
     setLoading(true);
@@ -49,10 +62,10 @@ const ManageContacts = () => {
   const handleMarkAsRead = async (id) => {
     try {
       await contactsApi.markAsRead(id);
-      success('✅ Message marqué comme lu');
+      notifySuccess('Message marqué comme lu.');
       loadContacts();
-    } catch {
-      notifyError('❌ Erreur lors du marquage du message');
+    } catch (err) {
+      notifyError(err, 'Impossible de marquer le message comme lu.');
     }
   };
 
@@ -65,13 +78,13 @@ const ManageContacts = () => {
     if (!deleteTarget) return;
     try {
       await contactsApi.remove(deleteTarget);
-      success('🗑️ Contact supprimé avec succès');
+      notifySuccess('Message supprimé.');
       loadContacts();
       if (selectedContact?.id === deleteTarget) {
         setSelectedContact(null);
       }
-    } catch {
-      notifyError('Erreur lors de la suppression du contact.');
+    } catch (err) {
+      notifyError(err, 'Impossible de supprimer ce message.');
     } finally {
       setDeleteTarget(null);
     }
@@ -98,29 +111,24 @@ const ManageContacts = () => {
 
   return (
     <div className="manage-contacts">
-      <div className="page-header">
-        <h2>Gestion des Contacts</h2>
-        <div className="filter-buttons">
-          <button
-            className={filter === 'all' ? 'active' : ''}
-            onClick={() => setFilter('all')}
-          >
-            Tous ({contacts.length})
-          </button>
-          <button
-            className={filter === 'unread' ? 'active' : ''}
-            onClick={() => setFilter('unread')}
-          >
-            Non lus ({unreadCount})
-          </button>
-          <button
-            className={filter === 'read' ? 'active' : ''}
-            onClick={() => setFilter('read')}
-          >
-            Lus ({contacts.length - unreadCount})
-          </button>
-        </div>
-      </div>
+      <PageHeader
+        title="Messages reçus"
+        subtitle="Messages envoyés via le formulaire de contact du site."
+        breadcrumbs={adminBreadcrumbs(NAV_ITEMS.contacts)}
+        actions={
+          <div className="filter-buttons">
+            <button type="button" className={filter === 'all' ? 'active' : ''} onClick={() => setFilter('all')}>
+              Tous ({contacts.length})
+            </button>
+            <button type="button" className={filter === 'unread' ? 'active' : ''} onClick={() => setFilter('unread')}>
+              Non lus ({unreadCount})
+            </button>
+            <button type="button" className={filter === 'read' ? 'active' : ''} onClick={() => setFilter('read')}>
+              Déjà lus ({contacts.length - unreadCount})
+            </button>
+          </div>
+        }
+      />
 
       <div className="contacts-layout">
         <div className="contacts-list">
@@ -138,49 +146,47 @@ const ManageContacts = () => {
           {!loading && !error && (
             <>
               {filteredContacts.length === 0 ? (
-                <div className="admin-state--empty">
-                  <p>
-                    {contacts.length === 0
-                      ? 'Aucun message pour le moment. Les envois du formulaire contact apparaîtront ici.'
-                      : 'Aucun message dans cette catégorie.'}
-                  </p>
-                </div>
+                contacts.length === 0 ? (
+                  <EmptyStateGuided
+                    icon={faEnvelope}
+                    title="Aucun message"
+                    message="Les visiteurs du site peuvent vous écrire via le formulaire de contact. Les messages apparaîtront ici."
+                  />
+                ) : (
+                  <div className="admin-state--empty">
+                    <p>Aucun message dans cette catégorie.</p>
+                  </div>
+                )
               ) : (
-                filteredContacts.map((contact, index) => (
-                  <Motion.div
+                filteredContacts.map((contact) => (
+                  <HighlightableCard
                     key={contact.id}
+                    id={contact.id}
+                    as="button"
+                    type="button"
                     className={`contact-item ${!contact.read ? 'unread' : ''} ${selectedContact?.id === contact.id ? 'selected' : ''}`}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: index * 0.05 }}
                     onClick={() => setSelectedContact(contact)}
                   >
                     <div className="contact-header">
                       <div className="contact-info">
                         <h4>{contact.username || 'Sans nom'}</h4>
-                        {!contact.read && <span className="unread-badge">Nouveau</span>}
+                        {!contact.read ? <span className="unread-badge">Non lu</span> : null}
                       </div>
-                      <span className="contact-date">
-                        {new Date(contact.date).toLocaleDateString('fr-FR')}
-                      </span>
+                      <span className="contact-date">{formatRelativeDate(contact.date)}</span>
                     </div>
                     <p className="contact-email">{contact.email}</p>
-                    <p className="contact-preview">{contact.message?.substring(0, 60)}...</p>
-                  </Motion.div>
+                    <p className="contact-preview">{contact.message?.substring(0, 80)}…</p>
+                  </HighlightableCard>
                 ))
               )}
             </>
           )}
         </div>
 
-        {selectedContact && (
-          <Motion.div
-            className="contact-detail"
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-          >
+        {selectedContact ? (
+          <div className="contact-detail">
             <div className="detail-header">
-              <h3>Détails du contact</h3>
+              <h3>Message de {selectedContact.username || 'visiteur'}</h3>
               <div className="detail-actions">
                 {!selectedContact.read && (
                   <button
@@ -241,7 +247,9 @@ const ManageContacts = () => {
                 <p>{selectedContact.message}</p>
               </div>
             </div>
-          </Motion.div>
+          </div>
+        ) : (
+          <p className="contact-detail-placeholder">Sélectionnez un message dans la liste pour le lire.</p>
         )}
       </div>
 
@@ -252,8 +260,11 @@ const ManageContacts = () => {
           setDeleteTarget(null);
         }}
         onConfirm={confirmDelete}
-        title="Supprimer le contact"
-        message="Êtes-vous sûr de vouloir supprimer ce contact ? Cette action est irréversible."
+        title="Supprimer ce message ?"
+        consequences={[
+          'Le message sera définitivement effacé.',
+          'Vous ne pourrez plus le consulter.',
+        ]}
         type="danger"
         confirmText="Supprimer"
         danger={true}

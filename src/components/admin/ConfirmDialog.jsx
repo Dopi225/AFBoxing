@@ -1,60 +1,71 @@
 import React from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import Modal from '../ui/Modal';
+import Button from '../ui/Button';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faExclamationTriangle, faQuestionCircle } from '@fortawesome/free-solid-svg-icons';
 import './ConfirmDialog.scss';
 
-const ConfirmDialog = ({ isOpen, onClose, onConfirm, title, message, type = 'warning', confirmText = 'Confirmer', cancelText = 'Annuler', danger = false }) => {
-  if (!isOpen) return null;
-
+const ConfirmDialog = ({
+  isOpen,
+  onClose,
+  onConfirm,
+  title,
+  message,
+  itemLabel,
+  consequences = [],
+  type = 'warning',
+  confirmText = 'Confirmer',
+  cancelText = 'Annuler',
+  danger = false
+}) => {
   const icon = type === 'danger' ? faExclamationTriangle : faQuestionCircle;
 
+  const bodyMessage = message || (itemLabel
+    ? `Êtes-vous sûr de vouloir continuer avec « ${itemLabel} » ?`
+    : 'Êtes-vous sûr de vouloir effectuer cette action ?');
+
   return (
-    <AnimatePresence>
-      <div className="confirm-dialog-overlay" onClick={onClose}>
-        <motion.div
-          className="confirm-dialog"
-          onClick={(e) => e.stopPropagation()}
-          initial={{ scale: 0.9, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          exit={{ scale: 0.9, opacity: 0 }}
-          transition={{ duration: 0.2 }}
-        >
-          <div className="confirm-dialog__header">
-            <div className="confirm-dialog__icon" data-type={type}>
-              <FontAwesomeIcon icon={icon} />
-            </div>
-            <h3>{title || 'Confirmation requise'}</h3>
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      closeOnOverlay
+      size="sm"
+      title={title || 'Confirmation requise'}
+      footer={
+        <>
+          <Button variant="outline" onClick={onClose}>
+            {cancelText}
+          </Button>
+          <Button
+            variant={danger ? 'danger' : 'primary'}
+            onClick={() => {
+              onConfirm();
+              onClose();
+            }}
+          >
+            {confirmText}
+          </Button>
+        </>
+      }
+    >
+      <div className="confirm-dialog__body">
+        <div className="confirm-dialog__icon" data-type={type} aria-hidden="true">
+          <FontAwesomeIcon icon={icon} />
+        </div>
+        <p>{bodyMessage}</p>
+        {consequences.length > 0 ? (
+          <div className="confirm-dialog__consequences">
+            <p className="confirm-dialog__consequences-title">Conséquences :</p>
+            <ul>
+              {consequences.map((c, i) => (
+                <li key={i}>{c}</li>
+              ))}
+            </ul>
           </div>
-
-          <div className="confirm-dialog__body">
-            <p>{message || 'Êtes-vous sûr de vouloir effectuer cette action ?'}</p>
-          </div>
-
-          <div className="confirm-dialog__footer">
-            <button
-              type="button"
-              className="confirm-dialog__btn confirm-dialog__btn--cancel"
-              onClick={onClose}
-            >
-              {cancelText}
-            </button>
-            <button
-              type="button"
-              className={`confirm-dialog__btn confirm-dialog__btn--confirm ${danger ? 'danger' : ''}`}
-              onClick={() => {
-                onConfirm();
-                onClose();
-              }}
-            >
-              {confirmText}
-            </button>
-          </div>
-        </motion.div>
+        ) : null}
       </div>
-    </AnimatePresence>
+    </Modal>
   );
 };
 
 export default ConfirmDialog;
-

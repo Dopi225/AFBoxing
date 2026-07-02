@@ -12,9 +12,15 @@ import {
   faCheckCircle,
   faTimesCircle
 } from '@fortawesome/free-solid-svg-icons';
-import { useNotifications } from './NotificationSystem';
+import { useAdminNotify } from '../../hooks/useAdminNotify';
+import { humanizeAction, humanizeEntity, NAV_ITEMS } from '../../constants/adminCopy';
+import { adminBreadcrumbs } from '../../utils/adminBreadcrumbs';
+import ConfirmDialog from './ConfirmDialog';
 import AdvancedFilters from './AdvancedFilters';
+import PageHeader from '../ui/PageHeader';
+import { EmptyStateGuided } from './guided';
 import { activityLogApi } from '../../services/apiService';
+import { LoadingState } from '../PageStates';
 import './ActivityLog.scss';
 
 const getActionIcon = (action) => { 
@@ -29,36 +35,13 @@ const getActionIcon = (action) => {
   return icons[action] || faEdit;
 };
 
-const getActionLabel = (action) => {
-  const labels = {
-    create: 'Création',
-    update: 'Modification',
-    delete: 'Suppression',
-    view: 'Consultation',
-    login: 'Connexion',
-    logout: 'Déconnexion'
-  };
-  return labels[action] || action;
-};
-
-const getEntityLabel = (entity) => {
-  const labels = {
-    news: 'Actualité',
-    palmares: 'Palmarès',
-    gallery: 'Galerie',
-    contact: 'Contact',
-    schedule: 'Planning',
-    activity: 'Activité',
-    settings: 'Paramètres',
-    user: 'Utilisateur',
-    auth: 'Authentification'
-  };
-  return labels[entity] || entity;
-};
+const getActionLabel = (action) => humanizeAction(action) || action;
+const getEntityLabel = (entity) => humanizeEntity(entity) || entity;
 
 const ActivityLog = () => {
   const adminOk = useRequireAdmin();
-  const { info, error: notifyError } = useNotifications();
+  const { notifySuccess, notifyError } = useAdminNotify('activity-log');
+  const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({
@@ -89,8 +72,8 @@ const ActivityLog = () => {
       
       const items = await activityLogApi.list(params);
       setLogs(items);
-    } catch {
-      notifyError('Erreur lors du chargement de l\'historique');
+    } catch (err) {
+      notifyError(err, 'Impossible de charger l\'historique.');
       setLogs([]);
     } finally {
       setLoading(false);
@@ -145,23 +128,21 @@ const ActivityLog = () => {
   }, [logs, filters]);
 
   const clearLogs = async () => {
-    if (window.confirm('Êtes-vous sûr de vouloir effacer tout l\'historique ? Cette action est irréversible.')) {
-      try {
-        await activityLogApi.clear();
-        setLogs([]);
-        info('Historique effacé');
-      } catch {
-        notifyError('Erreur lors de l\'effacement de l\'historique');
-      }
+    try {
+      await activityLogApi.clear();
+      setLogs([]);
+      notifySuccess('Historique effacé.');
+    } catch (err) {
+      notifyError(err, 'Impossible d\'effacer l\'historique.');
+    } finally {
+      setShowClearConfirm(false);
     }
   };
 
   if (!adminOk) {
     return (
       <div className="activity-log">
-        <div className="empty-state">
-          <p>Vérification des droits…</p>
-        </div>
+        <LoadingState label="Vérification des droits…" />
       </div>
     );
   }
@@ -171,44 +152,46 @@ const ActivityLog = () => {
   if (loading) {
     return (
       <div className="activity-log">
-        <div className="empty-state">
-          <p>Chargement de l'historique...</p>
-        </div>
+        <LoadingState label="Chargement de l'historique…" />
       </div>
     );
   }
 
   return (
     <div className="activity-log">
-      <div className="page-header">
-        <div>
-          <h2>Historique des actions</h2>
-          <p className="page-subtitle">Traçabilité complète de toutes les actions administrateur</p>
-        </div>
-        <div className="header-actions">
-          {logs.length > 0 && (
-            <button className="btn-secondary" onClick={clearLogs}>
+      <PageHeader
+        title="Historique des modifications"
+        subtitle="Pour les responsables qui souhaitent suivre les changements effectués sur le site."
+        breadcrumbs={adminBreadcrumbs(NAV_ITEMS.history)}
+        actions={
+          logs.length > 0 ? (
+            <button type="button" className="btn btn-secondary" onClick={() => setShowClearConfirm(true)}>
               <FontAwesomeIcon icon={faTrash} />
-              Effacer l'historique
+              Effacer l&apos;historique
             </button>
-          )}
-        </div>
-      </div>
+          ) : null
+        }
+      />
 
       <AdvancedFilters
-        filters={filters}
-        onFiltersChange={setFilters}
-        availableCategories={entities}
+        filters={{ ...filters, category: filters.entity }}
+        onFiltersChange={(f) => setFilters({ ...f, entity: f.category || '' })}
+        availableCategories={entities.map((e) => ({ value: e, label: getEntityLabel(e) }))}
         showDateRange={true}
         showCategory={true}
         showSearch={true}
       />
 
       {filteredLogs.length === 0 ? (
-        <div className="empty-state">
-          <FontAwesomeIcon icon={faHistory} size="3x" />
-          <p>{logs.length === 0 ? 'Aucun historique pour le moment.' : 'Aucun résultat avec les filtres sélectionnés.'}</p>
-        </div>
+        <EmptyStateGuided
+          icon={faHistory}
+          title={logs.length === 0 ? 'Aucun historique' : 'Aucun résultat'}
+          message={
+            logs.length === 0
+              ? 'Les actions effectuées sur le site apparaîtront ici au fil du temps.'
+              : 'Essayez d\'élargir vos filtres pour retrouver des entrées.'
+          }
+        />
       ) : (
         <div className="logs-list">
           {filteredLogs.map((log, index) => (
@@ -240,6 +223,16 @@ const ActivityLog = () => {
           ))}
         </div>
       )}
+
+      <ConfirmDialog
+        isOpen={showClearConfirm}
+        onClose={() => setShowClearConfirm(false)}
+        onConfirm={clearLogs}
+        title="Effacer tout l'historique ?"
+        consequences={['Toutes les entrées seront supprimées définitivement.', 'Cette action ne peut pas être annulée.']}
+        confirmText="Effacer"
+        danger
+      />
     </div>
   );
 };

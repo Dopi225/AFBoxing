@@ -82,7 +82,7 @@ const Actualite = () => {
           </Motion.h2>
           
           {loading ? (
-            <div style={{ textAlign: 'center', padding: '2rem' }}>
+            <div className="actualite-loading">
               <InlineLoading label="Chargement des activités…" />
             </div>
           ) : error ? (

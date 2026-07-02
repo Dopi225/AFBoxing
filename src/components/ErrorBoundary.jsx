@@ -1,13 +1,14 @@
 import React from 'react';
+import { ErrorState } from './PageStates';
 
 export default class ErrorBoundary extends React.Component {
   constructor(props) {
     super(props);
-    this.state = { hasError: false, error: null };
+    this.state = { hasError: false };
   }
 
-  static getDerivedStateFromError(error) {
-    return { hasError: true, error };
+  static getDerivedStateFromError() {
+    return { hasError: true };
   }
 
   componentDidCatch(error, info) {
@@ -17,19 +18,13 @@ export default class ErrorBoundary extends React.Component {
   render() {
     if (this.state.hasError) {
       return (
-        <div className="error-boundary-fallback" role="alert" style={{ padding: '3rem 1.5rem', textAlign: 'center' }}>
-          <h1 style={{ fontSize: '1.5rem', marginBottom: '1rem' }}>Une erreur est survenue</h1>
-          <p style={{ marginBottom: '1.5rem', color: '#555', maxWidth: '32rem', marginInline: 'auto' }}>
-            Rechargez la page ou revenez plus tard. Si le problème persiste, contactez l’administrateur du site.
-          </p>
-          <button
-            type="button"
-            className="modern-card"
-            style={{ padding: '0.75rem 1.5rem', cursor: 'pointer', border: '1px solid #ccc', borderRadius: '8px' }}
-            onClick={() => window.location.reload()}
-          >
-            Recharger la page
-          </button>
+        <div className="error-boundary-fallback">
+          <ErrorState
+            title="Une erreur est survenue"
+            message="Rechargez la page ou revenez plus tard. Si le problème persiste, contactez le club."
+            onRetry={() => window.location.reload()}
+            retryLabel="Recharger la page"
+          />
         </div>
       );
     }

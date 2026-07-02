@@ -11,9 +11,15 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import { faFacebookF, faInstagram as faInstagramBrand } from '@fortawesome/free-brands-svg-icons';
 import { motion } from 'framer-motion';
-import { useNotifications } from './NotificationSystem';
+import { useAdminNotify } from '../../hooks/useAdminNotify';
+import ConfirmDialog from './ConfirmDialog';
 import { settingsApi } from '../../services/apiService';
 import { logActivity } from '../../utils/activityLogger';
+import { TextInput } from '../ui/FormField';
+import { LoadingState } from '../PageStates';
+import PageHeader from '../ui/PageHeader';
+import { adminBreadcrumbs } from '../../utils/adminBreadcrumbs';
+import { NAV_ITEMS } from '../../constants/adminCopy';
 import './ManageSettings.scss';
 
 const defaultSettings = {
@@ -34,7 +40,8 @@ const defaultSettings = {
 
 const ManageSettings = () => {
   const adminOk = useRequireAdmin();
-  const { success, error: notifyError } = useNotifications();
+  const { notifySuccess, notifyError } = useAdminNotify('settings');
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [settings, setSettings] = useState(defaultSettings);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -69,7 +76,7 @@ const ManageSettings = () => {
       
       setSettings(loaded);
     } catch (err) {
-      notifyError('Erreur lors du chargement des paramètres');
+      notifyError(err, 'Impossible de charger les informations du club.');
       setSettings(defaultSettings);
     } finally {
       setLoading(false);
@@ -91,11 +98,10 @@ const ManageSettings = () => {
       
       await settingsApi.update(settingsToSave);
       logActivity('update', 'settings', 'Paramètres du site mis à jour');
-      success('✅ Paramètres sauvegardés avec succès !');
+      notifySuccess('Informations du club enregistrées.');
       setHasChanges(false);
     } catch (err) {
-      const errorMessage = err.message || 'Erreur lors de la sauvegarde des paramètres';
-      notifyError(`❌ ${errorMessage}`);
+      notifyError(err, 'Impossible d\'enregistrer. Vérifiez les champs et réessayez.');
     } finally {
       setSaving(false);
     }
@@ -113,18 +119,18 @@ const ManageSettings = () => {
   };
 
   const resetToDefaults = () => {
-    if (window.confirm('Êtes-vous sûr de vouloir réinitialiser tous les paramètres aux valeurs par défaut ?')) {
-      setSettings(defaultSettings);
-      setHasChanges(true);
-    }
+    setShowResetConfirm(true);
+  };
+
+  const confirmReset = () => {
+    setSettings(defaultSettings);
+    setHasChanges(true);
   };
 
   if (!adminOk) {
     return (
       <div className="manage-settings">
-        <div className="empty-state">
-          <p>Vérification des droits…</p>
-        </div>
+        <LoadingState label="Vérification des droits…" />
       </div>
     );
   }
@@ -132,41 +138,42 @@ const ManageSettings = () => {
   if (loading) {
     return (
       <div className="manage-settings">
-        <div className="empty-state">
-          <p>Chargement des paramètres...</p>
-        </div>
+        <LoadingState label="Chargement des paramètres…" />
       </div>
     );
   }
 
   return (
     <div className="manage-settings">
-      <div className="page-header">
-        <div>
-          <h2>Paramètres du site</h2>
-          <p className="page-subtitle">Gérez les informations de contact, réseaux sociaux et configuration générale</p>
-        </div>
-        <div className="header-actions">
-          {hasChanges && (
-            <span className="unsaved-indicator">Modifications non sauvegardées</span>
-          )}
-          <button
-            className="btn-secondary"
-            onClick={resetToDefaults}
-            disabled={saving}
-          >
-            Réinitialiser
-          </button>
-          <button
-            className="btn-primary"
-            onClick={saveSettings}
-            disabled={saving || !hasChanges}
-          >
-            <FontAwesomeIcon icon={faSave} />
-            {saving ? '💾 Sauvegarde...' : '💾 Sauvegarder les paramètres'}
-          </button>
-        </div>
-      </div>
+      <PageHeader
+        title="Informations du club"
+        subtitle="Ces informations apparaissent sur le site public (contact, réseaux sociaux, nom du club)."
+        breadcrumbs={adminBreadcrumbs(NAV_ITEMS.settings)}
+        actions={
+          <>
+            {hasChanges && (
+              <span className="unsaved-indicator">Modifications non enregistrées</span>
+            )}
+            <button
+              type="button"
+              className="btn btn-secondary"
+              onClick={resetToDefaults}
+              disabled={saving}
+            >
+              Réinitialiser
+            </button>
+            <button
+              type="button"
+              className="btn btn-primary"
+              onClick={saveSettings}
+              disabled={saving || !hasChanges}
+            >
+              <FontAwesomeIcon icon={faSave} />
+              {saving ? 'Enregistrement…' : 'Enregistrer'}
+            </button>
+          </>
+        }
+      />
 
       <div className="settings-sections">
         {/* Informations de contact */}
@@ -180,42 +187,29 @@ const ManageSettings = () => {
             <h3>Informations de contact</h3>
           </div>
           <div className="settings-form">
-            <div className="form-group">
-              <label>
-                <FontAwesomeIcon icon={faMapMarkerAlt} />
-                Adresse
-              </label>
-              <input
-                type="text"
-                value={settings.contact.address}
-                onChange={(e) => updateSetting('contact', 'address', e.target.value)}
-                placeholder="Adresse complète"
-              />
-            </div>
-            <div className="form-group">
-              <label>
-                <FontAwesomeIcon icon={faPhoneAlt} />
-                Téléphone
-              </label>
-              <input
-                type="tel"
-                value={settings.contact.phone}
-                onChange={(e) => updateSetting('contact', 'phone', e.target.value)}
-                placeholder="06 12 34 56 78"
-              />
-            </div>
-            <div className="form-group">
-              <label>
-                <FontAwesomeIcon icon={faEnvelope} />
-                Email
-              </label>
-              <input
-                type="email"
-                value={settings.contact.email}
-                onChange={(e) => updateSetting('contact', 'email', e.target.value)}
-                placeholder="contact@example.com"
-              />
-            </div>
+            <TextInput
+              label="Adresse"
+              name="contact-address"
+              value={settings.contact.address}
+              onChange={(e) => updateSetting('contact', 'address', e.target.value)}
+              placeholder="Adresse complète"
+            />
+            <TextInput
+              label="Téléphone"
+              name="contact-phone"
+              type="tel"
+              value={settings.contact.phone}
+              onChange={(e) => updateSetting('contact', 'phone', e.target.value)}
+              placeholder="06 12 34 56 78"
+            />
+            <TextInput
+              label="Email"
+              name="contact-email"
+              type="email"
+              value={settings.contact.email}
+              onChange={(e) => updateSetting('contact', 'email', e.target.value)}
+              placeholder="contact@example.com"
+            />
           </div>
         </motion.section>
 
@@ -231,30 +225,22 @@ const ManageSettings = () => {
             <h3>Réseaux sociaux</h3>
           </div>
           <div className="settings-form">
-            <div className="form-group">
-              <label>
-                <FontAwesomeIcon icon={faFacebookF} />
-                Facebook
-              </label>
-              <input
-                type="url"
-                value={settings.social.facebook}
-                onChange={(e) => updateSetting('social', 'facebook', e.target.value)}
-                placeholder="https://www.facebook.com/..."
-              />
-            </div>
-            <div className="form-group">
-              <label>
-                <FontAwesomeIcon icon={faInstagramBrand} />
-                Instagram
-              </label>
-              <input
-                type="url"
-                value={settings.social.instagram}
-                onChange={(e) => updateSetting('social', 'instagram', e.target.value)}
-                placeholder="https://www.instagram.com/..."
-              />
-            </div>
+            <TextInput
+              label="Facebook"
+              name="social-facebook"
+              type="url"
+              value={settings.social.facebook}
+              onChange={(e) => updateSetting('social', 'facebook', e.target.value)}
+              placeholder="https://www.facebook.com/..."
+            />
+            <TextInput
+              label="Instagram"
+              name="social-instagram"
+              type="url"
+              value={settings.social.instagram}
+              onChange={(e) => updateSetting('social', 'instagram', e.target.value)}
+              placeholder="https://www.instagram.com/..."
+            />
           </div>
         </motion.section>
 
@@ -267,27 +253,24 @@ const ManageSettings = () => {
         >
           <div className="section-header">
             <FontAwesomeIcon icon={faInfoCircle} />
-            <h3>Informations générales</h3>
+            <h3>Présentation du club</h3>
           </div>
           <div className="settings-form">
-            <div className="form-group">
-              <label>Nom du site</label>
-              <input
-                type="text"
-                value={settings.site.name}
-                onChange={(e) => updateSetting('site', 'name', e.target.value)}
-                placeholder="Nom du club"
-              />
-            </div>
-            <div className="form-group">
-              <label>Slogan / Tagline</label>
-              <input
-                type="text"
-                value={settings.site.tagline}
-                onChange={(e) => updateSetting('site', 'tagline', e.target.value)}
-                placeholder="Slogan du club"
-              />
-            </div>
+            <TextInput
+              label="Nom du site"
+              name="site-name"
+              value={settings.site.name}
+              onChange={(e) => updateSetting('site', 'name', e.target.value)}
+              placeholder="Nom du club"
+            />
+            <TextInput
+              label="Slogan du club"
+              name="site-tagline"
+              value={settings.site.tagline}
+              onChange={(e) => updateSetting('site', 'tagline', e.target.value)}
+              placeholder="Boxer ensemble pour mieux vivre ensemble"
+              example="Une courte phrase qui résume l'esprit du club"
+            />
           </div>
         </motion.section>
 
@@ -300,17 +283,26 @@ const ManageSettings = () => {
         >
           <FontAwesomeIcon icon={faInfoCircle} />
           <div>
-            <strong>Note importante :</strong>
+            <strong>À savoir :</strong>
             <p>
-              Les modifications seront visibles sur le site public après sauvegarde.
-              Pour une mise à jour immédiate, il peut être nécessaire de recharger la page.
-            </p>
-            <p className="note-success" style={{ color: '#28a745', marginTop: '0.5rem' }}>
-              ✅ Les paramètres sont maintenant synchronisés avec la base de données !
+              Après enregistrement, les visiteurs verront les nouvelles informations sur le site.
             </p>
           </div>
         </motion.div>
       </div>
+
+      <ConfirmDialog
+        isOpen={showResetConfirm}
+        onClose={() => setShowResetConfirm(false)}
+        onConfirm={confirmReset}
+        title="Réinitialiser les informations ?"
+        consequences={[
+          'Tous les champs reprendront les valeurs par défaut du club.',
+          'Vous devrez cliquer sur Enregistrer pour appliquer sur le site.',
+        ]}
+        confirmText="Réinitialiser"
+        danger
+      />
     </div>
   );
 };

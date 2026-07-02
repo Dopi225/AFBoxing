@@ -5,6 +5,7 @@ import { faFistRaised, faGraduationCap, faFileAlt, faDownload, faCheckCircle } f
 import Modal from './Modal';
 import { pricingApi } from '../services/apiService';
 import SectionHeader from './SectionHeader';
+import { ErrorState } from './PageStates';
 import '../style/Tarif.scss';
 
 const formatPrice = (price) => {
@@ -12,17 +13,6 @@ const formatPrice = (price) => {
   if (price.amount === 0) return 'Gratuit';
   if (typeof price.amount === 'number') return `${price.amount}€`;
   return String(price.amount);
-};
-
-/** Données de secours si l’API est indisponible (même structure que l’API groupée). */
-const FALLBACK_PRICING = {
-  boxing: {
-    educative: { label: 'Boxe Éducative', amount: 80, period: 'an', note: 'Licence comprise – Certificat médical obligatoire' },
-    loisir: { label: 'Boxe Loisir', amount: 120, period: 'an', note: 'Licence comprise – Certificat médical obligatoire' }
-  },
-  social: {
-    periscolaire: { label: 'Programme Social-Éducatif', amount: 30, period: 'an', note: 'Tarif dégressif selon quotient familial (CAF)' }
-  }
 };
 
 const BOXING_KEY_ORDER = ['educative', 'loisir', 'amateur', 'handiboxe', 'aeroboxe', 'therapie'];
@@ -62,7 +52,7 @@ const Tarif = () => {
   const [modalContent, setModalContent] = useState(null);
   const [pricing, setPricing] = useState(null);
   const [pricingLoading, setPricingLoading] = useState(true);
-  const [pricingStale, setPricingStale] = useState(false);
+  const [pricingError, setPricingError] = useState('');
 
   useEffect(() => {
     document.body.style.overflow = modalOpen ? 'hidden' : 'auto';
@@ -72,7 +62,7 @@ const Tarif = () => {
   useEffect(() => {
     const loadPricing = async () => {
       setPricingLoading(true);
-      setPricingStale(false);
+      setPricingError('');
       try {
         const data = await pricingApi.list();
         setPricing(data);
@@ -80,8 +70,8 @@ const Tarif = () => {
         if (import.meta.env.DEV) {
           console.warn('Error loading pricing:', err);
         }
-        setPricing(FALLBACK_PRICING);
-        setPricingStale(true);
+        setPricing(null);
+        setPricingError('Les tarifs sont temporairement indisponibles. Contactez le club pour connaître les montants à jour.');
       } finally {
         setPricingLoading(false);
       }
@@ -109,15 +99,15 @@ const Tarif = () => {
   const openModal = (type) => {
     if (!pricing) return;
 
-    const boxingRowsRaw = sortedCategoryEntries(pricing, 'boxing');
-    const boxingRows =
-      boxingRowsRaw.length > 0 ? boxingRowsRaw : sortedCategoryEntries(FALLBACK_PRICING, 'boxing');
-    const socialRowsRaw = sortedCategoryEntries(pricing, 'social');
-    const socialRows =
-      socialRowsRaw.length > 0 ? socialRowsRaw : sortedCategoryEntries(FALLBACK_PRICING, 'social');
+    const boxingRows = sortedCategoryEntries(pricing, 'boxing');
+    const socialRows = sortedCategoryEntries(pricing, 'social');
 
     const boxingFooterNote = aggregateFooterNote(boxingRows);
     const socialFooterNote = aggregateFooterNote(socialRows);
+
+    const emptyCategoryMsg = (
+      <p className="pricing-empty-category">Aucun tarif publié pour cette catégorie. Contactez-nous pour plus d&apos;informations.</p>
+    );
 
     if (type === 'boxe') {
       setModalTitle("Inscription Boxe Anglaise");
@@ -125,6 +115,7 @@ const Tarif = () => {
         <div className="modal-content">
           <div className="pricing-section">
             <h3><FontAwesomeIcon icon={faFistRaised} /> Tarifs</h3>
+            {boxingRows.length === 0 ? emptyCategoryMsg : (
             <div className="pricing-grid">
               {boxingRows.map(([key, item]) => (
                 <div
@@ -140,6 +131,7 @@ const Tarif = () => {
                 </div>
               ))}
             </div>
+            )}
             {boxingFooterNote && (
               <div className="pricing-note">
                 <FontAwesomeIcon icon={faCheckCircle} />
@@ -173,6 +165,7 @@ const Tarif = () => {
         <div className="modal-content">
           <div className="pricing-section">
             <h3><FontAwesomeIcon icon={faGraduationCap} /> Tarifs</h3>
+            {socialRows.length === 0 ? emptyCategoryMsg : (
             <div className="pricing-grid">
               {socialRows.map(([key, item]) => (
                 <div key={key} className="pricing-card">
@@ -185,6 +178,7 @@ const Tarif = () => {
                 </div>
               ))}
             </div>
+            )}
             {socialFooterNote && (
               <div className="pricing-note">
                 <FontAwesomeIcon icon={faCheckCircle} />
@@ -235,19 +229,22 @@ const Tarif = () => {
           <p className="section-subtitle">Sélectionnez une catégorie pour voir les tarifs, les documents et les étapes d’inscription.</p>
 
           {pricingLoading && (
-            <div className="public-inline-loading" style={{ justifyContent: 'center', display: 'flex', padding: '2rem 0' }} role="status" aria-live="polite">
+            <div className="tarif-loading" role="status" aria-live="polite">
               <span className="afb-spinner" aria-hidden />
               <span>Chargement des tarifs…</span>
             </div>
           )}
 
-          {pricingStale && !pricingLoading && (
-            <div className="public-banner public-banner--info" role="status">
-              Connexion au serveur impossible : les montants affichés correspondent aux tarifs indicatifs du club. Pour confirmation, contactez-nous.
-            </div>
+          {pricingError && !pricingLoading && (
+            <ErrorState
+              title="Tarifs indisponibles"
+              message={pricingError}
+              onRetry={() => window.location.reload()}
+            />
           )}
-          
-          <div className={`pricing-cards${pricingLoading ? ' pricing-cards--muted' : ''}`} aria-busy={pricingLoading}>
+
+          {!pricingLoading && !pricingError && (
+          <div className="pricing-cards" aria-busy={pricingLoading}>
             <div
               id="programme-boxe"
               className="pricing-card main-card"
@@ -261,7 +258,7 @@ const Tarif = () => {
                 <div className="price-highlight">
                   <span className="price-from">À partir de</span>
                   <div className="price">
-                    {startBoxing != null ? `${startBoxing}€` : pricing?.boxing?.educative ? formatPrice(pricing.boxing.educative) : '80€'}
+                    {startBoxing != null ? `${startBoxing}€` : '—'}
                     <span>/an</span>
                   </div>
                 </div>
@@ -290,7 +287,7 @@ const Tarif = () => {
                 <div className="price-highlight">
                   <span className="price-from">À partir de</span>
                   <div className="price">
-                    {startSocial != null ? `${startSocial}€` : pricing?.social?.periscolaire ? formatPrice(pricing.social.periscolaire) : '30€'}
+                    {startSocial != null ? `${startSocial}€` : '—'}
                     <span>/an</span>
                   </div>
                 </div>
@@ -306,6 +303,7 @@ const Tarif = () => {
               </div>
             </div>
           </div>
+          )}
         </div>
       </section>
 

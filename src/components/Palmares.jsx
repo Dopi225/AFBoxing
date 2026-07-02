@@ -5,12 +5,13 @@ import { OptimizedMotion, CardMotion } from './OptimizedMotion';
 import { useNavigate } from 'react-router-dom';
 import { palmaresApi } from '../services/apiService';
 import SectionHeader from './SectionHeader';
+import { EmptyState, ErrorState, InlineLoading } from './PageStates';
 import '../style/Palmares.scss';
 
 const Palmares = () => {
   const navigate = useNavigate();
   const [achievements, setAchievements] = React.useState([]);
-  const [loading, setLoading] = React.useState(false);
+  const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState('');
 
   const stats = React.useMemo(() => {
@@ -91,10 +92,12 @@ const Palmares = () => {
           </OptimizedMotion>
           
           <div className="achievements-grid">
-            {loading && <p>Chargement des palmarès...</p>}
-            {error && !loading && <p>{error}</p>}
+            {loading && <InlineLoading label="Chargement des palmarès…" />}
+            {error && !loading && (
+              <ErrorState message={error} onRetry={() => window.location.reload()} />
+            )}
             {!loading && !error && achievements.length === 0 && (
-              <p>Aucun palmarès enregistré pour le moment.</p>
+              <EmptyState title="Aucun palmarès enregistré pour le moment" />
             )}
             {!loading && !error && achievements.map((achievement, index) => (
               <CardMotion

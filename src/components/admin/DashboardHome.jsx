@@ -1,56 +1,59 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { motion } from 'framer-motion';
 import {
   faNewspaper,
-  faTrophy,
-  faCalendarAlt,
   faImages,
   faEnvelope,
-  faArrowRight,
   faPlus,
   faExclamationTriangle,
   faCheckCircle,
-  faClock,
   faSearch,
-  faCog,
-  faInfoCircle,
-  faFistRaised,
-  faMoneyBillWave
+  faChevronDown,
+  faChevronUp,
+  faCalendarAlt,
 } from '@fortawesome/free-solid-svg-icons';
-import { newsApi, palmaresApi, contactsApi, galleryApi, scheduleApi, authApi } from '../../services/apiService';
-import { useNotifications } from './NotificationSystem';
+import {
+  newsApi,
+  contactsApi,
+  galleryApi,
+  scheduleApi,
+  authApi,
+  activitiesApi,
+} from '../../services/apiService';
+import { useAdminNotify } from '../../hooks/useAdminNotify';
+import TaskCard from './guided/TaskCard';
 import './DashboardHome.scss';
 
 const DashboardHome = () => {
   const navigate = useNavigate();
-  const { error: notifyError } = useNotifications();
+  const { notifyError } = useAdminNotify('dashboard');
   const [stats, setStats] = useState({
     news: 0,
-    palmares: 0,
-    contacts: 0,
-    gallery: 0,
     unreadContacts: 0,
-    schedule: 0,
     recentNews: 0,
-    recentContacts: 0
+    schedule: 0,
+    activities: 0,
   });
-  const [healthStatus, setHealthStatus] = useState({
-    api: 'checking',
-    database: 'checking',
-    uploads: 'checking'
-  });
+  const [healthOk, setHealthOk] = useState(true);
   const [loading, setLoading] = useState(true);
   const [dashboardSearch, setDashboardSearch] = useState('');
   const [userRole, setUserRole] = useState('admin');
+  const [username, setUsername] = useState('');
+  const [healthExpanded, setHealthExpanded] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
-    void authApi.getMe().then((res) => {
-      const r = res?.user?.role;
-      if (!cancelled && (r === 'admin' || r === 'editor')) setUserRole(r);
-    }).catch(() => {});
+    void authApi
+      .getMe()
+      .then((res) => {
+        const u = res?.user;
+        if (!cancelled) {
+          if (u?.role === 'admin' || u?.role === 'editor') setUserRole(u.role);
+          if (u?.username) setUsername(u.username);
+        }
+      })
+      .catch(() => {});
     return () => {
       cancelled = true;
     };
@@ -60,45 +63,28 @@ const DashboardHome = () => {
     const loadStats = async () => {
       setLoading(true);
       try {
-        const [news, palmares, contacts, gallery, schedule] = await Promise.all([
+        const [news, contacts, schedule, activities] = await Promise.all([
           newsApi.list().catch(() => []),
-          palmaresApi.list().catch(() => []),
           contactsApi.list().catch(() => []),
-          galleryApi.list().catch(() => []),
-          scheduleApi.list().catch(() => [])
+          scheduleApi.list().catch(() => []),
+          activitiesApi.list().catch(() => []),
         ]);
 
         const now = new Date();
-        const lastWeek = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
         const lastMonth = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-
-        const recentNews = news.filter(n => new Date(n.date || n.created_at) >= lastMonth).length;
-        const recentContacts = contacts.filter(c => new Date(c.created_at) >= lastWeek).length;
+        const recentNews = news.filter((n) => new Date(n.date || n.created_at) >= lastMonth).length;
 
         setStats({
           news: news.length,
-          palmares: palmares.length,
-          contacts: contacts.length,
-          gallery: gallery.length,
-          unreadContacts: contacts.filter(c => !c.is_read && !c.read).length,
-          schedule: schedule.length,
+          unreadContacts: contacts.filter((c) => !c.is_read && !c.read).length,
           recentNews,
-          recentContacts
+          schedule: schedule.length,
+          activities: activities.filter((a) => a.enabled !== false).length,
         });
-
-        // Vérification santé système
-        setHealthStatus({
-          api: 'ok',
-          database: 'ok',
-          uploads: 'ok'
-        });
+        setHealthOk(true);
       } catch {
-        notifyError('Erreur lors du chargement des statistiques');
-        setHealthStatus({
-          api: 'error',
-          database: 'error',
-          uploads: 'unknown'
-        });
+        notifyError(null, 'Impossible de charger les informations du tableau de bord.');
+        setHealthOk(false);
       } finally {
         setLoading(false);
       }
@@ -112,86 +98,58 @@ const DashboardHome = () => {
   const submitDashboardSearch = (e) => {
     e.preventDefault();
     const q = dashboardSearch.trim();
-    if (q) {
-      navigate(`/admin/search?q=${encodeURIComponent(q)}`);
-    } else {
-      navigate('/admin/search');
-    }
+    navigate(q ? `/admin/search?q=${encodeURIComponent(q)}` : '/admin/search');
   };
 
-  const quickActionsAll = [
-    {
-      icon: faNewspaper,
-      label: 'Actualités',
-      path: '/admin/news',
-      count: stats.news,
-      color: 'var(--primary-red)'
-    },
-    {
-      icon: faTrophy,
-      label: 'Palmarès',
-      path: '/admin/palmares',
-      count: stats.palmares,
-      color: 'var(--primary-red-dark)'
-    },
-    {
-      icon: faCalendarAlt,
-      label: 'Planning',
-      path: '/admin/schedule',
-      color: 'var(--primary-black)'
-    },
-    {
-      icon: faImages,
-      label: 'Galerie',
-      path: '/admin/gallery',
-      count: stats.gallery,
-      color: 'var(--primary-red)'
-    },
-    {
-      icon: faEnvelope,
-      label: 'Contacts',
-      path: '/admin/contacts',
-      adminOnly: true,
-      count: stats.unreadContacts,
-      badge: stats.unreadContacts > 0,
-      color: 'var(--primary-red-dark)'
-    },
-    {
-      icon: faMoneyBillWave,
-      label: 'Tarifs',
-      path: '/admin/pricing',
-      adminOnly: true,
-      color: 'var(--primary-black)'
-    },
-    {
-      icon: faFistRaised,
-      label: 'Activités',
-      path: '/admin/activities',
-      color: 'var(--primary-red)'
-    }
-  ];
-
-  const quickActions = quickActionsAll.filter((a) => !a.adminOnly || userRole === 'admin');
-
-  const healthItems = [
-    { label: 'API', status: healthStatus.api },
-    { label: 'Base de données', status: healthStatus.database },
-    { label: 'Uploads', status: healthStatus.uploads }
-  ];
-
-  const alerts = [];
+  const tasks = [];
   if (userRole === 'admin' && stats.unreadContacts > 0) {
-    alerts.push({
-      type: 'info',
-      message: `${stats.unreadContacts} nouveau${stats.unreadContacts > 1 ? 'x' : ''} message${stats.unreadContacts > 1 ? 's' : ''} non lu${stats.unreadContacts > 1 ? 's' : ''}`,
-      action: () => navigate('/admin/contacts?filter=unread')
+    tasks.push({
+      title: `${stats.unreadContacts} message${stats.unreadContacts > 1 ? 's' : ''} non lu${stats.unreadContacts > 1 ? 's' : ''}`,
+      description: 'Des visiteurs ont écrit au club. Prenez le temps de les lire.',
+      actionLabel: 'Lire les messages',
+      variant: 'info',
+      onClick: () => navigate('/admin/contacts?filter=unread'),
     });
   }
   if (stats.recentNews === 0 && stats.news > 0) {
-    alerts.push({
-      type: 'warning',
-      message: 'Aucune actualité récente (30 derniers jours)',
-      action: () => navigate('/admin/news')
+    tasks.push({
+      title: 'Aucune actualité récente',
+      description: "Vous n'avez pas publié d'actualité depuis 30 jours.",
+      actionLabel: 'Publier une actualité',
+      variant: 'warning',
+      onClick: () => navigate('/admin/news?action=add'),
+    });
+  }
+  if (stats.activities > 0 && stats.schedule === 0) {
+    tasks.push({
+      title: 'Planning vide',
+      description: 'Vos activités existent mais le planning n\'a pas encore de créneaux.',
+      actionLabel: 'Compléter le planning',
+      variant: 'warning',
+      onClick: () => navigate('/admin/schedule'),
+    });
+  }
+  if (stats.news === 0) {
+    tasks.push({
+      title: 'Première actualité à publier',
+      description: 'Commencez par annoncer une nouvelle du club sur le site.',
+      actionLabel: 'Publier une actualité',
+      variant: 'info',
+      onClick: () => navigate('/admin/news?action=add'),
+    });
+  }
+
+  const shortcuts = [
+    { label: 'Actualités', path: '/admin/news', icon: faNewspaper },
+    { label: 'Galerie', path: '/admin/gallery', icon: faImages },
+    { label: 'Planning', path: '/admin/schedule', icon: faCalendarAlt },
+  ];
+  if (userRole === 'admin') {
+    shortcuts.push({
+      label: 'Messages',
+      path: '/admin/contacts',
+      icon: faEnvelope,
+      badge: stats.unreadContacts,
     });
   }
 
@@ -200,193 +158,115 @@ const DashboardHome = () => {
       <div className="dashboard-home">
         <div className="admin-state--loading" role="status" aria-live="polite">
           <span className="admin-state__spinner" aria-hidden />
-          <p>Chargement du tableau de bord…</p>
+          <p>Chargement de votre espace…</p>
         </div>
       </div>
     );
   }
- 
+
   return (
     <div className="dashboard-home">
-      <motion.div
-        className="dashboard-header"
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-      >
+      <header className="dashboard-greeting">
         <div>
-          <h2>Tableau de bord</h2>
-          <p>
-            Vue d&apos;ensemble et contrôle du site
-            {userRole === 'editor' && (
-              <span className="dashboard-header__role"> — accès éditeur (contenu public)</span>
-            )}
+          <h2>Bonjour{username ? `, ${username}` : ''} !</h2>
+          <p className="dashboard-greeting__sub">
+            Voici ce qui demande votre attention aujourd&apos;hui.
           </p>
         </div>
-        <div className="dashboard-header__actions">
-          <form className="dashboard-header__search" onSubmit={submitDashboardSearch} role="search">
-            <label htmlFor="dashboard-global-search" className="visually-hidden">
-              Rechercher dans tout le contenu
-            </label>
-            <input
-              id="dashboard-global-search"
-              type="search"
-              className="dashboard-header__search-input"
-              placeholder="Rechercher…"
-              value={dashboardSearch}
-              onChange={(e) => setDashboardSearch(e.target.value)}
-              autoComplete="off"
-              enterKeyHint="search"
-            />
-            <button type="submit" className="btn-icon btn-icon--search" title="Lancer la recherche" aria-label="Lancer la recherche">
-              <FontAwesomeIcon icon={faSearch} />
-            </button>
-          </form>
-          <button
-            type="button"
-            className="btn-icon"
-            onClick={() => navigate('/admin/settings')}
-            title="Paramètres"
-            aria-label="Paramètres"
-          >
-            <FontAwesomeIcon icon={faCog} />
+        <form className="dashboard-header__search" onSubmit={submitDashboardSearch} role="search">
+          <label htmlFor="dashboard-global-search" className="visually-hidden">
+            Rechercher sur le site
+          </label>
+          <input
+            id="dashboard-global-search"
+            type="search"
+            className="dashboard-header__search-input"
+            placeholder="Rechercher une actualité, un nom…"
+            value={dashboardSearch}
+            onChange={(e) => setDashboardSearch(e.target.value)}
+            autoComplete="off"
+            enterKeyHint="search"
+          />
+          <button type="submit" className="btn-icon btn-icon--search" aria-label="Lancer la recherche">
+            <FontAwesomeIcon icon={faSearch} />
           </button>
-        </div>
-      </motion.div>
+        </form>
+      </header>
 
-      {/* Alertes et statut système */}
-      {alerts.length > 0 && (
-        <motion.div
-          className="dashboard-alerts"
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-        >
-          {alerts.map((alert, idx) => (
-            <div
-              key={idx}
-              className={`alert alert--${alert.type}`}
-              onClick={alert.action}
-            >
-              <FontAwesomeIcon icon={alert.type === 'warning' ? faExclamationTriangle : faInfoCircle} />
-              <span>{alert.message}</span>
-              <FontAwesomeIcon icon={faArrowRight} />
-            </div>
-          ))}
-        </motion.div>
+      {tasks.length > 0 ? (
+        <section className="dashboard-tasks" aria-labelledby="dashboard-tasks-title">
+          <h3 id="dashboard-tasks-title">À faire</h3>
+          <div className="dashboard-tasks__list">
+            {tasks.map((task, i) => (
+              <TaskCard key={i} {...task} />
+            ))}
+          </div>
+        </section>
+      ) : (
+        <section className="dashboard-all-clear" role="status">
+          <FontAwesomeIcon icon={faCheckCircle} />
+          <p>Tout est à jour. Vous pouvez utiliser les actions ci-dessous si besoin.</p>
+        </section>
       )}
 
-      {/* Statut santé système */}
-      <motion.div
-        className="health-status"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1 }}
-      >
-        <h3>État du système</h3>
-        <div className="health-items">
-          {healthItems.map((item, idx) => (
-            <div key={idx} className={`health-item health-item--${item.status}`}>
-              <FontAwesomeIcon icon={item.status === 'ok' ? faCheckCircle : faExclamationTriangle} />
-              <span>{item.label}</span>
-              <span className="health-status-badge">{item.status === 'ok' ? 'OK' : item.status === 'error' ? 'Erreur' : 'Vérification...'}</span>
-            </div>
-          ))}
-        </div>
-      </motion.div>
-
-      {/* Statistiques principales */}
-      <div className="stats-grid">
-        {quickActions.map((action, index) => (
-          <motion.div
-            key={action.path}
-            className="stat-card"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.1 }}
-            onClick={() => navigate(action.path)}
-            whileHover={{ scale: 1.02, y: -3 }}
-          >
-            <div className="stat-icon" style={{ background: action.color }}>
-              <FontAwesomeIcon icon={action.icon} />
-            </div>
-            <div className="stat-content">
-              <h3>{action.label}</h3>
-              {action.count !== undefined && (
-                <div className="stat-number">{action.count}</div>
-              )}
-              {action.badge && (
-                <span className="stat-badge">{action.count} non lus</span>
-              )}
-            </div>
-            <FontAwesomeIcon icon={faArrowRight} className="stat-arrow" />
-          </motion.div>
-        ))}
-      </div>
-
-      {/* Statistiques secondaires */}
-      <motion.div
-        className="secondary-stats"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.3 }}
-      >
-        <div className="secondary-stat">
-          <FontAwesomeIcon icon={faClock} />
-          <div>
-            <span className="secondary-stat__value">{stats.recentNews}</span>
-            <span className="secondary-stat__label">Actualités ce mois</span>
-          </div>
-        </div>
-        <div className="secondary-stat">
-          <FontAwesomeIcon icon={faEnvelope} />
-          <div>
-            <span className="secondary-stat__value">{stats.recentContacts}</span>
-            <span className="secondary-stat__label">Contacts cette semaine</span>
-          </div>
-        </div>
-        <div className="secondary-stat">
-          <FontAwesomeIcon icon={faCalendarAlt} />
-          <div>
-            <span className="secondary-stat__value">{stats.schedule}</span>
-            <span className="secondary-stat__label">Créneaux horaires</span>
-          </div>
-        </div>
-      </motion.div>
-
-      {/* Actions rapides */}
-      <motion.div
-        className="quick-actions"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.4 }}
-      >
-        <h3>Actions rapides</h3>
-        <div className="actions-grid">
-          <button
-            className="action-btn"
-            onClick={() => navigate('/admin/news?action=add')}
-          >
+      <section className="dashboard-frequent" aria-labelledby="dashboard-frequent-title">
+        <h3 id="dashboard-frequent-title">Actions fréquentes</h3>
+        <div className="dashboard-frequent__grid">
+          <button type="button" className="action-btn action-btn--large" onClick={() => navigate('/admin/news?action=add')}>
             <FontAwesomeIcon icon={faPlus} />
-            <span>Ajouter une actualité</span>
+            <span>Publier une actualité</span>
           </button>
-          <button
-            className="action-btn"
-            onClick={() => navigate('/admin/palmares?action=add')}
-          >
-            <FontAwesomeIcon icon={faPlus} />
-            <span>Ajouter un palmarès</span>
-          </button>
-          <button
-            className="action-btn"
-            onClick={() => navigate('/admin/gallery?action=add')}
-          >
+          <button type="button" className="action-btn action-btn--large" onClick={() => navigate('/admin/gallery?action=add')}>
             <FontAwesomeIcon icon={faPlus} />
             <span>Ajouter une photo</span>
           </button>
+          {userRole === 'admin' ? (
+            <button type="button" className="action-btn action-btn--large" onClick={() => navigate('/admin/contacts')}>
+              <FontAwesomeIcon icon={faEnvelope} />
+              <span>Voir les messages</span>
+            </button>
+          ) : null}
         </div>
-      </motion.div>
+      </section>
+
+      <section className="dashboard-shortcuts" aria-labelledby="dashboard-shortcuts-title">
+        <h3 id="dashboard-shortcuts-title">Accès rapide</h3>
+        <div className="dashboard-shortcuts__grid">
+          {shortcuts.map((s) => (
+            <button key={s.path} type="button" className="shortcut-card" onClick={() => navigate(s.path)}>
+              <FontAwesomeIcon icon={s.icon} />
+              <span>{s.label}</span>
+              {s.badge > 0 ? <span className="shortcut-card__badge">{s.badge}</span> : null}
+            </button>
+          ))}
+        </div>
+      </section>
+
+      {userRole === 'admin' ? (
+        <section className="dashboard-health">
+          <button
+            type="button"
+            className="dashboard-health__toggle"
+            onClick={() => setHealthExpanded((v) => !v)}
+            aria-expanded={healthExpanded}
+          >
+            <span>
+              <FontAwesomeIcon icon={healthOk ? faCheckCircle : faExclamationTriangle} />
+              {healthOk
+                ? 'Le site fonctionne correctement'
+                : 'Un problème technique a été détecté — contactez le support informatique'}
+            </span>
+            <FontAwesomeIcon icon={healthExpanded ? faChevronUp : faChevronDown} aria-hidden />
+          </button>
+          {healthExpanded ? (
+            <p className="dashboard-health__detail">
+              Si le site public ne s&apos;affiche pas correctement, contactez la personne qui gère l&apos;hébergement du club.
+            </p>
+          ) : null}
+        </section>
+      ) : null}
     </div>
   );
 };
 
 export default DashboardHome;
-

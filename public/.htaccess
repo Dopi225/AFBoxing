@@ -1,7 +1,14 @@
+# Perf prod : activer si possible mod_deflate (gzip), mod_brotli (brotli), mod_expires, mod_headers, mod_rewrite.
+# Brotli : souvent via « a2enmod brotli » ou équivalent hébergeur (sinon gzip seul suffit).
+
 <IfModule mod_headers.c>
   # Sécurité/Perf basiques
   Header always set X-Content-Type-Options "nosniff"
   Header always set Referrer-Policy "strict-origin-when-cross-origin"
+  Header always set X-Frame-Options "DENY"
+  Header always set Permissions-Policy "geolocation=(self), microphone=(), camera=()"
+  Header always set X-Robots-Tag "noindex, nofollow" "expr=%{REQUEST_URI} =~ m#^/(admin)(/.*)?$#"
+  Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains; preload" "expr=%{HTTPS} == 'on' && %{HTTP_HOST} =~ m#^(www\\.)?afboxingclub86\\.com$#"
 </IfModule>
 
 # NOTE:
@@ -10,13 +17,21 @@
 # au lieu d'atteindre le backend (JSON).
 
 <IfModule mod_deflate.c>
-  # GZIP (texte)
-  AddOutputFilterByType DEFLATE text/plain text/css text/javascript application/javascript application/json application/xml image/svg+xml
+  # GZIP — types fréquents (fonts + JSON + SVG)
+  AddOutputFilterByType DEFLATE text/plain text/html text/css text/xml
+  AddOutputFilterByType DEFLATE text/javascript application/javascript application/x-javascript
+  AddOutputFilterByType DEFLATE application/json application/xml application/xhtml+xml application/rss+xml
+  AddOutputFilterByType DEFLATE image/svg+xml
+  AddOutputFilterByType DEFLATE font/ttf font/otf font/woff font/woff2 application/font-woff application/font-woff2
 </IfModule>
 
 <IfModule mod_brotli.c>
-  # Brotli (si activé sur Apache)
-  AddOutputFilterByType BROTLI_COMPRESS text/plain text/css text/javascript application/javascript application/json application/xml image/svg+xml
+  # Brotli (prioritaire si mod_brotli chargé — meilleure compression que gzip)
+  AddOutputFilterByType BROTLI_COMPRESS text/plain text/html text/css text/xml
+  AddOutputFilterByType BROTLI_COMPRESS text/javascript application/javascript application/x-javascript
+  AddOutputFilterByType BROTLI_COMPRESS application/json application/xml application/xhtml+xml application/rss+xml
+  AddOutputFilterByType BROTLI_COMPRESS image/svg+xml
+  AddOutputFilterByType BROTLI_COMPRESS font/ttf font/otf font/woff font/woff2 application/font-woff application/font-woff2
 </IfModule>
 
 <IfModule mod_expires.c>
@@ -29,13 +44,16 @@
   ExpiresByType image/png "access plus 1 year"
   ExpiresByType image/svg+xml "access plus 1 year"
   ExpiresByType video/mp4 "access plus 1 year"
+  ExpiresByType font/woff2 "access plus 1 year"
+  ExpiresByType font/woff "access plus 1 year"
+  ExpiresByType font/ttf "access plus 1 year"
   # HTML court (pour que les updates arrivent vite)
   ExpiresByType text/html "access plus 0 seconds"
 </IfModule>
 
 <IfModule mod_headers.c>
-  # Cache-Control cohérent
-  <FilesMatch "\.(css|js|mjs|map|png|jpe?g|gif|svg|webp|mp4)$">
+  # Cache long + immutable : noms de fichiers Vite avec hash (dont tout /assets/*.js, *.css)
+  <FilesMatch "\.(css|js|mjs|map|png|jpe?g|gif|svg|webp|mp4|woff2?|ttf|eot|ico)$">
     Header set Cache-Control "public, max-age=31536000, immutable"
   </FilesMatch>
   <FilesMatch "\.(html)$">
@@ -222,82 +240,7 @@ Options -Indexes
 #     </FilesMatch>
 # </IfModule>
 
-# ============================================
-# Compression Brotli (prioritaire si disponible)
-# ============================================
-# <IfModule mod_brotli.c>
-#     # Compresser HTML, CSS, JavaScript, Text, XML et fonts avec Brotli
-#     AddOutputFilterByType BROTLI_COMPRESS text/html
-#     AddOutputFilterByType BROTLI_COMPRESS text/css
-#     AddOutputFilterByType BROTLI_COMPRESS text/javascript
-#     AddOutputFilterByType BROTLI_COMPRESS text/xml
-#     AddOutputFilterByType BROTLI_COMPRESS text/plain
-#     AddOutputFilterByType BROTLI_COMPRESS application/xml
-#     AddOutputFilterByType BROTLI_COMPRESS application/xhtml+xml
-#     AddOutputFilterByType BROTLI_COMPRESS application/rss+xml
-#     AddOutputFilterByType BROTLI_COMPRESS application/javascript
-#     AddOutputFilterByType BROTLI_COMPRESS application/x-javascript
-#     AddOutputFilterByType BROTLI_COMPRESS application/json
-#     AddOutputFilterByType BROTLI_COMPRESS image/svg+xml
-#     AddOutputFilterByType BROTLI_COMPRESS font/ttf
-#     AddOutputFilterByType BROTLI_COMPRESS font/otf
-#     AddOutputFilterByType BROTLI_COMPRESS font/woff
-#     AddOutputFilterByType BROTLI_COMPRESS font/woff2
-# </IfModule>
-
-# ============================================
-# Compression GZIP (fallback si Brotli non disponible)
-# ============================================
-# <IfModule mod_deflate.c>
-#     # Compresser HTML, CSS, JavaScript, Text, XML et fonts
-#     AddOutputFilterByType DEFLATE text/html
-#     AddOutputFilterByType DEFLATE text/css
-#     AddOutputFilterByType DEFLATE text/javascript
-#     AddOutputFilterByType DEFLATE text/xml
-#     AddOutputFilterByType DEFLATE text/plain
-#     AddOutputFilterByType DEFLATE application/xml
-#     AddOutputFilterByType DEFLATE application/xhtml+xml
-#     AddOutputFilterByType DEFLATE application/rss+xml
-#     AddOutputFilterByType DEFLATE application/javascript
-#     AddOutputFilterByType DEFLATE application/x-javascript
-#     AddOutputFilterByType DEFLATE application/json
-#     AddOutputFilterByType DEFLATE image/svg+xml
-#     AddOutputFilterByType DEFLATE font/ttf
-#     AddOutputFilterByType DEFLATE font/otf
-#     AddOutputFilterByType DEFLATE font/woff
-#     AddOutputFilterByType DEFLATE font/woff2
-# </IfModule>
-
-# ============================================
-# Cache des fichiers statiques
-# ============================================
-<IfModule mod_expires.c>
-    ExpiresActive On
-    
-    # Images
-    ExpiresByType image/jpeg "access plus 1 year"
-    ExpiresByType image/jpg "access plus 1 year"
-    ExpiresByType image/png "access plus 1 year"
-    ExpiresByType image/gif "access plus 1 year"
-    ExpiresByType image/webp "access plus 1 year"
-    ExpiresByType image/svg+xml "access plus 1 year"
-    ExpiresByType image/x-icon "access plus 1 year"
-    
-    # CSS et JavaScript
-    ExpiresByType text/css "access plus 1 month"
-    ExpiresByType text/javascript "access plus 1 month"
-    ExpiresByType application/javascript "access plus 1 month"
-    ExpiresByType application/x-javascript "access plus 1 month"
-    
-    # Fonts
-    ExpiresByType font/ttf "access plus 1 year"
-    ExpiresByType font/otf "access plus 1 year"
-    ExpiresByType font/woff "access plus 1 year"
-    ExpiresByType font/woff2 "access plus 1 year"
-    
-    # HTML
-    ExpiresByType text/html "access plus 0 seconds"
-</IfModule>
+# (Compression gzip/brotli + Expires : voir en tête de ce fichier — doublons supprimés pour éviter les règles contradictoires.)
 
 # ============================================
 # Définir les types MIME corrects

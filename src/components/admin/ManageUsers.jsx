@@ -1,11 +1,17 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faUserShield, faTrash, faPen, faPlus, faTimes } from '@fortawesome/free-solid-svg-icons';
+import { faTrash, faPen, faPlus, faTimes } from '@fortawesome/free-solid-svg-icons';
 import { motion } from 'framer-motion';
 import { authApi, usersApi } from '../../services/apiService';
-import { useNotifications } from './NotificationSystem';
+import { useAdminNotify } from '../../hooks/useAdminNotify';
+import { ROLES, NAV_ITEMS } from '../../constants/adminCopy';
+import { adminBreadcrumbs } from '../../utils/adminBreadcrumbs';
 import ConfirmDialog from './ConfirmDialog';
+import DataTable from '../ui/DataTable';
+import PageHeader from '../ui/PageHeader';
+import { LoadingState } from '../PageStates';
+import { TextInput, SelectField } from '../ui/FormField';
 import './ManageUsers.scss';
 
 const emptyForm = {
@@ -16,7 +22,7 @@ const emptyForm = {
 
 const ManageUsers = () => {
   const navigate = useNavigate();
-  const { success, error: notifyError } = useNotifications();
+  const { notifySuccess, notifyError } = useAdminNotify('users');
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -82,19 +88,19 @@ const ManageUsers = () => {
           payload.password = form.password;
         }
         await usersApi.update(editingId, payload);
-        success('Utilisateur mis à jour.');
+        notifySuccess('Compte enregistré.');
       } else {
         await usersApi.create({
           username: form.username.trim(),
           password: form.password,
           role: form.role
         });
-        success('Utilisateur créé.');
+        notifySuccess('Compte créé.');
       }
       resetForm();
       loadUsers();
     } catch (err) {
-      notifyError(err.message || 'Enregistrement impossible.');
+      notifyError(err, 'Impossible d\'enregistrer ce compte.');
     }
   };
 
@@ -108,14 +114,46 @@ const ManageUsers = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  const userColumns = useMemo(() => [
+    { key: 'username', label: 'Identifiant' },
+    {
+      key: 'role',
+      label: 'Rôle',
+      render: (u) => <span className={`role-pill role-pill--${u.role}`}>{ROLES[u.role]?.label || u.role}</span>
+    },
+    {
+      key: 'created_at',
+      label: 'Créé le',
+      render: (u) => (u.created_at ? new Date(u.created_at).toLocaleDateString('fr-FR') : '—')
+    },
+    {
+      key: 'actions',
+      label: 'Actions',
+      render: (u) => (
+        <div className="actions">
+          <button type="button" className="btn-edit" onClick={() => startEdit(u)}>Modifier</button>
+          <button
+            type="button"
+            className="btn-delete"
+            disabled={Number(u.id) === Number(myId)}
+            title={Number(u.id) === Number(myId) ? 'Vous ne pouvez pas supprimer votre propre compte' : 'Supprimer'}
+            onClick={() => { setDeleteTarget(u); setShowDeleteConfirm(true); }}
+          >
+            Supprimer
+          </button>
+        </div>
+      )
+    }
+  ], [myId]);
+
   const confirmDeleteUser = async () => {
-    if (!deleteTarget) return;
+    if (!deleteTarget?.id) return;
     try {
-      await usersApi.remove(deleteTarget);
-      success('Utilisateur supprimé.');
+      await usersApi.remove(deleteTarget.id);
+      notifySuccess('Compte supprimé.');
       loadUsers();
     } catch (err) {
-      notifyError(err.message || 'Suppression impossible.');
+      notifyError(err, 'Impossible de supprimer ce compte.');
     } finally {
       setDeleteTarget(null);
     }
@@ -123,15 +161,11 @@ const ManageUsers = () => {
 
   return (
     <div className="manage-users">
-      <div className="page-header">
-        <h2>
-          <FontAwesomeIcon icon={faUserShield} aria-hidden />
-          <span>Utilisateurs staff</span>
-        </h2>
-        <p className="page-header__hint">
-          Comptes administrateur ou éditeur. Le dernier administrateur ne peut pas être supprimé ni rétrogradé.
-        </p>
-      </div>
+      <PageHeader
+        title="Comptes d'accès"
+        subtitle="Créez les comptes des personnes qui gèrent le site. Chaque compte a un identifiant et un mot de passe."
+        breadcrumbs={adminBreadcrumbs(NAV_ITEMS.users)}
+      />
 
       <motion.section
         className="user-form-card modern-card"
@@ -140,46 +174,39 @@ const ManageUsers = () => {
       >
         <h3>{editingId ? 'Modifier l’utilisateur' : 'Nouvel utilisateur'}</h3>
         <form onSubmit={handleSubmit} className="user-form">
-          <div className="form-row">
-            <label htmlFor="mu-username">Nom d’utilisateur</label>
-            <input
-              id="mu-username"
-              type="text"
-              autoComplete="username"
-              value={form.username}
-              onChange={(ev) => setForm((f) => ({ ...f, username: ev.target.value }))}
-              required
-              minLength={2}
-              maxLength={50}
-            />
-          </div>
-          <div className="form-row">
-            <label htmlFor="mu-password">
-              {editingId ? 'Nouveau mot de passe (optionnel)' : 'Mot de passe'}
-            </label>
-            <input
-              id="mu-password"
-              type="password"
-              autoComplete={editingId ? 'new-password' : 'new-password'}
-              value={form.password}
-              onChange={(ev) => setForm((f) => ({ ...f, password: ev.target.value }))}
-              required={!editingId}
-              minLength={editingId ? 0 : 8}
-            />
-          </div>
-          <div className="form-row">
-            <label htmlFor="mu-role">Rôle</label>
-            <select
-              id="mu-role"
-              value={form.role}
-              onChange={(ev) => setForm((f) => ({ ...f, role: ev.target.value }))}
-            >
-              <option value="admin">Administrateur</option>
-              <option value="editor">Éditeur</option>
-            </select>
-          </div>
+          <TextInput
+            label="Identifiant"
+            name="mu-username"
+            autoComplete="username"
+            value={form.username}
+            onChange={(ev) => setForm((f) => ({ ...f, username: ev.target.value }))}
+            required
+            minLength={2}
+            maxLength={50}
+          />
+          <TextInput
+            label={editingId ? 'Nouveau mot de passe (optionnel)' : 'Mot de passe'}
+            name="mu-password"
+            type="password"
+            autoComplete="new-password"
+            value={form.password}
+            onChange={(ev) => setForm((f) => ({ ...f, password: ev.target.value }))}
+            required={!editingId}
+            minLength={editingId ? 0 : 8}
+          />
+          <SelectField
+            label="Rôle"
+            name="mu-role"
+            value={form.role}
+            onChange={(ev) => setForm((f) => ({ ...f, role: ev.target.value }))}
+            options={[
+              { value: 'admin', label: 'Responsable (accès complet)' },
+              { value: 'editor', label: 'Éditeur de contenu' },
+            ]}
+            help={`Responsable : ${ROLES.admin.help}. Éditeur : ${ROLES.editor.help}.`}
+          />
           <div className="form-actions">
-            <button type="submit" className="btn-primary">
+            <button type="submit" className="btn btn-primary">
               <FontAwesomeIcon icon={editingId ? faPen : faPlus} aria-hidden />
               {editingId ? 'Enregistrer' : 'Créer'}
             </button>
@@ -194,49 +221,18 @@ const ManageUsers = () => {
       </motion.section>
 
       <section className="users-table-wrap modern-card" aria-busy={loading}>
-        {loading && <p className="muted">Chargement…</p>}
-        {error && !loading && <p className="error-text">{error}</p>}
-        {!loading && !error && (
-          <table className="users-table">
-            <caption className="sr-only">Liste des comptes staff</caption>
-            <thead>
-              <tr>
-                <th scope="col">Utilisateur</th>
-                <th scope="col">Rôle</th>
-                <th scope="col">Créé le</th>
-                <th scope="col">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {users.map((u) => (
-                <tr key={u.id}>
-                  <td>{u.username}</td>
-                  <td>
-                    <span className={`role-pill role-pill--${u.role}`}>{u.role}</span>
-                  </td>
-                  <td>{u.created_at ? new Date(u.created_at).toLocaleDateString('fr-FR') : '—'}</td>
-                  <td className="actions">
-                    <button type="button" className="btn-icon" onClick={() => startEdit(u)} aria-label={`Modifier ${u.username}`}>
-                      <FontAwesomeIcon icon={faPen} />
-                    </button>
-                    <button
-                      type="button"
-                      className="btn-icon danger"
-                      disabled={Number(u.id) === Number(myId)}
-                      title={Number(u.id) === Number(myId) ? 'Vous ne pouvez pas supprimer votre compte ici' : 'Supprimer'}
-                      onClick={() => {
-                        setDeleteTarget(u.id);
-                        setShowDeleteConfirm(true);
-                      }}
-                      aria-label={`Supprimer ${u.username}`}
-                    >
-                      <FontAwesomeIcon icon={faTrash} />
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        {loading && <LoadingState label="Chargement…" />}
+        {error && !loading && <div className="admin-state--error" role="alert">{error}</div>}
+        {!loading && !error && users.length === 0 && (
+          <div className="empty-state">Aucun utilisateur enregistré.</div>
+        )}
+        {!loading && !error && users.length > 0 && (
+          <DataTable
+            columns={userColumns}
+            data={users}
+            rowKey="id"
+            className="users-table"
+          />
         )}
       </section>
 
@@ -247,8 +243,9 @@ const ManageUsers = () => {
           setDeleteTarget(null);
         }}
         onConfirm={confirmDeleteUser}
-        title="Supprimer cet utilisateur ?"
-        message="Cette action est définitive."
+        title="Supprimer ce compte ?"
+        itemLabel={deleteTarget?.username}
+        consequences={['La personne ne pourra plus se connecter.', 'Cette action ne peut pas être annulée.']}
         type="danger"
         danger
         confirmText="Supprimer"

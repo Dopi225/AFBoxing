@@ -8,10 +8,32 @@ test.describe('Admin (optionnel)', () => {
 
   test('connexion admin et tableau de bord', async ({ page }) => {
     await page.goto('/admin/login');
-    await page.getByPlaceholder('admin').fill(adminUser);
-    await page.getByPlaceholder('••••••••').fill(adminPass);
+    await page.getByLabel('Identifiant').fill(adminUser);
+    await page.getByLabel('Mot de passe').fill(adminPass);
     await page.getByRole('button', { name: /se connecter/i }).click();
     await expect(page).toHaveURL(/\/admin\/(dashboard)?/i, { timeout: 15_000 });
-    await expect(page.getByRole('heading', { name: /tableau de bord|dashboard/i })).toBeVisible({ timeout: 10_000 });
+    await expect(page.getByRole('heading', { name: /bonjour|tableau de bord/i })).toBeVisible({ timeout: 10_000 });
+  });
+
+  test('accueil affiche les actions fréquentes', async ({ page }) => {
+    await page.goto('/admin/login');
+    await page.getByLabel('Identifiant').fill(adminUser);
+    await page.getByLabel('Mot de passe').fill(adminPass);
+    await page.getByRole('button', { name: /se connecter/i }).click();
+    await expect(page).toHaveURL(/\/admin\/(dashboard)?/i, { timeout: 15_000 });
+    await expect(page.getByRole('heading', { name: /actions fréquentes/i })).toBeVisible();
+    await expect(page.getByRole('button', { name: /publier une actualité/i })).toBeVisible();
+  });
+
+  test('navigation actualités avec fil d\'Ariane', async ({ page }) => {
+    await page.goto('/admin/login');
+    await page.getByLabel('Identifiant').fill(adminUser);
+    await page.getByLabel('Mot de passe').fill(adminPass);
+    await page.getByRole('button', { name: /se connecter/i }).click();
+    await expect(page).toHaveURL(/\/admin\/(dashboard)?/i, { timeout: 15_000 });
+    await page.goto('/admin/news');
+    await expect(page.getByRole('navigation', { name: /fil d'ariane/i })).toBeVisible();
+    await expect(page.getByRole('heading', { name: /^actualités$/i })).toBeVisible();
+    await expect(page.getByRole('button', { name: /publier une actualité/i })).toBeVisible();
   });
 });

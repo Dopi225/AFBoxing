@@ -1,9 +1,17 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faSave, faPlus, faTrash, faClock } from '@fortawesome/free-solid-svg-icons';
-import { motion } from 'framer-motion';
+import { faSave, faPlus, faTrash, faCalendarAlt } from '@fortawesome/free-solid-svg-icons';
 import { scheduleApi, activitiesApi } from '../../services/apiService';
-import { useNotifications } from './NotificationSystem';
+import { useAdminNotify } from '../../hooks/useAdminNotify';
+import ConfirmDialog from './ConfirmDialog';
+import { LoadingState, ErrorState } from '../PageStates';
+import PageHeader from '../ui/PageHeader';
+import { TextInput, SelectField } from '../ui/FormField';
+import HelpTip from './guided/HelpTip';
+import { EmptyStateGuided } from './guided';
+import { adminBreadcrumbs } from '../../utils/adminBreadcrumbs';
+import { NAV_ITEMS } from '../../constants/adminCopy';
 import './ManageSchedule.scss';
 
 const defaultSchedule = [
@@ -13,36 +21,31 @@ const defaultSchedule = [
   { day: 'Jeudi', activities: [] },
   { day: 'Vendredi', activities: [] },
   { day: 'Samedi', activities: [] },
-  { day: 'Dimanche', activities: [] }
+  { day: 'Dimanche', activities: [] },
 ];
 
-/** Associe une ligne API planning à une activité (par activityId ou par libellé). */
 const resolveSlotFromApi = (item, activityList) => {
   const label = item.activity || '';
   let activityId = item.activityId || '';
   if (!activityId && label && activityList.length) {
     const m = activityList.find(
-      (a) =>
-        (a.scheduleActivityName && a.scheduleActivityName === label) ||
-        a.title === label
+      (a) => (a.scheduleActivityName && a.scheduleActivityName === label) || a.title === label
     );
     activityId = m?.id || '';
   }
-  return {
-    time: item.time,
-    activityId,
-    activity: label,
-    level: item.level || ''
-  };
+  return { time: item.time, activityId, activity: label, level: item.level || 'Tous niveaux' };
 };
 
 const ManageSchedule = () => {
-  const { success, error: notifyError } = useNotifications();
+  const navigate = useNavigate();
+  const { notifySuccess, notifyError } = useAdminNotify('schedule');
   const [activities, setActivities] = useState([]);
   const [schedule, setSchedule] = useState(defaultSchedule);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [showSaveConfirm, setShowSaveConfirm] = useState(false);
+  const [deleteSlot, setDeleteSlot] = useState(null);
 
   const enabledActivities = useMemo(
     () => (activities || []).filter((a) => a.enabled !== false),
@@ -56,17 +59,17 @@ const ManageSchedule = () => {
       try {
         const [data, acts] = await Promise.all([scheduleApi.list(), activitiesApi.list()]);
         setActivities(Array.isArray(acts) ? acts : []);
-
         if (!data.length) {
           setSchedule(defaultSchedule);
         } else {
-          const byDay = defaultSchedule.map((day) => ({
-            day: day.day,
-            activities: data
-              .filter((item) => item.day === day.day)
-              .map((item) => resolveSlotFromApi(item, Array.isArray(acts) ? acts : []))
-          }));
-          setSchedule(byDay);
+          setSchedule(
+            defaultSchedule.map((day) => ({
+              day: day.day,
+              activities: data
+                .filter((item) => item.day === day.day)
+                .map((item) => resolveSlotFromApi(item, acts)),
+            }))
+          );
         }
       } catch (err) {
         setError(err.message || 'Impossible de charger le planning.');
@@ -81,18 +84,25 @@ const ManageSchedule = () => {
     const pick = enabledActivities[0];
     const newSchedule = [...schedule];
     newSchedule[dayIndex].activities.push({
-      time: '18h00-19h00',
+      time: '18h00 - 19h00',
       activityId: pick?.id || '',
-      activity: pick ? (pick.scheduleActivityName || pick.title) : '',
-      level: 'Tous niveaux'
+      activity: pick ? pick.scheduleActivityName || pick.title : '',
+      level: 'Tous niveaux',
     });
     setSchedule(newSchedule);
   };
 
   const removeActivity = (dayIndex, activityIndex) => {
+    setDeleteSlot({ dayIndex, activityIndex });
+  };
+
+  const confirmRemoveSlot = () => {
+    if (!deleteSlot) return;
+    const { dayIndex, activityIndex } = deleteSlot;
     const newSchedule = [...schedule];
     newSchedule[dayIndex].activities.splice(activityIndex, 1);
     setSchedule(newSchedule);
+    setDeleteSlot(null);
   };
 
   const updateActivity = (dayIndex, activityIndex, field, value) => {
@@ -107,7 +117,7 @@ const ManageSchedule = () => {
     newSchedule[dayIndex].activities[actIndex] = {
       ...newSchedule[dayIndex].activities[actIndex],
       activityId,
-      activity: act ? (act.scheduleActivityName || act.title) : ''
+      activity: act ? act.scheduleActivityName || act.title : '',
     };
     setSchedule(newSchedule);
   };
@@ -118,128 +128,144 @@ const ManageSchedule = () => {
       const flat = [];
       schedule.forEach((day) => {
         day.activities.forEach((slot) => {
-          const row = {
-            day: day.day,
-            time: slot.time,
-            level: slot.level
-          };
-          if (slot.activityId) {
-            row.activityId = slot.activityId;
-          } else {
-            row.activity = slot.activity;
-          }
+          const row = { day: day.day, time: slot.time, level: slot.level };
+          if (slot.activityId) row.activityId = slot.activityId;
+          else row.activity = slot.activity;
           flat.push(row);
         });
       });
       await scheduleApi.bulkSave(flat);
-      success(`✅ Planning sauvegardé avec succès ! (${flat.length} créneaux)`);
+      notifySuccess(`Planning enregistré (${flat.length} créneau${flat.length > 1 ? 'x' : ''}).`);
     } catch (err) {
-      const errorMessage = err.message || 'Erreur lors de la sauvegarde du planning.';
-      notifyError(`❌ ${errorMessage}`);
+      notifyError(err, 'Impossible d\'enregistrer le planning.');
     } finally {
       setSaving(false);
+      setShowSaveConfirm(false);
     }
   };
 
   return (
     <div className="manage-schedule">
-      <div className="page-header">
-        <div>
-          <h2>Gestion du planning</h2>
-          <p className="page-subtitle">
-            Chaque créneau est lié à une <strong>activité</strong> définie dans « Activités ». Le libellé affiché sur le
-            site reprend le champ « nom pour le planning » de l’activité.
-          </p>
-        </div>
-        <button type="button" className="btn-primary" onClick={saveSchedule} disabled={saving || !enabledActivities.length}>
-          <FontAwesomeIcon icon={faSave} />
-          {saving ? '💾 Sauvegarde...' : '💾 Sauvegarder le planning'}
-        </button>
-      </div>
-
-      {!enabledActivities.length && !loading && (
-        <p className="manage-schedule__warning">
-          Aucune activité activée : créez d’abord des activités dans la section Activités.
-        </p>
-      )}
-
-      {loading && (
-        <div className="schedule-list">
-          <p>Chargement du planning...</p>
-        </div>
-      )}
-      {error && !loading && (
-        <div className="schedule-list">
-          <p>{error}</p>
-        </div>
-      )}
-      {!loading && !error && (
-      <div className="schedule-list">
-        {schedule.map((day, dayIndex) => (
-          <motion.div
-            key={day.day}
-            className="day-card"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: dayIndex * 0.1 }}
+      <PageHeader
+        title="Planning"
+        subtitle="Les créneaux s'affichent sur la page Horaires du site."
+        breadcrumbs={adminBreadcrumbs(NAV_ITEMS.schedule)}
+        actions={
+          <button
+            type="button"
+            className="btn btn-primary"
+            onClick={() => setShowSaveConfirm(true)}
+            disabled={saving || !enabledActivities.length}
           >
-            <div className="day-header">
-              <h3>{day.day}</h3>
-              <button type="button" className="btn-add" onClick={() => addActivity(dayIndex)} disabled={!enabledActivities.length}>
-                <FontAwesomeIcon icon={faPlus} />
-                Ajouter
-              </button>
-            </div>
+            <FontAwesomeIcon icon={faSave} aria-hidden />
+            {saving ? 'Enregistrement…' : 'Enregistrer le planning'}
+          </button>
+        }
+      />
 
-            <div className="activities-list">
-              {day.activities.length === 0 ? (
-                <p className="empty-message">Aucune activité programmée</p>
-              ) : (
-                day.activities.map((slot, actIndex) => (
-                  <div key={actIndex} className="activity-item">
-                    <div className="activity-time">
-                      <FontAwesomeIcon icon={faClock} />
-                      <input
-                        type="text"
+      <HelpTip
+        text="Commencez par créer vos activités, puis ajoutez ici les créneaux horaires pour chaque jour."
+        example="Lundi 18h00 - 19h00 : Boxe éducative, tous niveaux"
+      />
+
+      {!enabledActivities.length && !loading ? (
+        <EmptyStateGuided
+          icon={faCalendarAlt}
+          title="Aucune activité"
+          message="Créez d'abord vos activités, puis revenez ici pour définir les créneaux horaires."
+          actionLabel="Créer une activité"
+          onAction={() => navigate('/admin/activities')}
+        />
+      ) : null}
+
+      {loading && <LoadingState label="Chargement du planning…" />}
+      {error && !loading && <ErrorState title="Planning indisponible" message={error} onRetry={() => window.location.reload()} />}
+      {!loading && !error ? (
+        <div className="schedule-list">
+          {schedule.map((day, dayIndex) => (
+            <section key={day.day} className="day-card">
+              <div className="day-header">
+                <h3>{day.day}</h3>
+                <button
+                  type="button"
+                  className="btn btn-primary btn-sm btn-add"
+                  onClick={() => addActivity(dayIndex)}
+                  disabled={!enabledActivities.length}
+                >
+                  <FontAwesomeIcon icon={faPlus} aria-hidden /> Ajouter un créneau
+                </button>
+              </div>
+              <div className="activities-list">
+                {day.activities.length === 0 ? (
+                  <p className="empty-message">Aucun créneau ce jour-là</p>
+                ) : (
+                  day.activities.map((slot, actIndex) => (
+                    <div key={actIndex} className="activity-item">
+                      <TextInput
+                        label="Horaire"
+                        name={`schedule-time-${dayIndex}-${actIndex}`}
                         value={slot.time}
                         onChange={(e) => updateActivity(dayIndex, actIndex, 'time', e.target.value)}
-                        placeholder="18h00-19h00"
+                        placeholder="18h00 - 19h00"
+                        className="activity-item__field"
                       />
+                      <SelectField
+                        label="Activité"
+                        name={`schedule-activity-${dayIndex}-${actIndex}`}
+                        value={slot.activityId || ''}
+                        onChange={(e) => setActivityFromId(dayIndex, actIndex, e.target.value)}
+                        className="activity-item__field"
+                        options={[
+                          { value: '', label: '— Choisir une activité —' },
+                          ...enabledActivities.map((a) => ({
+                            value: a.id,
+                            label: a.scheduleActivityName || a.title,
+                          })),
+                        ]}
+                      />
+                      <TextInput
+                        label="Niveau ou groupe"
+                        name={`schedule-level-${dayIndex}-${actIndex}`}
+                        value={slot.level}
+                        onChange={(e) => updateActivity(dayIndex, actIndex, 'level', e.target.value)}
+                        placeholder="Tous niveaux"
+                        className="activity-item__field"
+                      />
+                      <button
+                        type="button"
+                        className="btn-delete activity-item__delete"
+                        onClick={() => removeActivity(dayIndex, actIndex)}
+                      >
+                        <FontAwesomeIcon icon={faTrash} aria-hidden /> Supprimer
+                      </button>
                     </div>
-                    <select
-                      className="activity-select"
-                      value={slot.activityId || ''}
-                      onChange={(e) => setActivityFromId(dayIndex, actIndex, e.target.value)}
-                      aria-label="Activité du club"
-                    >
-                      <option value="">— Choisir une activité —</option>
-                      {enabledActivities.map((a) => (
-                        <option key={a.id} value={a.id}>
-                          {a.scheduleActivityName || a.title}
-                        </option>
-                      ))}
-                    </select>
-                    <input
-                      type="text"
-                      value={slot.level}
-                      onChange={(e) => updateActivity(dayIndex, actIndex, 'level', e.target.value)}
-                      placeholder="Niveau / groupe"
-                    />
-                    <button
-                      type="button"
-                      className="btn-delete"
-                      onClick={() => removeActivity(dayIndex, actIndex)}
-                    >
-                      <FontAwesomeIcon icon={faTrash} />
-                    </button>
-                  </div>
-                ))
-              )}
-            </div>
-          </motion.div>
-        ))}
-      </div>
-      )}
+                  ))
+                )}
+              </div>
+            </section>
+          ))}
+        </div>
+      ) : null}
+
+      <ConfirmDialog
+        isOpen={showSaveConfirm}
+        onClose={() => setShowSaveConfirm(false)}
+        onConfirm={saveSchedule}
+        title="Enregistrer le planning ?"
+        message="Le planning affiché sur la page Horaires du site sera mis à jour."
+        consequences={['Les visiteurs verront les nouveaux créneaux immédiatement.']}
+        confirmText="Enregistrer"
+      />
+
+      <ConfirmDialog
+        isOpen={!!deleteSlot}
+        onClose={() => setDeleteSlot(null)}
+        onConfirm={confirmRemoveSlot}
+        title="Supprimer ce créneau ?"
+        message="Le créneau sera retiré. Pensez à enregistrer le planning pour appliquer le changement sur le site."
+        confirmText="Supprimer"
+        danger
+      />
     </div>
   );
 };

@@ -64,6 +64,15 @@ afboxing_apply_cors();
 
 header('Content-Type: application/json; charset=utf-8');
 
+// Cache HTTP API : pas de cache pour mutations ; GET courts (navigateur + cohérent avec cache mémoire front ~45s)
+$afboxingMethod = strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET');
+if (in_array($afboxingMethod, ['POST', 'PUT', 'PATCH', 'DELETE'], true)) {
+    header('Cache-Control: no-store, no-cache, must-revalidate');
+} elseif ($afboxingMethod === 'GET' || $afboxingMethod === 'HEAD') {
+    header('Cache-Control: private, max-age=60, stale-while-revalidate=120');
+    header('Vary: Accept-Encoding, Authorization', false);
+}
+
 $router = new Router();
 
 // Authentification JWT : null = tout utilisateur connecté ; sinon rôles autorisés

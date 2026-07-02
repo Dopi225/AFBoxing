@@ -30,7 +30,7 @@
 }
 
 .schedule-main {
-  padding: var(--spacing-xxl) 0;
+  padding: var(--section-padding-y) 0;
   background: var(--secondary-gray);
 
   h2 {
@@ -54,8 +54,8 @@
 
   .schedule-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: var(--spacing-lg);
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+    gap: var(--grid-gap);
 
     @media (max-width: 768px) {
       grid-template-columns: 1fr;
@@ -63,9 +63,10 @@
 
     .day-card {
       background: var(--surface-elevated);
-      border-radius: 16px;
-      padding: var(--spacing-lg);
+      border-radius: var(--border-radius-xl);
+      padding: var(--card-padding);
       box-shadow: var(--shadow-md);
+      border: 1px solid var(--border-subtle);
       transition: all var(--transition-normal);
 
       &:hover {
@@ -144,6 +145,18 @@
               .activity-icon {
                 font-size: 1.5rem;
                 flex-shrink: 0;
+
+                &--red {
+                  color: var(--primary-red);
+                }
+
+                &--red-dark {
+                  color: var(--primary-red-dark);
+                }
+
+                &--black {
+                  color: var(--text-dark);
+                }
               }
 
               div {
@@ -171,12 +184,12 @@
     top: calc(var(--navbar-height, 70px) + 0.75rem);
     z-index: 10;
     margin: 0 auto var(--spacing-lg);
-    padding: 1rem;
-    border-radius: 16px;
-    background: rgba(255, 255, 255, 0.85);
+    padding: var(--spacing-md);
+    border-radius: var(--border-radius-xl);
+    background: var(--surface-elevated);
     backdrop-filter: blur(10px);
     box-shadow: var(--shadow-sm);
-    border: 1px solid rgba(0, 0, 0, 0.06);
+    border: 1px solid var(--border-subtle);
     display: flex;
     align-items: flex-start;
     justify-content: space-between;
@@ -195,6 +208,22 @@
 
     .schedule-toolbar__right {
       width: 100%;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+
+      &::-webkit-scrollbar {
+        display: none;
+      }
+
+      .chips {
+        flex-wrap: nowrap;
+        padding-bottom: 2px;
+
+        @media (min-width: 901px) {
+          flex-wrap: wrap;
+        }
+      }
     }
 
     .segmented {
@@ -220,7 +249,7 @@
         }
 
         &.is-active {
-          background: var(--primary-black);
+          background: var(--primary-red);
           color: #fff;
         }
       }
@@ -230,17 +259,11 @@
       display: flex;
       gap: 0.5rem;
       flex-wrap: wrap;
-
-      @media (max-width: 520px) {
-        flex-wrap: nowrap;
-        overflow-x: auto;
-        padding-bottom: 0.25rem;
-        -webkit-overflow-scrolling: touch;
-      }
+      justify-content: flex-start;
 
       .chip {
-        border: 1px solid rgba(0, 0, 0, 0.1);
-        background: #fff;
+        border: 1px solid var(--border-medium);
+        background: var(--surface-elevated);
         color: var(--text-dark);
         padding: 0.55rem 0.85rem;
         border-radius: 999px;
@@ -262,7 +285,7 @@
         &.is-active {
           background: var(--primary-red);
           border-color: var(--primary-red);
-          color: #fff;
+          color: var(--text-on-dark);
         }
       }
     }
@@ -292,7 +315,7 @@
   .schedule-badge--red-dark {
     background: rgba(179, 0, 0, 0.12);
     border-color: rgba(179, 0, 0, 0.28);
-    color: #6f0000;
+    color: var(--primary-red-dark);
   }
 
   .schedule-badge--black {
@@ -365,12 +388,17 @@
 
     .schedule-next__actions {
       display: flex;
-      gap: 0.75rem;
+      gap: var(--spacing-sm);
       flex-wrap: wrap;
       justify-content: flex-end;
 
+      &.btn-group--equal {
+        min-width: min(100%, 420px);
+      }
+
       @media (max-width: 900px) {
-        justify-content: flex-start;
+        justify-content: stretch;
+        width: 100%;
       }
     }
   }
@@ -404,6 +432,10 @@
       padding: 0.95rem 1.1rem;
       border-bottom: 1px solid rgba(0, 0, 0, 0.06);
       vertical-align: middle;
+    }
+
+    tbody tr:nth-child(even) {
+      background: var(--surface-muted);
     }
 
     tbody tr:hover {

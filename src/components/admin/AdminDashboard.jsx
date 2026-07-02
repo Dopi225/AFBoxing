@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, Outlet } from 'react-router-dom';
+import { useNavigate, Outlet, useLocation } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
@@ -16,28 +16,33 @@ import {
   faFistRaised,
   faHistory,
   faUsers,
-  faMoneyBillWave
+  faMoneyBillWave,
+  faChevronDown,
+  faChevronUp,
 } from '@fortawesome/free-solid-svg-icons';
-import { motion } from 'framer-motion';
 import { authApi, newsApi, palmaresApi, contactsApi, galleryApi } from '../../services/apiService';
 import { NotificationProvider } from './NotificationSystem';
+import ThemeToggle from '../ThemeToggle';
+import { APP_TITLE, NAV_SECTIONS, NAV_ITEMS, ROLES } from '../../constants/adminCopy';
 import './AdminDashboard.scss';
 
 const AdminDashboard = () => {
-  const navigate = useNavigate(); 
+  const navigate = useNavigate();
+  const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [followExpanded, setFollowExpanded] = useState(false);
   const [stats, setStats] = useState({
     news: 0,
     palmares: 0,
     contacts: 0,
     gallery: 0,
-    unreadContacts: 0
+    unreadContacts: 0,
   });
   const [checkingAuth, setCheckingAuth] = useState(true);
+  const [currentUser, setCurrentUser] = useState(null);
 
   useEffect(() => {
     const initDashboard = async () => {
-      // Garde route : AdminAuthGate — ici validation API + rôle pour le menu
       try {
         const me = await authApi.getMe();
         setCurrentUser(me?.user ?? null);
@@ -47,13 +52,12 @@ const AdminDashboard = () => {
         return;
       }
 
-      // Chargement des stats
       try {
         const [news, palmares, contacts, gallery] = await Promise.all([
           newsApi.list().catch(() => []),
           palmaresApi.list().catch(() => []),
           contactsApi.list().catch(() => []),
-          galleryApi.list().catch(() => [])
+          galleryApi.list().catch(() => []),
         ]);
 
         setStats({
@@ -61,10 +65,9 @@ const AdminDashboard = () => {
           palmares: palmares.length,
           contacts: contacts.length,
           gallery: gallery.length,
-          unreadContacts: contacts.filter(c => !c.is_read && !c.read).length
+          unreadContacts: contacts.filter((c) => !c.is_read && !c.read).length,
         });
       } catch (e) {
-        // En cas d'erreur, on laisse les stats à zéro
         console.log(e);
       } finally {
         setCheckingAuth(false);
@@ -87,31 +90,67 @@ const AdminDashboard = () => {
     navigate('/admin/login');
   };
 
-  const [currentUser, setCurrentUser] = useState(null);
+  const isAdmin = currentUser?.role === 'admin';
+  const roleInfo = ROLES[currentUser?.role] || ROLES.editor;
 
-  const staffMenuItems = [
-    { icon: faHome, label: 'Dashboard', path: '/admin/dashboard', exact: true },
-    { icon: faNewspaper, label: 'Actualités', path: '/admin/news', badge: stats.news },
-    { icon: faTrophy, label: 'Palmarès', path: '/admin/palmares', badge: stats.palmares },
-    { icon: faCalendarAlt, label: 'Planning', path: '/admin/schedule' },
-    { icon: faImages, label: 'Galerie', path: '/admin/gallery', badge: stats.gallery },
-    { icon: faFistRaised, label: 'Activités', path: '/admin/activities' }
+  const workspaceItems = [
+    { icon: faHome, label: NAV_ITEMS.dashboard, path: '/admin/dashboard', exact: true },
   ];
 
-  const adminOnlyMenuItems = [
-    { icon: faEnvelope, label: 'Contacts', path: '/admin/contacts', badge: stats.unreadContacts, badgeColor: 'red' },
-    { icon: faMoneyBillWave, label: 'Tarifs', path: '/admin/pricing' },
-    { icon: faCog, label: 'Paramètres', path: '/admin/settings' },
-    { icon: faHistory, label: 'Historique', path: '/admin/history' },
-    { icon: faUsers, label: 'Utilisateurs', path: '/admin/users' }
+  const contentItems = [
+    { icon: faNewspaper, label: NAV_ITEMS.news, path: '/admin/news', badge: stats.news },
+    { icon: faTrophy, label: NAV_ITEMS.palmares, path: '/admin/palmares', badge: stats.palmares },
+    { icon: faImages, label: NAV_ITEMS.gallery, path: '/admin/gallery', badge: stats.gallery },
+    { icon: faFistRaised, label: NAV_ITEMS.activities, path: '/admin/activities' },
+    { icon: faCalendarAlt, label: NAV_ITEMS.schedule, path: '/admin/schedule' },
   ];
 
-  const menuItems =
-    currentUser?.role === 'admin' ? [...staffMenuItems, ...adminOnlyMenuItems] : staffMenuItems;
+  const clubItems = isAdmin
+    ? [
+        { icon: faEnvelope, label: NAV_ITEMS.contacts, path: '/admin/contacts', badge: stats.unreadContacts, badgeColor: 'red' },
+        { icon: faMoneyBillWave, label: NAV_ITEMS.pricing, path: '/admin/pricing' },
+        { icon: faCog, label: NAV_ITEMS.settings, path: '/admin/settings' },
+        { icon: faUsers, label: NAV_ITEMS.users, path: '/admin/users' },
+      ]
+    : [];
 
-  const handleNavClick = (path) => {
-    navigate(path);
-    setSidebarOpen(false);
+  const followItems = isAdmin
+    ? [{ icon: faHistory, label: NAV_ITEMS.history, path: '/admin/history' }]
+    : [];
+
+  const renderNavItem = (item) => {
+    const currentPath = location.pathname;
+    const isActive =
+      currentPath === item.path ||
+      (item.exact && (currentPath === '/admin' || currentPath === '/admin/dashboard'));
+
+    return (
+      <button
+        key={item.path}
+        type="button"
+        className={`nav-item ${isActive ? 'active' : ''}`}
+        onClick={() => {
+          navigate(item.path);
+          setSidebarOpen(false);
+        }}
+      >
+        <FontAwesomeIcon icon={item.icon} aria-hidden />
+        <span>{item.label}</span>
+        {item.badge !== undefined && item.badge > 0 ? (
+          <span className={`badge ${item.badgeColor || ''}`}>{item.badge}</span>
+        ) : null}
+      </button>
+    );
+  };
+
+  const renderSection = (title, items) => {
+    if (!items.length) return null;
+    return (
+      <div className="nav-section">
+        <div className="nav-section-label">{title}</div>
+        {items.map(renderNavItem)}
+      </div>
+    );
   };
 
   if (checkingAuth) {
@@ -119,10 +158,10 @@ const AdminDashboard = () => {
       <div className="admin-dashboard loading">
         <div className="admin-main">
           <header className="admin-header">
-            <h1>Panneau d'Administration</h1>
+            <h1>{APP_TITLE}</h1>
           </header>
           <main className="admin-content">
-            <p>Vérification de l'authentification...</p>
+            <p role="status">Vérification de votre connexion…</p>
           </main>
         </div>
       </div>
@@ -132,107 +171,86 @@ const AdminDashboard = () => {
   return (
     <NotificationProvider>
       <Helmet>
-        <title>Administration — AF BOXING CLUB 86</title>
+        <title>{APP_TITLE} — AF BOXING CLUB 86</title>
         <meta name="robots" content="noindex, nofollow" />
       </Helmet>
       <div className="admin-dashboard">
-      {/* Sidebar — ouverture/fermeture gérée en CSS (mobile) pour éviter les conflits avec Framer Motion */}
-      <aside className={`admin-sidebar ${sidebarOpen ? 'open' : ''}`}>
-        <div className="sidebar-header">
-          <h2>Administration</h2>
-          <button
-            type="button"
-            className="close-sidebar"
-            onClick={() => setSidebarOpen(false)}
-            aria-label="Fermer le menu latéral"
-          >
-            <FontAwesomeIcon icon={faTimes} aria-hidden />
-          </button>
-        </div>
-
-        <nav className="sidebar-nav">
-          {menuItems.map((item, index) => {
-            const currentPath = window.location.pathname;
-            const isActive = currentPath === item.path || 
-                           (item.exact && (currentPath === '/admin' || currentPath === '/admin/dashboard'));
-            
-            return (
-              <motion.button
-                key={item.path}
-                className={`nav-item ${isActive ? 'active' : ''}`}
-                onClick={() => handleNavClick(item.path)}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: index * 0.1 }}
-                whileHover={{ x: 5 }}
-              >
-                <FontAwesomeIcon icon={item.icon} />
-                <span>{item.label}</span>
-                {item.badge !== undefined && (
-                  <span className={`badge ${item.badgeColor || ''}`}>
-                    {item.badge}
-                  </span>
-                )}
-              </motion.button>
-            );
-          })}
-        </nav>
-
-        <div className="sidebar-footer">
-          <button type="button" className="logout-btn" onClick={handleLogout}>
-            <FontAwesomeIcon icon={faSignOutAlt} />
-            <span>Déconnexion</span>
-          </button>
-        </div>
-      </aside>
-
-      {/* Main Content */}
-      <div className="admin-main">
-        {/* Top Bar */}
-        <header className="admin-header">
-          <button
-            type="button"
-            className="menu-toggle"
-            onClick={() => setSidebarOpen(!sidebarOpen)}
-            aria-label={sidebarOpen ? 'Fermer le menu' : 'Ouvrir le menu'}
-            aria-expanded={sidebarOpen}
-          >
-            <FontAwesomeIcon icon={faBars} aria-hidden />
-          </button>
-          <h1>Panneau d&apos;administration</h1>
-          <div className="header-user">
-            <span className="header-user__hello">
-              {currentUser?.username || 'Admin'}
-              {currentUser?.role === 'admin' && (
-                <span className="header-user__role" title="Accès complet (contacts, paramètres, utilisateurs)">
-                  {' '}
-                  — Administrateur
-                </span>
-              )}
-              {currentUser?.role === 'editor' && (
-                <span className="header-user__role" title="Contenu public (actualités, planning, galerie, activités)">
-                  {' '}
-                  — Éditeur
-                </span>
-              )}
-            </span>
+        <aside className={`admin-sidebar ${sidebarOpen ? 'open' : ''}`}>
+          <div className="sidebar-header">
+            <h2>{APP_TITLE}</h2>
+            <button
+              type="button"
+              className="close-sidebar"
+              onClick={() => setSidebarOpen(false)}
+              aria-label="Fermer le menu"
+            >
+              <FontAwesomeIcon icon={faTimes} aria-hidden />
+            </button>
           </div>
-        </header>
 
-        {/* Content Area */}
-        <main className="admin-content">
-          <Outlet />
-        </main>
-      </div>
+          <nav className="sidebar-nav" aria-label="Menu principal">
+            {renderSection(NAV_SECTIONS.workspace, workspaceItems)}
+            {renderSection(NAV_SECTIONS.content, contentItems)}
+            {renderSection(NAV_SECTIONS.club, clubItems)}
+            {followItems.length > 0 ? (
+              <div className="nav-section">
+                <button
+                  type="button"
+                  className="nav-section-toggle"
+                  onClick={() => setFollowExpanded((v) => !v)}
+                  aria-expanded={followExpanded}
+                >
+                  <span className="nav-section-label">{NAV_SECTIONS.follow}</span>
+                  <FontAwesomeIcon icon={followExpanded ? faChevronUp : faChevronDown} aria-hidden />
+                </button>
+                {followExpanded ? followItems.map(renderNavItem) : null}
+              </div>
+            ) : null}
+          </nav>
 
-      {/* Overlay pour mobile */}
-      {sidebarOpen && (
-        <div className="sidebar-overlay" onClick={() => setSidebarOpen(false)} />
-      )}
+          <div className="sidebar-footer">
+            <button type="button" className="logout-btn" onClick={handleLogout}>
+              <FontAwesomeIcon icon={faSignOutAlt} aria-hidden />
+              <span>Déconnexion</span>
+            </button>
+          </div>
+        </aside>
+
+        <div className="admin-main">
+          <header className="admin-header">
+            <button
+              type="button"
+              className="menu-toggle"
+              onClick={() => setSidebarOpen(!sidebarOpen)}
+              aria-label={sidebarOpen ? 'Fermer le menu' : 'Ouvrir le menu'}
+              aria-expanded={sidebarOpen}
+            >
+              <FontAwesomeIcon icon={faBars} aria-hidden />
+            </button>
+            <h1>{APP_TITLE}</h1>
+            <div className="header-user">
+              <div className="admin-header__theme">
+                <ThemeToggle compact />
+              </div>
+              <div className="header-user__info">
+                <span className="header-user__hello">{currentUser?.username || 'Utilisateur'}</span>
+                <span className="header-user__role">{roleInfo.label}</span>
+                <span className="header-user__role-help">{roleInfo.help}</span>
+              </div>
+            </div>
+          </header>
+
+          <main className="admin-content">
+            <Outlet />
+          </main>
+        </div>
+
+        {sidebarOpen ? (
+          <div className="sidebar-overlay" onClick={() => setSidebarOpen(false)} role="presentation" />
+        ) : null}
       </div>
     </NotificationProvider>
   );
 };
 
 export default AdminDashboard;
-

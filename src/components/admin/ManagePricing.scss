@@ -1,29 +1,4 @@
 .manage-pricing {
-  .page-header {
-    margin-bottom: 1.5rem;
-
-    h2 {
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-      font-size: 1.75rem;
-      font-weight: 700;
-      color: var(--primary-black, #111);
-    }
-
-    &__hint {
-      margin: 0.5rem 0 0;
-      color: var(--text-light, #666);
-      font-size: 0.95rem;
-      max-width: 46rem;
-      line-height: 1.55;
-
-      code {
-        font-size: 0.88em;
-      }
-    }
-  }
-
   .pricing-form-card {
     padding: 1.5rem;
     margin-bottom: 1.5rem;
@@ -54,9 +29,16 @@
       textarea {
         padding: 0.65rem 0.85rem;
         border-radius: 8px;
-        border: 1px solid #ddd;
+        border: 1px solid var(--field-border);
         font-size: 1rem;
         font-family: inherit;
+        background: var(--field-bg);
+        color: var(--field-fg);
+        caret-color: var(--field-fg);
+
+        &::placeholder {
+          color: var(--field-placeholder);
+        }
       }
 
       &--inline {
@@ -95,7 +77,7 @@
     gap: 0.5rem;
     padding: 0.65rem 1.25rem;
     background: var(--primary-red, #c41e3a);
-    color: #fff;
+    color: var(--surface-elevated);
     border: none;
     border-radius: 8px;
     font-weight: 600;
@@ -112,9 +94,17 @@
     gap: 0.5rem;
     padding: 0.65rem 1rem;
     background: transparent;
-    border: 1px solid #ccc;
+    border: 1px solid var(--border-medium);
     border-radius: 8px;
     cursor: pointer;
+    color: var(--text-dark);
+    font-weight: 600;
+    transition: background var(--transition-fast), color var(--transition-fast), border-color var(--transition-fast);
+
+    &:hover:not(:disabled) {
+      border-color: var(--primary-red);
+      color: var(--primary-red);
+    }
   }
 
   .pricing-table-wrap {
@@ -135,13 +125,13 @@
     td {
       padding: 0.75rem 1rem;
       text-align: left;
-      border-bottom: 1px solid #eee;
+      border-bottom: 1px solid var(--border-input);
     }
 
     th {
       font-weight: 600;
       color: var(--primary-black, #111);
-      background: #fafafa;
+      background: var(--surface-muted);
     }
 
     code {

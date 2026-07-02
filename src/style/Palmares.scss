@@ -65,7 +65,7 @@
 
 .palmares-main {
   padding: var(--spacing-xxl) 0;
-  background: linear-gradient(180deg, #f8f9fa 0%, #e9ecef 100%);
+  background: linear-gradient(180deg, var(--surface-muted) 0%, #e9ecef 100%);
   position: relative;
 
   &::before {
@@ -163,7 +163,7 @@
         }
 
         h3 {
-          color: var(--primary-black);
+          color: var(--heading-on-light);
           margin: 0;
           font-size: 1.5rem;
           line-height: 1.3;
@@ -417,7 +417,7 @@
       }
 
       h3 {
-        color: var(--primary-black);
+        color: var(--heading-on-light);
         margin-bottom: var(--spacing-md);
         font-size: 1.6rem;
         font-weight: 700;
@@ -567,4 +567,11 @@
 
 :root[data-theme='dark'] .palmares-main .achievement-info .info-item:hover {
   background: linear-gradient(135deg, var(--secondary-light), rgba(255, 255, 255, 0.1));
+}
+
+:root[data-theme='dark'] {
+  .palmares-main .achievement-card .card-header h3,
+  .palmares-cta .cta-card h3 {
+    color: var(--heading-on-dark);
+  }
 }

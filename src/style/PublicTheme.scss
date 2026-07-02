@@ -1,0 +1,185 @@
+/* Couche thème public — overrides data-theme centralisés */
+
+:root[data-theme='dark'] {
+  .content-section.section-white {
+    background: var(--surface-elevated);
+    color: var(--text-dark);
+  }
+
+  .content-section.section-gray {
+    background: var(--secondary-gray);
+    color: var(--text-dark);
+  }
+
+  .section-title {
+    color: var(--text-dark);
+
+    &::after {
+      box-shadow: 0 0 12px rgba(220, 40, 40, 0.45);
+    }
+  }
+
+  .gallery-section {
+    background: var(--surface-base);
+    color: var(--text-dark);
+  }
+
+  .gallery-section .filter-btn {
+    background: var(--surface-elevated);
+    border-color: var(--border-subtle);
+    color: var(--text-dark);
+
+    &:hover {
+      border-color: var(--primary-red);
+      color: var(--primary-red);
+    }
+
+    &.active {
+      background: var(--primary-red);
+      border-color: var(--primary-red);
+      color: #fff;
+    }
+  }
+
+  .lightbox-content {
+    background: var(--surface-elevated);
+    color: var(--text-dark);
+    border: 1px solid var(--border-subtle);
+  }
+
+  .schedule-main {
+    background: var(--surface-base);
+    color: var(--text-dark);
+  }
+
+  .schedule-main .schedule-toolbar {
+    background: var(--surface-elevated);
+    border-color: var(--border-subtle);
+  }
+
+  .schedule-main .segmented {
+    background: var(--surface-muted);
+    border-color: var(--border-subtle);
+  }
+
+  .schedule-main .schedule-table-wrap,
+  .schedule-main .day-card {
+    background: var(--surface-elevated);
+    border-color: var(--border-subtle);
+  }
+
+  .schedule-main .schedule-next {
+    background: linear-gradient(135deg, rgba(220, 40, 40, 0.12), rgba(0, 0, 0, 0.2));
+    border-color: rgba(220, 60, 60, 0.28);
+  }
+
+  .schedule-main .schedule-badge--black {
+    background: var(--surface-muted);
+    border-color: var(--border-subtle);
+    color: var(--text-dark);
+  }
+
+  .schedule-main .schedule-legend__label,
+  .schedule-main .schedule-next__meta {
+    color: var(--text-dark);
+  }
+
+  .schedule-badge,
+  .schedule-chip {
+    background: var(--surface-elevated);
+    border-color: var(--border-subtle);
+    color: var(--text-dark);
+  }
+
+  .pricing-section {
+    background: var(--surface-base);
+    color: var(--text-dark);
+  }
+
+  .pricing-section .pricing-card {
+    background: var(--surface-elevated);
+    border-color: var(--border-subtle);
+    color: var(--text-dark);
+  }
+
+  .modern-card {
+    background: var(--surface-elevated);
+    border-color: var(--border-subtle);
+  }
+
+  .hero-badge {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.18);
+    color: var(--text-dark);
+  }
+
+  .info-page-loading,
+  .info-related .modern-card {
+    background: var(--surface-elevated);
+    color: var(--text-dark);
+  }
+
+  .hero-badges-row .hero-badge {
+    margin: 0;
+  }
+
+  .modern-card .card-header h3 {
+    color: var(--heading-on-dark);
+  }
+}
+
+/* InfoPage — classes extraites des inline styles */
+.info-page-loading {
+  text-align: center;
+  padding: var(--spacing-xl);
+}
+
+.hero-badges-row {
+  display: flex;
+  gap: var(--spacing-sm);
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.program-block {
+  margin-bottom: 1.6rem;
+
+  h3 {
+    margin: 0 0 0.75rem;
+    font-weight: var(--font-weight-black);
+  }
+}
+
+.preview-card {
+  .card-header,
+  .card-footer {
+    text-align: center;
+  }
+
+  .card-header h3,
+  .card-header p {
+    margin: 0;
+  }
+
+  .btn-primary--static {
+    pointer-events: none;
+  }
+}
+
+/* Footer — identité sombre + toggle visible */
+.footer {
+  background: var(--footer-bg);
+
+  .theme-toggle {
+    border: 1px solid rgba(255, 255, 255, 0.28);
+    background: rgba(255, 255, 255, 0.08);
+    color: #fff;
+
+    &:hover,
+    &:focus-visible {
+      border-color: rgba(255, 255, 255, 0.5);
+      background: rgba(255, 255, 255, 0.14);
+      box-shadow: var(--focus-ring-shadow);
+    }
+  }
+}

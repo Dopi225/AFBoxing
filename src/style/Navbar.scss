@@ -12,8 +12,8 @@ nav.navbar {
   position: fixed;
   top: 0;
   width: 100%;
-  height: 70px;
-  z-index: 1000;
+  height: var(--navbar-height);
+  z-index: var(--z-sticky);
   box-shadow: 0 1px 0 rgba(11, 11, 11, 0.06), 0 12px 40px rgba(0, 0, 0, 0.06);
   border-bottom: 1px solid rgba(11, 11, 11, 0.05);
   transition: background 0.35s var(--ease-premium, ease), box-shadow 0.35s ease;
@@ -43,13 +43,17 @@ nav.navbar {
     .menu-toggle {
       display: none;
       flex-direction: column;
+      align-items: center;
+      justify-content: center;
       cursor: pointer;
+      min-width: var(--touch-target-min);
+      min-height: var(--touch-target-min);
       padding: 0.5rem;
-      border-radius: 4px;
+      border-radius: var(--border-radius-sm);
       border: none;
       background: transparent;
       font: inherit;
-      transition: background 0.2s ease;
+      transition: background var(--transition-fast);
 
       &:hover {
         background: rgba(230, 0, 0, 0.1);
@@ -81,8 +85,9 @@ nav.navbar {
       span {
         cursor: pointer;
         color: var(--primary-black);
-        font-weight: 500;
-        padding: 0.8rem 1rem;
+        font-weight: var(--font-weight-medium);
+        min-height: var(--touch-target-min);
+        padding: 0.65rem 1rem;
         text-decoration: none;
         border-radius: 4px;
         transition: all 0.2s ease;
@@ -109,21 +114,19 @@ nav.navbar {
         }
       }
 
-      &.nav-btn-red {
-        a {
-          background: var(--gradient-primary);
-          color: white;
-          padding: 0.8rem 1.5rem;
-          border-radius: 6px;
-          font-weight: 600;
-          box-shadow: 0 2px 8px rgba(230, 0, 0, 0.3);
+      &.nav-cta {
+        a.btn {
+          color: var(--primary-white);
           text-transform: uppercase;
-          letter-spacing: 1px;
-          transition: all 0.2s ease;
+          letter-spacing: 0.06em;
+          font-weight: 700;
+          padding: 0 var(--spacing-md);
+          min-height: var(--btn-height-sm);
+          border-radius: var(--border-radius-md);
 
           &:hover {
-            background: linear-gradient(135deg, var(--primary-red-dark), var(--primary-red));
-            box-shadow: 0 4px 12px rgba(230, 0, 0, 0.4);
+            color: var(--primary-white);
+            background: var(--gradient-primary);
           }
 
           &.active {
@@ -266,7 +269,7 @@ nav.navbar.mobile-open {
           gap: 0.5rem;
           padding: 0.8rem 1.5rem;
           font-size: 1rem;
-          border-radius: 6px;
+          border-radius: var(--border-radius-md);
           margin: 0 1rem;
           transition: all 0.2s ease;
           font-weight: 500;
@@ -278,12 +281,12 @@ nav.navbar.mobile-open {
 
         }
 
-        &.nav-btn-red {
+        &.nav-cta {
           margin: 0.5rem 1rem;
-          
-          a {
-            background: var(--gradient-primary);
-            color: white !important;
+
+          a.btn {
+            width: 100%;
+            justify-content: center;
             margin: 0;
           }
         }
@@ -405,7 +408,7 @@ nav.navbar.mobile-open {
 
         &:hover {
           background: rgba(220, 0, 0, 0.16) !important;
-          color: #fff !important;
+          color: var(--primary-white) !important;
         }
 
         &.active {
@@ -413,13 +416,11 @@ nav.navbar.mobile-open {
         }
       }
 
-      li.nav-btn-red a {
-        color: #fff !important;
-        text-shadow: 0 0 24px rgba(0, 0, 0, 0.45);
-        box-shadow: 0 4px 24px rgba(220, 0, 0, 0.35);
+      li.nav-cta a.btn {
+        color: var(--primary-white) !important;
 
         &:hover {
-          color: #fff !important;
+          color: var(--primary-white) !important;
         }
       }
     }
@@ -472,7 +473,7 @@ nav.navbar.mobile-open {
           margin: 0 0.5rem;
         }
 
-        &.nav-btn-red {
+        &.nav-cta {
           margin: 0.3rem 0.5rem;
         }
 

@@ -4,10 +4,12 @@ import { faEnvelope, faMapMarkerAlt, faPhoneAlt, faClock, faUser, faMessage, faP
 import { faFacebookSquare, faInstagram } from '@fortawesome/free-brands-svg-icons';
 import { motion } from 'framer-motion';
 import { contactsApi, scheduleApi } from '../services/apiService';
+import { toUserMessage } from '../utils/userFacingError';
 import { useNavigate } from 'react-router-dom';
 import { useSettings } from '../hooks/useSettings';
 import SectionHeader from './SectionHeader';
-import '../style/ContactFom.scss';
+import { ErrorState, EmptyState, InlineLoading } from './PageStates';
+import { TextInput, TextArea } from './ui/FormField';
 import '../style/Contact.scss';
 
 const Contact = () => {
@@ -21,6 +23,7 @@ const Contact = () => {
   });
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [fieldErrors, setFieldErrors] = useState({});
   const [success, setSuccess] = useState('');
 
   const [scheduleLoading, setScheduleLoading] = useState(false);
@@ -36,7 +39,7 @@ const Contact = () => {
         const list = Array.isArray(data) ? data : (data?.data || []);
         setScheduleItems(list);
       } catch (err) {
-        setScheduleError(err.message || "Impossible de charger le planning depuis l'API.");
+        setScheduleError(toUserMessage(err, "Impossible d'afficher le planning pour le moment."));
         setScheduleItems([]);
       } finally {
         setScheduleLoading(false);
@@ -59,12 +62,28 @@ const Contact = () => {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+    if (fieldErrors[name]) {
+      setFieldErrors((prev) => ({ ...prev, [name]: undefined }));
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setSuccess('');
+    const nextErrors = {};
+    if (!formData.username.trim()) nextErrors.username = 'Indiquez votre nom.';
+    if (!formData.email.trim()) {
+      nextErrors.email = 'Indiquez votre email.';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      nextErrors.email = 'Format email invalide.';
+    }
+    if (!formData.message.trim()) nextErrors.message = 'Écrivez votre message.';
+    if (Object.keys(nextErrors).length) {
+      setFieldErrors(nextErrors);
+      return;
+    }
+    setFieldErrors({});
     setSubmitting(true);
 
     try {
@@ -84,7 +103,7 @@ const Contact = () => {
         const errorMessages = Object.values(err.data.errors).join(', ');
         setError(`Erreur de validation : ${errorMessages}`);
       } else {
-        setError(err.message || 'Une erreur est survenue lors de l\'envoi du message.');
+        setError(toUserMessage(err, "Une erreur est survenue lors de l'envoi du message."));
       }
     } finally {
       setSubmitting(false);
@@ -293,108 +312,56 @@ const Contact = () => {
                     {success}
                   </motion.p>
                 )}
-                <motion.div 
-                  className="form-group"
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.4, delay: 0.1 }}
-                  viewport={{ once: true }}
-                >
-                  <div className="input-container">
-                    <FontAwesomeIcon icon={faUser} className="input-icon" />
-                    <input
-                      type="text"
-                      name="username"
-                      className="form-input"
-                      value={formData.username}
-                      onChange={handleChange}
-                      placeholder="Nom et prénom (ex. Alex Dupont)"
-                      required
-                      disabled={submitting}
-                    />
-                  </div>
-                </motion.div>
+                <TextInput
+                  label="Nom et prénom"
+                  name="username"
+                  value={formData.username}
+                  onChange={handleChange}
+                  placeholder="Ex. Alex Dupont"
+                  required
+                  disabled={submitting}
+                  error={fieldErrors.username}
+                />
+                <TextInput
+                  label="Email"
+                  name="email"
+                  type="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  placeholder="Ex. alex.dupont@email.com"
+                  required
+                  disabled={submitting}
+                  error={fieldErrors.email}
+                />
+                <TextInput
+                  label="Téléphone"
+                  name="phone"
+                  type="tel"
+                  value={formData.phone}
+                  onChange={handleChange}
+                  placeholder="Ex. 06 00 00 00 00"
+                  disabled={submitting}
+                />
+                <TextArea
+                  label="Message"
+                  name="message"
+                  rows={5}
+                  value={formData.message}
+                  onChange={handleChange}
+                  placeholder="Âge, activité souhaitée, disponibilité, question…"
+                  required
+                  disabled={submitting}
+                  error={fieldErrors.message}
+                />
 
-                <motion.div 
-                  className="form-group"
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.4, delay: 0.2 }}
-                  viewport={{ once: true }}
-                >
-                  <div className="input-container">
-                    <FontAwesomeIcon icon={faEnvelope} className="input-icon" />
-                    <input
-                      type="email"
-                      name="email"
-                      className="form-input"
-                      value={formData.email}
-                      onChange={handleChange}
-                      placeholder="Email (ex. alex.dupont@email.com)"
-                      required
-                      disabled={submitting}
-                    />
-                  </div>
-                </motion.div>
-
-                <motion.div 
-                  className="form-group"
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.4, delay: 0.3 }}
-                  viewport={{ once: true }}
-                >
-                  <div className="input-container">
-                    <FontAwesomeIcon icon={faPhoneAlt} className="input-icon" />
-                    <input
-                      type="tel"
-                      name="phone"
-                      className="form-input"
-                      value={formData.phone}
-                      onChange={handleChange}
-                      placeholder="Téléphone (ex. 06 00 00 00 00)"
-                      required
-                      disabled={submitting}
-                    />
-                  </div>
-                </motion.div>
-
-                <motion.div 
-                  className="form-group"
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.4, delay: 0.4 }}
-                  viewport={{ once: true }}
-                >
-                  <div className="input-container">
-                    <FontAwesomeIcon icon={faMessage} className="input-icon" />
-                    <textarea
-                      name="message"
-                      className="form-input form-textarea"
-                      value={formData.message}
-                      onChange={handleChange}
-                      placeholder="Votre message (ex. âge, activité souhaitée, disponibilité, question…)"
-                      rows="5"
-                      required
-                      disabled={submitting}
-                    />
-                  </div>
-                </motion.div>
-
-                <motion.button 
-                  type="submit" 
+                <button
+                  type="submit"
                   className="btn btn-primary form-submit"
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.4, delay: 0.5 }}
-                  viewport={{ once: true }}
-                  whileHover={!submitting ? { scale: 1.02, y: -2 } : {}}
-                  whileTap={!submitting ? { scale: 0.98 } : {}}
                   disabled={submitting}
                 >
                   {!submitting && <FontAwesomeIcon icon={faPaperPlane} />}
                   {submitting ? 'Envoi en cours...' : 'Envoyer le message'}
-                </motion.button>
+                </button>
               </form>
             </motion.div>
           </div>
@@ -422,10 +389,10 @@ const Contact = () => {
               viewport={{ once: true }}
             >
               <iframe
+                className="map-embed"
                 src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2741.968787766348!2d0.3724682999999999!3d46.5878544!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x47fdbf8354a062bd%3A0x3083448a662d0747!2sAF%20BOXING%20CLUB%2086%20-%20Salle%20Nelson%20Mandela!5e0!3m2!1sfr!2sfr!4v1753109311699!5m2!1sfr!2sfr"
                 width="100%"
                 height="400"
-                style={{ border: 0, borderRadius: '20px' }}
                 allowFullScreen=""
                 loading="lazy"
                 referrerPolicy="no-referrer-when-downgrade"

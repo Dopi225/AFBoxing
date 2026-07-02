@@ -29,9 +29,14 @@
   --text-light: #555555;
   --text-muted: #888888;
 
-  /* Champs (surfaces claires forcées en thème sombre) */
-  --input-fg: #14141c;
-  --input-placeholder: rgba(0, 0, 0, 0.45);
+  /* Champs (surfaces claires forcées — ne s'inversent pas en thème sombre) */
+  --field-bg: var(--color-white-fixed);
+  --field-fg: var(--text-on-light);
+  --field-border: #e5e5ea;
+  --field-placeholder: rgba(0, 0, 0, 0.45);
+  --field-bg-disabled: #f0f0f2;
+  --input-fg: var(--field-fg);
+  --input-placeholder: var(--field-placeholder);
 
   /* Accent admin */
   --admin-accent: var(--primary-red);
@@ -77,6 +82,103 @@
   /* Bordures (cartes, séparateurs) */
   --border-subtle: rgba(0, 0, 0, 0.06);
   --border-medium: rgba(0, 0, 0, 0.1);
+
+  /* Breakpoints (référence CSS + JS) */
+  --bp-xs: 320px;
+  --bp-sm: 480px;
+  --bp-md: 768px;
+  --bp-lg: 1024px;
+  --bp-xl: 1280px;
+  --bp-2xl: 1536px;
+  --bp-3xl: 1920px;
+
+  /* Échelle typographique */
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.25rem;
+  --text-2xl: 1.5rem;
+  --text-3xl: 2rem;
+  --text-4xl: 2.5rem;
+
+  --leading-tight: 1.2;
+  --leading-normal: 1.5;
+  --leading-relaxed: 1.65;
+
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  --font-weight-black: 900;
+
+  /* Hauteurs UI */
+  --navbar-height: 70px;
+  --btn-height-sm: 36px;
+  --btn-height-md: 44px;
+  --btn-height-lg: 52px;
+  --input-height: 44px;
+  --touch-target-min: 44px;
+
+  /* Contraste fixe (ne s'inverse pas en thème sombre) */
+  --text-on-light: #111111;
+  --text-on-dark: #ffffff;
+  --heading-on-light: var(--text-on-light);
+  --heading-on-dark: var(--text-on-dark);
+  --color-white-fixed: #ffffff;
+  --color-black-fixed: #0b0b0b;
+  --btn-secondary-bg: var(--color-white-fixed);
+  --btn-secondary-fg: var(--primary-red);
+  --btn-on-dark-fg: var(--text-on-dark);
+  --btn-on-dark-border: rgba(255, 255, 255, 0.35);
+
+  /* Z-index */
+  --z-dropdown: 100;
+  --z-sticky: 500;
+  --z-fixed: 900;
+  --z-modal: 9999;
+  --z-toast: 10000;
+
+  /* Focus (WCAG) */
+  --focus-ring-color: var(--primary-red);
+  --focus-ring-width: 3px;
+  --focus-ring-offset: 2px;
+  --focus-ring-shadow: 0 0 0 3px rgba(220, 0, 0, 0.15);
+
+  /* Surfaces étendues */
+  --surface-muted: #f4f4f6;
+  --surface-hover: #ececef;
+
+  /* Bordures champs */
+  --border-input: #e5e5ea;
+  --border-input-focus: var(--primary-red);
+
+  /* États sémantiques */
+  --status-error-bg: #fff5f5;
+  --status-error-fg: var(--primary-red-dark);
+  --status-error-border: rgba(220, 0, 0, 0.2);
+  --status-warning-bg: #fff8e6;
+  --status-warning-fg: #8a6200;
+  --status-warning-border: rgba(200, 140, 0, 0.35);
+  --status-success-bg: #eefaf2;
+  --status-success-fg: #0a7a42;
+  --status-success-border: rgba(34, 150, 80, 0.3);
+  --status-info-bg: rgba(0, 120, 200, 0.08);
+  --status-info-fg: #0a6ea8;
+  --status-info-border: rgba(0, 120, 200, 0.25);
+
+  /* Shell admin */
+  --admin-shell-bg: linear-gradient(160deg, var(--secondary-gray) 0%, var(--surface-base) 55%, #eef0f3 100%);
+
+  /* Rythme vertical & layout */
+  --section-padding-y: 5rem;
+  --section-padding-y-compact: 3rem;
+  --grid-gap: 2.5rem;
+  --card-padding: 2rem;
+  --page-max-width: 1280px;
+
+  /* Footer (toujours sombre) */
+  --footer-bg: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
 }
 
 /* Thème sombre — ThemeContext / ThemeToggle */
@@ -110,6 +212,38 @@
   --shadow-lg: 0 10px 20px rgba(0, 0, 0, 0.45), 0 26px 56px rgba(0, 0, 0, 0.42);
   --shadow-xl: 0 14px 28px rgba(0, 0, 0, 0.48), 0 36px 80px rgba(0, 0, 0, 0.45);
   --shadow-red: 0 4px 24px rgba(220, 40, 40, 0.35);
+
+  --surface-muted: #16161e;
+  --surface-hover: #1e1e28;
+  --border-input: rgba(255, 255, 255, 0.14);
+  --border-input-focus: var(--primary-red);
+
+  --status-error-bg: rgba(72, 22, 22, 0.42);
+  --status-error-fg: #ffc9c9;
+  --status-error-border: rgba(220, 100, 100, 0.35);
+  --status-warning-bg: rgba(120, 60, 0, 0.28);
+  --status-warning-fg: #f0c060;
+  --status-warning-border: rgba(255, 180, 80, 0.35);
+  --status-success-bg: rgba(22, 72, 42, 0.38);
+  --status-success-fg: #c4f5d8;
+  --status-success-border: rgba(90, 200, 130, 0.35);
+  --status-info-bg: rgba(30, 90, 160, 0.22);
+  --status-info-fg: #7ec8f0;
+  --status-info-border: rgba(120, 170, 230, 0.35);
+
+  --admin-shell-bg: linear-gradient(160deg, #0a0a10 0%, var(--surface-base) 55%, #101018 100%);
+
+  /* Champs lisibles sur cartes admin sombres */
+  --field-bg: var(--color-white-fixed);
+  --field-fg: var(--text-on-light);
+  --field-border: #d8d8de;
+  --field-placeholder: rgba(0, 0, 0, 0.45);
+  --field-bg-disabled: #ececef;
+  --input-fg: var(--field-fg);
+  --input-placeholder: var(--field-placeholder);
+
+  --section-padding-y: 4rem;
+  --section-padding-y-compact: 2.5rem;
 }
 
 :root[data-theme="dark"] body {
@@ -126,22 +260,6 @@
   color: #ff6b6b;
 }
 
-:root[data-theme="dark"] .btn-secondary {
-  background: var(--surface-elevated);
-  color: var(--text-dark);
-  border-color: rgba(255, 255, 255, 0.12);
-}
-
-:root[data-theme="dark"] .btn-outline {
-  color: var(--text-dark);
-  border-color: rgba(255, 255, 255, 0.22);
-}
-
-:root[data-theme="dark"] .btn-outline:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.08);
-  color: var(--text-dark);
-}
-
 :root[data-theme="dark"] .modal-box {
   background: var(--surface-elevated);
   color: var(--text-dark);
@@ -155,34 +273,6 @@
 
 :root[data-theme="dark"] .modal-header {
   border-bottom-color: rgba(255, 255, 255, 0.08);
-}
-
-:root[data-theme="dark"] .contact-form .form-input,
-:root[data-theme="dark"] .contact-form textarea.form-input {
-  color: var(--input-fg) !important;
-  caret-color: var(--input-fg) !important;
-}
-
-:root[data-theme="dark"] .contact-form .form-input::placeholder,
-:root[data-theme="dark"] .contact-form textarea.form-input::placeholder {
-  color: var(--input-placeholder) !important;
-}
-
-:root[data-theme="dark"] .admin-dashboard input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="hidden"]):not([type="submit"]):not([type="button"]):not([type="reset"]),
-:root[data-theme="dark"] .admin-dashboard textarea,
-:root[data-theme="dark"] .admin-dashboard select {
-  color: var(--input-fg) !important;
-  caret-color: var(--input-fg) !important;
-}
-
-:root[data-theme="dark"] .admin-dashboard input::placeholder,
-:root[data-theme="dark"] .admin-dashboard textarea::placeholder {
-  color: var(--input-placeholder) !important;
-}
-
-:root[data-theme="dark"] .admin-dashboard select option {
-  color: var(--input-fg);
-  background: var(--surface-elevated);
 }
 
 ::selection {

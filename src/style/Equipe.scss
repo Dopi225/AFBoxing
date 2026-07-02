@@ -4,15 +4,14 @@
 .team-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 2rem;
-  max-width: 1280px;
+  gap: var(--grid-gap);
+  max-width: var(--page-max-width);
   margin: 0 auto;
   padding: 0 1rem;
 
   @media (max-width: 768px) {
     grid-template-columns: 1fr;
-    gap: 1.5rem;
-    padding: 0 0.5rem;
+    gap: var(--spacing-lg);
   }
 
   .member-card {
@@ -179,7 +178,7 @@
     h2 {
       text-align: center;
       color: var(--primary-black);
-      margin-bottom: 3rem;
+      margin-bottom: var(--spacing-xl);
       position: relative;
       font-size: 2.5rem;
       font-weight: 800;

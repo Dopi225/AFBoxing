@@ -1,69 +1,64 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faPlus,
   faEdit,
   faTrash,
-  faSave,
   faEye,
-  faFilter,
   faFistRaised,
-  faGraduationCap
+  faGraduationCap,
 } from '@fortawesome/free-solid-svg-icons';
-// eslint-disable-next-line no-unused-vars
-import { motion, AnimatePresence } from 'framer-motion';
-import { useNotifications } from './NotificationSystem';
-import ConfirmDialog from './ConfirmDialog';
+import { useAdminNotify } from '../../hooks/useAdminNotify';
+import { prepareActivityPayload } from '../../utils/adminAutoFill';
+import { ACTIVITY_KIND_LABELS, NAV_ITEMS } from '../../constants/adminCopy';
+import { adminBreadcrumbs } from '../../utils/adminBreadcrumbs';
 import { activitiesApi, pricingApi } from '../../services/apiService';
 import { logActivity } from '../../utils/activityLogger';
+import ConfirmDialog from './ConfirmDialog';
+import Modal from '../ui/Modal';
+import PageHeader from '../ui/PageHeader';
+import { TextInput, TextArea, SelectField } from '../ui/FormField';
+import { LoadingState } from '../PageStates';
+import {
+  WizardModal,
+  ContentBlockEditor,
+  normalizeSectionsForApi,
+  EmptyStateGuided,
+  HighlightableCard,
+} from './guided';
+import HelpTip from './guided/HelpTip';
 import './ManageActivities.scss';
 
-// const defaultActivities = [
-//   {
-//     id: 'educative',
-//     kind: 'boxing',
-//     title: 'Boxe éducative',
-//     eyebrow: '8–17 ans • Technique • Valeurs',
-//     subtitle: 'Une pratique sécurisée, sans recherche de KO : apprentissage, confiance en soi et cadre éducatif.',
-//     scheduleActivityName: 'Boxe Éducative',
-//     meta: {
-//       age: '8–17 ans',
-//       equipment: 'Tenue de sport, chaussures propres. Gants prêtés au club.',
-//       priceKey: 'boxing.educative'
-//     },
-//     sections: [
-//       {
-//         title: 'Ce que c\'est',
-//         paragraphs: ['La boxe éducative permet aux jeunes de découvrir la boxe anglaise dans un cadre progressif. On travaille la posture, les déplacements, la coordination et la maîtrise de soi, avec des mises en situation adaptées (sans brutalité).']
-//       },
-//       {
-//         title: 'Ce qu\'on travaille',
-//         bullets: [
-//           'Coordination, équilibre et motricité',
-//           'Techniques de base (garde, direct, crochet, esquive)',
-//           'Respect des règles et de l\'adversaire',
-//           'Confiance, discipline, gestion des émotions'
-//         ]
-//       },
-//       {
-//         title: 'Pour qui ?',
-//         paragraphs: ['Pour les jeunes débutants ou déjà sportifs. Les groupes sont organisés pour garantir un encadrement adapté à l\'âge et au niveau.']
-//       }
-//     ],
-//     icon: 'faGraduationCap',
-//     image: '',
-//     enabled: true
-//   }
-// ];
-
-
 const CATEGORIES = {
-  boxing: { label: 'Boxe', icon: faFistRaised, color: 'var(--primary-red)' },
-  social: { label: 'Socio-éducatif', icon: faGraduationCap, color: 'var(--secondary-dark)' }
+  boxing: { label: ACTIVITY_KIND_LABELS.boxing, icon: faFistRaised },
+  social: { label: ACTIVITY_KIND_LABELS.social, icon: faGraduationCap },
 };
 
+const emptyForm = () => ({
+  id: '',
+  kind: 'boxing',
+  title: '',
+  eyebrow: '',
+  subtitle: '',
+  scheduleActivityName: '',
+  meta: { age: '', equipment: '', priceKey: '' },
+  sections: [],
+  icon: 'faFistRaised',
+  image: '',
+  enabled: true,
+});
+
+function normalizeSectionsForEditor(sections) {
+  return (sections || []).map((s) => ({
+    title: s.title || '',
+    type: s.bullets?.length ? 'bullets' : 'paragraphs',
+    paragraphs: s.paragraphs?.length ? s.paragraphs : [''],
+    bullets: s.bullets?.length ? s.bullets : [''],
+  }));
+}
+
 const ManageActivities = () => {
-  const { success, error: notifyError } = useNotifications();
+  const { notifySuccess, notifyError } = useAdminNotify('activities');
   const [activities, setActivities] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
@@ -72,698 +67,371 @@ const ManageActivities = () => {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [pricingCatalog, setPricingCatalog] = useState([]);
-  const [selectedCategory, setSelectedCategory] = useState('all');
-  const [formData, setFormData] = useState({
-    id: '',
-    kind: 'boxing',
-    title: '',
-    eyebrow: '',
-    subtitle: '',
-    scheduleActivityName: '',
-    meta: {
-      age: '',
-      equipment: '',
-      priceKey: ''
-    },
-    sections: [],
-    icon: 'faGraduationCap',
-    image: '',
-    enabled: true
-  });
+  const [filterKind, setFilterKind] = useState('all');
+  const [formData, setFormData] = useState(emptyForm());
 
   useEffect(() => {
     loadActivities();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      try {
-        const rows = await pricingApi.catalog();
-        if (!cancelled && Array.isArray(rows)) {
-          setPricingCatalog(rows);
-        }
-      } catch {
-        if (!cancelled) setPricingCatalog([]);
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
+    pricingApi.catalog().then((rows) => setPricingCatalog(Array.isArray(rows) ? rows : [])).catch(() => {});
   }, []);
 
   const loadActivities = async () => {
     setLoading(true);
     try {
-      const items = await activitiesApi.list();
-      setActivities(items);
-    } catch {
-      notifyError('Erreur lors du chargement des activités');
-      // setActivities(defaultActivities);
+      setActivities(await activitiesApi.list());
+    } catch (err) {
+      notifyError(err, 'Impossible de charger les activités.');
     } finally {
       setLoading(false);
     }
   };
 
-  const saveActivities = async () => {
-    // Les activités sont sauvegardées individuellement lors de create/update
-    success('Toutes les activités sont synchronisées avec la base de données');
-  };
+  const pricingOptions = useMemo(
+    () => [
+      { value: '', label: '— Aucun tarif affiché —' },
+      ...pricingCatalog
+        .filter((p) => p.enabled !== false)
+        .map((p) => ({
+          value: p.priceKey,
+          label: `${p.label} — ${p.amount} € / ${p.period === 'an' ? 'an' : p.period}`,
+        })),
+    ],
+    [pricingCatalog]
+  );
+
+  const filtered = filterKind === 'all' ? activities : activities.filter((a) => a.kind === filterKind);
 
   const handleAddNew = () => {
     setEditingActivity(null);
-    setFormData({
-      id: '',
-      kind: 'boxing',
-      title: '',
-      eyebrow: '',
-      subtitle: '',
-      scheduleActivityName: '',
-      meta: {
-        age: '',
-        equipment: '',
-        priceKey: ''
-      },
-      sections: [],
-      icon: 'faGraduationCap',
-      image: '',
-      enabled: true
-    });
+    setFormData(emptyForm());
     setShowModal(true);
   };
 
   const handleEdit = (activity) => {
     setEditingActivity(activity);
-    setFormData({ ...activity });
+    setFormData({
+      ...emptyForm(),
+      ...activity,
+      meta: { ...emptyForm().meta, ...activity.meta },
+      sections: normalizeSectionsForEditor(activity.sections),
+    });
     setShowModal(true);
   };
 
-  const handleDelete = (id) => {
-    setDeleteTarget(id);
-    setShowDeleteConfirm(true);
+  const handleSubmit = async () => {
+    if (!formData.title?.trim() || !formData.subtitle?.trim()) {
+      notifyError('Le nom et la description courte sont obligatoires.');
+      return;
+    }
+    const existingIds = activities.map((a) => a.id);
+    const payload = prepareActivityPayload(
+      {
+        ...formData,
+        scheduleActivityName: formData.scheduleActivityName?.trim() || formData.title.trim(),
+        sections: normalizeSectionsForApi(formData.sections),
+        meta: {
+          ...formData.meta,
+          priceKey: formData.meta?.priceKey?.trim() || null,
+        },
+      },
+      existingIds
+    );
+    setSaving(true);
+    try {
+      if (editingActivity) {
+        await activitiesApi.update(editingActivity.id, payload);
+        logActivity('update', 'activity', `Activité « ${payload.title} » modifiée`);
+        notifySuccess(`Activité « ${payload.title} » enregistrée.`);
+      } else {
+        await activitiesApi.create(payload);
+        logActivity('create', 'activity', `Activité « ${payload.title} » créée`);
+        notifySuccess(`Activité « ${payload.title} » créée.`);
+      }
+      await loadActivities();
+      setShowModal(false);
+      setEditingActivity(null);
+      setFormData(emptyForm());
+    } catch (err) {
+      notifyError(err, 'Impossible d\'enregistrer cette activité.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const toggleActivity = async (activity) => {
+    try {
+      const updated = { ...activity, enabled: !activity.enabled };
+      await activitiesApi.update(activity.id, updated);
+      notifySuccess(updated.enabled ? 'Activité visible sur le site.' : 'Activité masquée du site.');
+      await loadActivities();
+    } catch (err) {
+      notifyError(err, 'Impossible de modifier la visibilité.');
+    }
   };
 
   const confirmDelete = async () => {
     if (!deleteTarget) return;
     try {
-      await activitiesApi.remove(deleteTarget);
-      logActivity('delete', 'activity', `Activité supprimée (ID: ${deleteTarget})`);
-      success('Activité supprimée avec succès');
+      await activitiesApi.remove(deleteTarget.id);
+      logActivity('delete', 'activity', `Activité supprimée : ${deleteTarget.title}`);
+      notifySuccess('Activité supprimée.');
       await loadActivities();
     } catch (err) {
-      notifyError(err.message || 'Erreur lors de la suppression');
+      notifyError(err, 'Impossible de supprimer cette activité.');
     } finally {
       setDeleteTarget(null);
     }
   };
 
-  const handlePreview = (activity) => {
-    setPreviewActivity(activity);
-    setShowPreview(true);
+  const canProceed = (step) => {
+    if (step === 1) return formData.title?.trim();
+    if (step === 2) return formData.subtitle?.trim();
+    return true;
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    
-    // Validation visuelle
-    if (!formData.title || !formData.title.trim()) {
-      notifyError('Le titre est obligatoire');
-      return;
-    }
-    
-    if (!formData.subtitle || !formData.subtitle.trim()) {
-      notifyError('La description est obligatoire');
-      return;
-    }
-    
-    // Génération automatique de l'ID si vide
-    const activityId = formData.id || formData.title.toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-+|-+$/g, '');
-
-    const priceKeyRaw = (formData.meta?.priceKey ?? '').toString().trim();
-
-    // Préparation des données pour l'API
-    const newActivity = {
-      id: activityId,
-      kind: formData.kind || 'boxing',
-      title: formData.title.trim(),
-      eyebrow: formData.eyebrow?.trim() || null,
-      subtitle: formData.subtitle.trim(),
-      scheduleActivityName: formData.scheduleActivityName?.trim() || null,
-      meta: {
-        age: formData.meta?.age?.trim() || null,
-        equipment: formData.meta?.equipment?.trim() || null,
-        priceKey: priceKeyRaw || null
-      },
-      sections: formData.sections || [],
-      icon: formData.icon || null,
-      image: formData.image || null,
-      enabled: formData.enabled !== false
-    };
-
-    try {
-      if (editingActivity) {
-        await activitiesApi.update(editingActivity.id, newActivity);
-        logActivity('update', 'activity', `Activité "${newActivity.title}" modifiée`);
-        success(`✅ Activité "${newActivity.title}" modifiée avec succès !`);
-      } else {
-        await activitiesApi.create(newActivity);
-        logActivity('create', 'activity', `Activité "${newActivity.title}" créée`);
-        success(`🎉 Activité "${newActivity.title}" créée avec succès !`);
-      }
-      
-      await loadActivities();
-      setShowModal(false);
-      setEditingActivity(null);
-      setFormData({
-        id: '',
-        kind: 'boxing',
-        title: '',
-        eyebrow: '',
-        subtitle: '',
-        scheduleActivityName: '',
-        meta: {
-          age: '',
-          equipment: '',
-          priceKey: ''
-        },
-        sections: [],
-        icon: 'faGraduationCap',
-        image: '',
-        enabled: true
-      });
-    } catch (err) {
-      const errorMessage = err.message || 'Erreur lors de la sauvegarde';
-      if (errorMessage.includes('errors')) {
-        try {
-          const errorData = JSON.parse(errorMessage);
-          if (errorData.errors) {
-            const errorList = Object.entries(errorData.errors).map(([field, msg]) => `${field}: ${msg}`).join('\n');
-            notifyError(`Erreurs de validation :\n${errorList}`);
-            return;
-          }
-        } catch {
-          // Pas un JSON, on affiche tel quel
-        }
-      }
-      notifyError(`❌ ${errorMessage}`);
-    }
-  };
-
-  const addSection = () => {
-    setFormData(prev => ({
-      ...prev,
-      sections: [...prev.sections, { title: '', paragraphs: [], bullets: [] }]
-    }));
-  };
-
-  const updateSection = (index, field, value) => {
-    setFormData(prev => {
-      const newSections = [...prev.sections];
-      newSections[index] = { ...newSections[index], [field]: value };
-      return { ...prev, sections: newSections };
-    });
-  };
-
-  const removeSection = (index) => {
-    setFormData(prev => ({
-      ...prev,
-      sections: prev.sections.filter((_, i) => i !== index)
-    }));
-  };
-
-  const toggleActivity = async (id) => {
-    try {
-      const activity = activities.find(a => a.id === id);
-      if (!activity) return;
-      
-      const updated = { ...activity, enabled: !activity.enabled };
-      await activitiesApi.update(id, updated);
-      logActivity('update', 'activity', `Activité "${activity.title}" ${updated.enabled ? 'activée' : 'désactivée'}`);
-      success('Statut de l\'activité mis à jour');
-      await loadActivities();
-    } catch (err) {
-      notifyError(err.message || 'Erreur lors de la mise à jour');
-    }
-  };
-
-  const filteredActivities = selectedCategory === 'all' 
-    ? activities 
-    : activities.filter(a => a.kind === selectedCategory);
-
-  const activitiesByCategory = {
-    boxing: activities.filter(a => a.kind === 'boxing'),
-    social: activities.filter(a => a.kind === 'social')
-  };
+  const wizardSteps = [
+    {
+      title: 'Type et nom',
+      description: 'Choisissez le type d\'activité et donnez-lui un nom clair.',
+      content: (
+        <>
+          <SelectField
+            label="Type d'activité"
+            name="act-kind"
+            value={formData.kind}
+            onChange={(e) => setFormData({ ...formData, kind: e.target.value })}
+            options={Object.entries(CATEGORIES).map(([k, c]) => ({ value: k, label: c.label }))}
+            help="Boxe : activités sportives. Socio-éducatif : actions éducatives et sociales."
+          />
+          <TextInput
+            label="Nom de l'activité"
+            name="act-title"
+            value={formData.title}
+            onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+            required
+            example="Boxe éducative"
+          />
+        </>
+      ),
+    },
+    {
+      title: 'Présentation',
+      description: 'Ces textes apparaissent sur la fiche activité du site.',
+      content: (
+        <>
+          <TextInput
+            label="Accroche"
+            name="act-eyebrow"
+            value={formData.eyebrow}
+            onChange={(e) => setFormData({ ...formData, eyebrow: e.target.value })}
+            optionalLabel="(facultatif)"
+            help="Courte phrase sous le titre."
+            example="8–17 ans • Technique • Valeurs"
+          />
+          <TextArea
+            label="Description courte"
+            name="act-subtitle"
+            value={formData.subtitle}
+            onChange={(e) => setFormData({ ...formData, subtitle: e.target.value })}
+            rows={3}
+            required
+            help="Résumé visible sur la liste des activités."
+          />
+        </>
+      ),
+    },
+    {
+      title: 'Informations pratiques',
+      description: 'Âge, matériel, tarif et nom affiché dans le planning.',
+      content: (
+        <>
+          <TextInput
+            label="Tranche d'âge"
+            name="act-age"
+            value={formData.meta.age}
+            onChange={(e) => setFormData({ ...formData, meta: { ...formData.meta, age: e.target.value } })}
+            optionalLabel="(facultatif)"
+            example="8–17 ans"
+          />
+          <TextInput
+            label="Équipement nécessaire"
+            name="act-equipment"
+            value={formData.meta.equipment}
+            onChange={(e) => setFormData({ ...formData, meta: { ...formData.meta, equipment: e.target.value } })}
+            optionalLabel="(facultatif)"
+            example="Tenue de sport, chaussures propres"
+          />
+          <SelectField
+            label="Tarif affiché sur la fiche"
+            name="act-price"
+            value={formData.meta.priceKey || ''}
+            onChange={(e) => setFormData({ ...formData, meta: { ...formData.meta, priceKey: e.target.value } })}
+            options={pricingOptions}
+            help="Les montants se gèrent dans la section Tarifs."
+          />
+          <TextInput
+            label="Nom dans le planning"
+            name="act-schedule-name"
+            value={formData.scheduleActivityName}
+            onChange={(e) => setFormData({ ...formData, scheduleActivityName: e.target.value })}
+            help="Laissez vide pour utiliser le nom de l'activité."
+            placeholder={formData.title || 'Boxe éducative'}
+          />
+        </>
+      ),
+    },
+    {
+      title: 'Contenu détaillé',
+      description: 'Ajoutez des blocs pour détailler l\'activité (facultatif).',
+      content: (
+        <ContentBlockEditor
+          sections={formData.sections}
+          onChange={(sections) => setFormData({ ...formData, sections })}
+        />
+      ),
+    },
+  ];
 
   if (loading) {
     return (
       <div className="manage-activities">
-        <div className="empty-state">
-          <p>Chargement des activités...</p>
-        </div>
+        <LoadingState label="Chargement des activités…" />
       </div>
     );
   }
 
   return (
     <div className="manage-activities">
-      <div className="page-header">
-        <div>
-          <h2>Gestion des Activités</h2>
-          <p className="page-subtitle">Gérez les activités du club (Boxe Éducative, Loisir, etc.)</p>
-        </div>
-        <div className="header-actions">
-          <button className="btn-secondary" onClick={saveActivities}>
-            <FontAwesomeIcon icon={faSave} />
-            Synchroniser
-          </button>
-          <button className="btn-primary" onClick={handleAddNew}>
+      <PageHeader
+        title="Activités"
+        subtitle="Définissez les activités proposées par le club. Elles alimentent le planning et les fiches du site."
+        breadcrumbs={adminBreadcrumbs(NAV_ITEMS.activities)}
+        actions={
+          <button type="button" className="btn btn-primary" onClick={handleAddNew}>
             <FontAwesomeIcon icon={faPlus} />
             Ajouter une activité
           </button>
-        </div>
-      </div>
+        }
+      />
 
-      {/* Filtres par catégorie */}
+      <HelpTip text="Avant de remplir le planning, créez d'abord vos activités ici." />
+
       <div className="category-filters">
-        <button
-          className={`category-filter ${selectedCategory === 'all' ? 'active' : ''}`}
-          onClick={() => setSelectedCategory('all')}
-        >
-          <FontAwesomeIcon icon={faFilter} />
-          <span>Toutes ({activities.length})</span>
+        <button type="button" className={`category-filter ${filterKind === 'all' ? 'active' : ''}`} onClick={() => setFilterKind('all')}>
+          Toutes ({activities.length})
         </button>
         {Object.entries(CATEGORIES).map(([key, cat]) => (
           <button
             key={key}
-            className={`category-filter ${selectedCategory === key ? 'active' : ''}`}
-            onClick={() => setSelectedCategory(key)}
-            style={{ '--category-color': cat.color }}
+            type="button"
+            className={`category-filter ${filterKind === key ? 'active' : ''}`}
+            onClick={() => setFilterKind(key)}
           >
-            <FontAwesomeIcon icon={cat.icon} />
-            <span>{cat.label} ({activitiesByCategory[key]?.length || 0})</span>
+            <FontAwesomeIcon icon={cat.icon} aria-hidden /> {cat.label}
           </button>
         ))}
       </div>
 
       <div className="activities-list">
-        {filteredActivities.length === 0 ? (
-          <div className="empty-state">
-            <p>
-              {activities.length === 0 
-                ? 'Aucune activité pour le moment.' 
-                : `Aucune activité dans la catégorie "${CATEGORIES[selectedCategory]?.label || selectedCategory}".`}
-            </p>
-          </div>
+        {filtered.length === 0 ? (
+          <EmptyStateGuided
+            icon={faFistRaised}
+            title="Aucune activité"
+            message="Créez votre première activité avant de remplir le planning."
+            actionLabel="Ajouter une activité"
+            onAction={handleAddNew}
+          />
         ) : (
-          filteredActivities.map((activity, index) => {
-            const category = CATEGORIES[activity.kind] || CATEGORIES.boxing;
+          filtered.map((activity) => {
+            const cat = CATEGORIES[activity.kind] || CATEGORIES.boxing;
             return (
-              <motion.div
-                key={activity.id}
-                className={`activity-card ${!activity.enabled ? 'disabled' : ''}`}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1 }}
-              >
-              <div className="activity-header">
-                <div className="activity-info">
-                  <div className="activity-status">
-                    <button
-                      className={`status-toggle ${activity.enabled ? 'enabled' : 'disabled'}`}
-                      onClick={() => toggleActivity(activity.id)}
-                      title={activity.enabled ? 'Désactiver' : 'Activer'}
-                    >
-                      {activity.enabled ? '✓' : '✗'}
+              <HighlightableCard key={activity.id} id={activity.id} className={`activity-card ${!activity.enabled ? 'disabled' : ''}`}>
+                <div className="activity-header">
+                  <div className="activity-info">
+                    <span className="activity-category-badge">
+                      <FontAwesomeIcon icon={cat.icon} aria-hidden /> {cat.label}
+                    </span>
+                    <h3>{activity.title}</h3>
+                    {activity.eyebrow ? <p className="activity-eyebrow">{activity.eyebrow}</p> : null}
+                    <p className="activity-subtitle">{activity.subtitle}</p>
+                    <p className="activity-visibility">
+                      {activity.enabled !== false ? 'Visible sur le site' : 'Masquée du site'}
+                    </p>
+                  </div>
+                  <div className="activity-actions">
+                    <button type="button" className="btn-edit" onClick={() => { setPreviewActivity(activity); setShowPreview(true); }}>
+                      <FontAwesomeIcon icon={faEye} aria-hidden /> Aperçu
+                    </button>
+                    <button type="button" className="btn-edit" onClick={() => handleEdit(activity)}>
+                      <FontAwesomeIcon icon={faEdit} aria-hidden /> Modifier
+                    </button>
+                    <button type="button" className="btn-edit" onClick={() => toggleActivity(activity)}>
+                      {activity.enabled !== false ? 'Masquer' : 'Afficher'}
+                    </button>
+                    <button type="button" className="btn-delete" onClick={() => { setDeleteTarget(activity); setShowDeleteConfirm(true); }}>
+                      <FontAwesomeIcon icon={faTrash} aria-hidden /> Supprimer
                     </button>
                   </div>
-                  <div>
-                    <div className="activity-category-badge" style={{ '--category-color': category.color }}>
-                      <FontAwesomeIcon icon={category.icon} />
-                      <span>{category.label}</span>
-                    </div>
-                    <h3>{activity.title}</h3>
-                    <p className="activity-eyebrow">{activity.eyebrow}</p>
-                    <p className="activity-subtitle">{activity.subtitle}</p>
-                  </div>
                 </div>
-                <div className="activity-actions">
-                  <button
-                    className="btn-icon"
-                    onClick={() => handlePreview(activity)}
-                    title="Prévisualiser"
-                  >
-                    <FontAwesomeIcon icon={faEye} />
-                  </button>
-                  <button
-                    className="btn-icon"
-                    onClick={() => handleEdit(activity)}
-                    title="Modifier"
-                  >
-                    <FontAwesomeIcon icon={faEdit} />
-                  </button>
-                  <button
-                    className="btn-icon btn-danger"
-                    onClick={() => handleDelete(activity.id)}
-                    title="Supprimer"
-                  >
-                    <FontAwesomeIcon icon={faTrash} />
-                  </button>
-                </div>
-              </div>
-              <div className="activity-meta">
-                <span><strong>ID:</strong> {activity.id}</span>
-                <span><strong>Type:</strong> {activity.kind}</span>
-                <span><strong>Sections:</strong> {activity.sections?.length || 0}</span>
-              </div>
-              </motion.div>
+              </HighlightableCard>
             );
           })
         )}
       </div>
 
-      {/* Modal d'édition */}
-      <AnimatePresence>
-        {showModal && (
-          <div className="modal-overlay" onClick={() => setShowModal(false)}>
-            <motion.div
-              className="modal-content modal-large"
-              onClick={(e) => e.stopPropagation()}
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-            >
-              <h3>{editingActivity ? 'Modifier' : 'Ajouter'} une activité</h3>
-              <form onSubmit={handleSubmit} className="activity-form">
-                <div className="form-row">
-                  {/* <div className="form-group">
-                    <label>
-                      ID unique *
-                      {!editingActivity && (
-                        <span className="form-hint" style={{ fontSize: '0.75rem', color: '#666', fontWeight: 'normal' }}>
-                          (Généré automatiquement si vide)
-                        </span>
-                      )}
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.id}
-                      onChange={(e) => setFormData({ ...formData, id: e.target.value })}
-                      placeholder={editingActivity ? "Non modifiable" : "educative (généré automatiquement)"}
-                      required
-                      disabled={!!editingActivity}
-                      style={{ opacity: editingActivity ? 0.6 : 1 }}
-                    />
-                  </div> */}
-                  <div className="form-group">
-                    <label>
-                      <FontAwesomeIcon icon={faFilter} />
-                      Catégorie
-                    </label>
-                    <select
-                      value={formData.kind}
-                      onChange={(e) => setFormData({ ...formData, kind: e.target.value })}
-                    >
-                      {Object.entries(CATEGORIES).map(([key, cat]) => (
-                        <option key={key} value={key}>
-                          {cat.label}
-                        </option>
-                      ))}
-                    </select>
-                    <div className="form-hint">
-                      Catégorie de l'activité : {CATEGORIES[formData.kind]?.label || 'Non définie'}
-                    </div>
-                  </div>
-                </div>
+      <WizardModal
+        isOpen={showModal}
+        onClose={() => { setShowModal(false); setEditingActivity(null); }}
+        title={editingActivity ? 'Modifier l\'activité' : 'Ajouter une activité'}
+        steps={wizardSteps}
+        onComplete={handleSubmit}
+        isEdit={!!editingActivity}
+        canProceed={canProceed}
+        completing={saving}
+        size="xl"
+      />
 
-                <div className="form-group">
-                  <label>
-                    Titre *
-                    <span className="form-hint" style={{ fontSize: '0.75rem', color: '#666', fontWeight: 'normal', marginLeft: '0.5rem' }}>
-                      (Ex: "Boxe Éducative")
-                    </span>
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.title}
-                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                    placeholder="Ex: Boxe Éducative"
-                    required
-                    style={{ borderColor: formData.title ? '#4caf50' : undefined }}
-                  />
-                  {formData.title && (
-                    <div style={{ fontSize: '0.75rem', color: '#4caf50', marginTop: '0.25rem' }}>
-                      ✓ {formData.title.length} caractères
-                    </div>
-                  )}
-                </div>
-
-                <div className="form-group">
-                  <label>Eyebrow (sous-titre court)</label>
-                  <input
-                    type="text"
-                    value={formData.eyebrow}
-                    onChange={(e) => setFormData({ ...formData, eyebrow: e.target.value })}
-                    placeholder="8–17 ans • Technique • Valeurs"
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label>
-                    Description *
-                    <span className="form-hint" style={{ fontSize: '0.75rem', color: '#666', fontWeight: 'normal', marginLeft: '0.5rem' }}>
-                      (Texte visible sur la page d'accueil)
-                    </span>
-                  </label>
-                  <textarea
-                    value={formData.subtitle}
-                    onChange={(e) => setFormData({ ...formData, subtitle: e.target.value })}
-                    rows="3"
-                    placeholder="Une description courte et accrocheuse de l'activité..."
-                    required
-                    style={{ borderColor: formData.subtitle ? '#4caf50' : undefined }}
-                  />
-                  {formData.subtitle && (
-                    <div style={{ fontSize: '0.75rem', color: '#4caf50', marginTop: '0.25rem' }}>
-                      ✓ {formData.subtitle.length} caractères
-                    </div>
-                  )}
-                </div>
-
-                <div className="form-group">
-                  <label>Nom pour le planning</label>
-                  <input
-                    type="text"
-                    value={formData.scheduleActivityName}
-                    onChange={(e) => setFormData({ ...formData, scheduleActivityName: e.target.value })}
-                    placeholder="Boxe Éducative"
-                  />
-                </div>
-
-                <div className="form-section">
-                  <h4>Métadonnées</h4>
-                  <div className="form-row">
-                    <div className="form-group">
-                      <label>Âge</label>
-                      <input
-                        type="text"
-                        value={formData.meta.age}
-                        onChange={(e) => setFormData({
-                          ...formData,
-                          meta: { ...formData.meta, age: e.target.value }
-                        })}
-                        placeholder="8–17 ans"
-                      />
-                    </div>
-                    <div className="form-group">
-                      <label>Équipement</label>
-                      <input
-                        type="text"
-                        value={formData.meta.equipment}
-                        onChange={(e) => setFormData({
-                          ...formData,
-                          meta: { ...formData.meta, equipment: e.target.value }
-                        })}
-                      />
-                    </div>
-                  </div>
-                  <div className="form-group">
-                    <label>Tarif associé (grille tarifaire)</label>
-                    <select
-                      value={formData.meta.priceKey || ''}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          meta: { ...formData.meta, priceKey: e.target.value }
-                        })
-                      }
-                    >
-                      <option value="">— Aucun / sur devis —</option>
-                      {pricingCatalog
-                        .filter((p) => p.enabled !== false)
-                        .map((p) => (
-                          <option key={p.priceKey} value={p.priceKey}>
-                            {p.label} ({p.priceKey}) — {p.amount}€ / {p.period}
-                          </option>
-                        ))}
-                    </select>
-                    <div className="form-hint">
-                      Les montants se gèrent dans la section Tarifs (menu admin). Ici vous choisissez la ligne de la grille affichée sur la fiche activité.
-                    </div>
-                  </div>
-                </div>
-
-                <div className="form-section">
-                  <div className="section-header-form">
-                    <h4>Sections de contenu</h4>
-                    <button type="button" className="btn-add-section" onClick={addSection}>
-                      <FontAwesomeIcon icon={faPlus} />
-                      Ajouter une section
-                    </button>
-                  </div>
-                  {formData.sections.map((section, idx) => (
-                    <div key={idx} className="section-editor">
-                      <div className="section-header">
-                        <input
-                          type="text"
-                          value={section.title}
-                          onChange={(e) => updateSection(idx, 'title', e.target.value)}
-                          placeholder="Titre de la section"
-                          className="section-title-input"
-                        />
-                        <button
-                          type="button"
-                          className="btn-remove-section"
-                          onClick={() => removeSection(idx)}
-                        >
-                          <FontAwesomeIcon icon={faTrash} />
-                        </button>
-                      </div>
-                      <div className="section-content">
-                        <div className="form-group">
-                          <label>Paragraphes (un par ligne)</label>
-                          <textarea
-                            value={(section.paragraphs || []).join('\n')}
-                            onChange={(e) => updateSection(idx, 'paragraphs', e.target.value.split('\n').filter(p => p.trim()))}
-                            rows="3"
-                            placeholder="Paragraphe 1&#10;Paragraphe 2"
-                          />
-                        </div>
-                        <div className="form-group">
-                          <label>Points à puces (un par ligne)</label>
-                          <textarea
-                            value={(section.bullets || []).join('\n')}
-                            onChange={(e) => updateSection(idx, 'bullets', e.target.value.split('\n').filter(b => b.trim()))}
-                            rows="3"
-                            placeholder="Point 1&#10;Point 2"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                <div className="form-actions">
-                  <button type="button" className="btn-cancel" onClick={() => setShowModal(false)}>
-                    Annuler
-                  </button>
-                  <button 
-                    type="submit" 
-                    className="btn-submit"
-                    disabled={!formData.title || !formData.subtitle}
-                    style={{ 
-                      opacity: (!formData.title || !formData.subtitle) ? 0.5 : 1,
-                      cursor: (!formData.title || !formData.subtitle) ? 'not-allowed' : 'pointer'
-                    }}
-                  >
-                    {editingActivity ? '💾 Modifier' : '✨ Créer l\'activité'}
-                  </button>
-                </div>
-                {(!formData.title || !formData.subtitle) && (
-                  <div style={{ 
-                    marginTop: '1rem', 
-                    padding: '0.75rem', 
-                    background: '#fff3cd', 
-                    border: '1px solid #ffc107', 
-                    borderRadius: '8px',
-                    fontSize: '0.875rem',
-                    color: '#856404'
-                  }}>
-                    ⚠️ Veuillez remplir au moins le titre et la description pour continuer
-                  </div>
-                )}
-              </form>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
-
-      {/* Modal de prévisualisation */}
-      <AnimatePresence>
-        {showPreview && previewActivity && (
-          <div className="modal-overlay" onClick={() => setShowPreview(false)}>
-            <motion.div
-              className="modal-content modal-preview"
-              onClick={(e) => e.stopPropagation()}
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-            >
-              <div className="preview-header">
-                <h3>Aperçu : {previewActivity.title}</h3>
-                <button className="btn-close" onClick={() => setShowPreview(false)}>×</button>
+      <Modal
+        isOpen={showPreview && !!previewActivity}
+        onClose={() => setShowPreview(false)}
+        size="lg"
+        title={previewActivity ? `Aperçu : ${previewActivity.title}` : 'Aperçu'}
+      >
+        {previewActivity ? (
+          <div className="preview-content">
+            {previewActivity.eyebrow ? <div className="preview-eyebrow">{previewActivity.eyebrow}</div> : null}
+            <p className="preview-subtitle">{previewActivity.subtitle}</p>
+            {previewActivity.sections?.map((section, idx) => (
+              <div key={idx} className="preview-section">
+                <h4>{section.title}</h4>
+                {section.paragraphs?.map((p, i) => <p key={i}>{p}</p>)}
+                {section.bullets?.length ? (
+                  <ul>{section.bullets.map((b, i) => <li key={i}>{b}</li>)}</ul>
+                ) : null}
               </div>
-              <div className="preview-content">
-                <div className="preview-eyebrow">{previewActivity.eyebrow}</div>
-                <h2>{previewActivity.title}</h2>
-                <p className="preview-subtitle">{previewActivity.subtitle}</p>
-                {previewActivity.meta && (
-                  <div className="preview-meta">
-                    <p><strong>Âge:</strong> {previewActivity.meta.age}</p>
-                    <p><strong>Équipement:</strong> {previewActivity.meta.equipment}</p>
-                  </div>
-                )}
-                {previewActivity.sections?.map((section, idx) => (
-                  <div key={idx} className="preview-section">
-                    <h4>{section.title}</h4>
-                    {section.paragraphs?.map((p, pIdx) => (
-                      <p key={pIdx}>{p}</p>
-                    ))}
-                    {section.bullets && section.bullets.length > 0 && (
-                      <ul>
-                        {section.bullets.map((bullet, bIdx) => (
-                          <li key={bIdx}>{bullet}</li>
-                        ))}
-                      </ul>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </motion.div>
+            ))}
           </div>
-        )}
-      </AnimatePresence>
+        ) : null}
+      </Modal>
 
       <ConfirmDialog
         isOpen={showDeleteConfirm}
-        onClose={() => {
-          setShowDeleteConfirm(false);
-          setDeleteTarget(null);
-        }}
+        onClose={() => { setShowDeleteConfirm(false); setDeleteTarget(null); }}
         onConfirm={confirmDelete}
-        title="Supprimer l'activité"
-        message="Êtes-vous sûr de vouloir supprimer cette activité ? Cette action est irréversible."
+        title="Supprimer cette activité ?"
+        itemLabel={deleteTarget?.title}
+        consequences={[
+          'L\'activité disparaîtra du site et du planning.',
+          'Les créneaux horaires liés devront être mis à jour.',
+        ]}
         type="danger"
         confirmText="Supprimer"
-        danger={true}
+        danger
       />
     </div>
   );
 };
 
 export default ManageActivities;
-

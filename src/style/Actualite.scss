@@ -1,9 +1,14 @@
 /* Styles pour la page Actualité/Socio-éducatif - AF Boxing Club */
 
+.actualite-loading {
+  text-align: center;
+  padding: var(--spacing-lg);
+}
+
 .social-hero {
   background: var(--gradient-hero);
   color: white;
-  padding: var(--spacing-xxl) 0;
+  padding: var(--section-padding-y) 0;
   text-align: center;
 
   .hero-content {
@@ -30,7 +35,7 @@
 }
 
 .social-activities {
-  padding: var(--spacing-xxl) 0;
+  padding: var(--section-padding-y) 0;
   background: var(--secondary-gray);
 
   h2 {
@@ -87,7 +92,7 @@
         }
 
         h3 {
-          color: var(--primary-black);
+          color: var(--heading-on-light);
           margin: 0;
           font-size: 1.5rem;
         }
@@ -149,7 +154,7 @@
 }
 
 .social-cta {
-  padding: var(--spacing-xxl) 0;
+  padding: var(--section-padding-y) 0;
   background: var(--surface-elevated);
 
   .cta-grid {
@@ -177,7 +182,7 @@
       }
 
       h3 {
-        color: var(--primary-black);
+        color: var(--heading-on-light);
         margin-bottom: var(--spacing-md);
         font-size: 1.4rem;
       }
@@ -194,6 +199,13 @@
         font-size: 1.1rem;
       }
     }
+  }
+}
+
+:root[data-theme='dark'] {
+  .social-activities .activity-card .card-header h3,
+  .social-cta .cta-card h3 {
+    color: var(--heading-on-dark);
   }
 }
 

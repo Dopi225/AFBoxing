@@ -1,5 +1,11 @@
 /* Styles pour la page Activités - AF Boxing Club */
 
+.activite-section-subtitle {
+  text-align: center;
+  margin-bottom: var(--spacing-lg);
+  color: var(--text-light);
+}
+
 .activities-hero {
   background: var(--gradient-hero);
   color: white;
@@ -87,7 +93,7 @@
         }
 
         h3 {
-          color: var(--primary-black);
+          color: var(--heading-on-light);
           margin: 0;
           font-size: 1.5rem;
         }
@@ -128,11 +134,16 @@
       .card-footer {
         .btn {
           width: 100%;
-          padding: var(--spacing-md);
-          font-size: 1.1rem;
         }
       }
     }
+  }
+}
+
+:root[data-theme='dark'] {
+  .activities-main .activity-card .card-header h3,
+  .activities-cta .cta-card h3 {
+    color: var(--heading-on-dark);
   }
 }
 
@@ -199,8 +210,7 @@
     }
 
     .btn {
-      padding: var(--spacing-md) var(--spacing-xl);
-      font-size: 1.1rem;
+      width: 100%;
     }
   }
 }
@@ -247,8 +257,6 @@
 
       .btn {
         width: 100%;
-        padding: var(--spacing-md);
-        font-size: 1.1rem;
       }
     }
   }
@@ -272,4 +280,14 @@
     flex-direction: column;
     gap: var(--spacing-sm);
   }
+}
+
+.activite-schedule-card__header,
+.activite-schedule-card__footer {
+  text-align: center;
+}
+
+.activite-schedule-list {
+  margin: 0;
+  text-align: center;
 }

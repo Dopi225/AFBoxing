@@ -4,7 +4,10 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faClock, faCalendarAlt, faUsers, faFistRaised, faGraduationCap, faHeart, faMusic, faBrain, faWheelchair } from '@fortawesome/free-solid-svg-icons';
 import { motion } from 'framer-motion';
 import { scheduleApi, activitiesApi } from '../services/apiService';
+import { toUserMessage } from '../utils/userFacingError';
+import { useMediaQuery } from '../hooks/useMediaQuery';
 import SectionHeader from './SectionHeader';
+import { ErrorState, LoadingState } from './PageStates';
 import '../style/Horaire.scss';
 
 const defaultSchedule = [
@@ -20,12 +23,13 @@ const defaultSchedule = [
 const Horaire = () => {
   const [searchParams] = useSearchParams();
   const [schedule, setSchedule] = React.useState(defaultSchedule);
-  const [loading, setLoading] = React.useState(false);
+  const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState('');
   const [activeFilter, setActiveFilter] = React.useState('Tous');
   const [activityNamesFromDb, setActivityNamesFromDb] = React.useState([]);
   const [viewMode, setViewMode] = React.useState('semaine'); // 'semaine' | 'aujourdhui'
-  const [layoutMode, setLayoutMode] = React.useState(() => (window.innerWidth >= 900 ? 'table' : 'cartes')); // 'table' | 'cartes'
+  const [layoutMode, setLayoutMode] = React.useState(() => (window.innerWidth >= 768 ? 'table' : 'cartes'));
+  const isMobileLayout = useMediaQuery('(max-width: 768px)');
 
   const filterLabels = React.useMemo(() => {
     const fromSchedule = schedule.flatMap((d) => (d.activities || []).map((a) => a.activity)).filter(Boolean);
@@ -78,12 +82,8 @@ const Horaire = () => {
   const DAY_ORDER = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
 
   React.useEffect(() => {
-    const onResize = () => {
-      if (window.innerWidth < 900) setLayoutMode('cartes');
-    };
-    window.addEventListener('resize', onResize);
-    return () => window.removeEventListener('resize', onResize);
-  }, []);
+    if (isMobileLayout) setLayoutMode('cartes');
+  }, [isMobileLayout]);
 
   React.useEffect(() => {
     const load = async () => {
@@ -109,25 +109,13 @@ const Horaire = () => {
           setSchedule(byDay);
         }
       } catch (err) {
-        setError(err.message || 'Impossible de charger le planning.');
+        setError(toUserMessage(err, 'Impossible de charger le planning.'));
       } finally {
         setLoading(false);
       }
     };
     load();
   }, []);
-
-  const getActivityColor = (activity) => {
-    const colors = {
-      'Boxe Éducative': 'var(--primary-red)',
-      'Boxe Loisir': 'var(--primary-red-dark)',
-      'Boxe Amateur': 'var(--primary-black)',
-      'Handiboxe': 'var(--primary-red)',
-      'Aeroboxe': 'var(--primary-red-dark)',
-      'Boxe Thérapie': 'var(--primary-black)'
-    };
-    return colors[activity] || 'var(--primary-red)';
-  };
 
   const getActivityTone = (activity) => {
     switch (activity) {
@@ -255,7 +243,7 @@ const Horaire = () => {
       <SectionHeader
         title="Horaires"
         subtitle="Consultez le planning complet par activité. Filtrez, basculez entre semaine/aujourd’hui, et trouvez votre prochain entraînement."
-        eyebrow="Rapide à lire • Mobile-first"
+        eyebrow="Planning du club"
         actions={[
           { label: 'Tarifs et inscription', to: '/tarif', className: 'btn-primary' },
           { label: "Contact", to: "/contact", className: "btn-secondary" },
@@ -297,6 +285,7 @@ const Horaire = () => {
                 </button>
               </div>
 
+              {!isMobileLayout && (
               <div className="segmented" role="tablist" aria-label="Mode de lecture">
                 <button
                   type="button"
@@ -317,6 +306,7 @@ const Horaire = () => {
                   Cartes
                 </button>
               </div>
+              )}
             </div>
 
             <div className="schedule-toolbar__right">
@@ -355,11 +345,11 @@ const Horaire = () => {
                   </span>
                 </div>
               </div>
-              <div className="schedule-next__actions">
-                <button className="btn btn-primary" type="button" onClick={() => window.location.assign('/tarif')}>
+              <div className="schedule-next__actions btn-group btn-group--equal">
+                <button className="btn btn-primary btn-sm" type="button" onClick={() => window.location.assign('/tarif')}>
                   Tarifs & inscription
                 </button>
-                <button className="btn btn-outline" type="button" onClick={() => window.location.assign('/contact')}>
+                <button className="btn btn-outline btn-sm" type="button" onClick={() => window.location.assign('/contact')}>
                   Contact
                 </button>
               </div>
@@ -379,15 +369,13 @@ const Horaire = () => {
             </div>
           )}
           
-          {loading && (
-            <div className="schedule-grid">
-              <p>Chargement du planning...</p>
-            </div>
-          )}
+          {loading && <LoadingState label="Chargement du planning…" />}
           {error && !loading && (
-            <div className="schedule-grid">
-              <p>{error}</p>
-            </div>
+            <ErrorState
+              title="Planning indisponible"
+              message={error}
+              onRetry={() => window.location.reload()}
+            />
           )}
           {!loading && !error && (
           <>
@@ -461,10 +449,9 @@ const Horaire = () => {
                       
                       <div className="activity-details">
                         <div className="activity-info">
-                          <FontAwesomeIcon 
-                            icon={activity.icon} 
-                            className="activity-icon"
-                            style={{ color: getActivityColor(activity.activity) }}
+                          <FontAwesomeIcon
+                            icon={activity.icon}
+                            className={`activity-icon activity-icon--${getActivityTone(activity.activity)}`}
                           />
                           <div>
                             <h4>{activity.activity}</h4>

@@ -5,7 +5,9 @@ import { faFistRaised, faGraduationCap, faHeart, faMusic, faBrain, faWheelchair,
 // eslint-disable-next-line no-unused-vars
 import { motion } from 'framer-motion';
 import { scheduleApi, activitiesApi } from '../services/apiService';
+import { toUserMessage } from '../utils/userFacingError';
 import SectionHeader from './SectionHeader';
+import { ErrorState, EmptyState, InlineLoading, LoadingState } from './PageStates';
 import '../style/Activite.scss';
 
 const iconMap = {
@@ -24,6 +26,7 @@ const Activite = () => {
   const [scheduleError, setScheduleError] = useState('');
   const [scheduleItems, setScheduleItems] = useState([]);
   const [activities, setActivities] = useState([]);
+  const [activitiesLoading, setActivitiesLoading] = useState(true);
   const [error, setError] = useState('');
 
   useEffect(() => {
@@ -35,7 +38,7 @@ const Activite = () => {
         const list = Array.isArray(data) ? data : (data?.data || []);
         setScheduleItems(list);
       } catch (err) {
-        setScheduleError(err.message || "Impossible de charger le planning depuis l'API.");
+        setScheduleError(toUserMessage(err, "Impossible d'afficher le planning pour le moment. Réessayez dans un instant."));
         setScheduleItems([]);
       } finally {
         setScheduleLoading(false);
@@ -43,6 +46,8 @@ const Activite = () => {
     };
 
     const loadActivities = async () => {
+      setActivitiesLoading(true);
+      setError('');
       try {
         const data = await activitiesApi.list();
         
@@ -72,20 +77,10 @@ const Activite = () => {
         //   }
         // ]);
       } catch (err) {
-        // console.error('Error loading activities:', err);
-        setError(err.message || 'Impossible de charger les activités sportives.');
-        // Fallback sur données par défaut si l'API échoue
-        // setActivities([
-        //   {
-        //     id: 'educative',
-        //     title: 'Boxe Éducative',
-        //     icon: faGraduationCap,
-        //     description: 'Adaptée aux jeunes de 8 à 17 ans, axée sur la technique sans contact, apprentissage et valeurs citoyennes.',
-        //     age: '8-17 ans',
-        //     level: 'Débutant',
-        //     color: 'var(--primary-red)'
-        //   }
-        // ]);
+        setError(toUserMessage(err, 'Impossible de charger les activités pour le moment.'));
+        setActivities([]);
+      } finally {
+        setActivitiesLoading(false);
       }
     };
 
@@ -131,10 +126,25 @@ const Activite = () => {
             Choisissez votre pratique
           </motion.h2>
           
-          <p className="section-subtitle" style={{ textAlign: 'center', marginBottom: '2rem', color: 'var(--text-light, #555)' }}>
+          <p className="section-subtitle activite-section-subtitle">
             Activités de boxe anglaise pour tous les niveaux et tous les âges
           </p>
+
+          {activitiesLoading && <InlineLoading label="Chargement des activités…" />}
+          {!activitiesLoading && error && (
+            <ErrorState
+              title="Activités indisponibles"
+              message={error}
+              onRetry={() => window.location.reload()}
+            />
+          )}
+          {!activitiesLoading && !error && activities.length === 0 && (
+            <EmptyState title="Aucune activité pour le moment">
+              Le planning des activités sera bientôt disponible.
+            </EmptyState>
+          )}
           
+          {!activitiesLoading && !error && activities.length > 0 && (
           <div className="modern-grid grid-3">
             {activities.map((activity, index) => (
               <motion.div
@@ -183,6 +193,7 @@ const Activite = () => {
               </motion.div>
             ))}
           </div>
+          )}
         </div>
       </section>
 
@@ -199,19 +210,27 @@ const Activite = () => {
             Horaires d'entraînement
           </motion.h2>
           
-          <div className="modern-card">
-            <div className="card-header" style={{ textAlign: 'center' }}>
+          <div className="modern-card activite-schedule-card">
+            <div className="card-header activite-schedule-card__header">
               <FontAwesomeIcon icon={faClock} className="card-icon" />
-              <h3>Prochains créneaux (API)</h3>
+              <h3>Prochains créneaux</h3>
             </div>
             <div className="card-content">
-              {scheduleLoading && <p>Chargement…</p>}
-              {!scheduleLoading && scheduleError && <p>{scheduleError}</p>}
+              {scheduleLoading && <LoadingState label="Chargement du planning…" />}
+              {!scheduleLoading && scheduleError && (
+                <ErrorState
+                  title="Planning indisponible"
+                  message={scheduleError}
+                  onRetry={() => window.location.reload()}
+                />
+              )}
               {!scheduleLoading && !scheduleError && nextSessions.length === 0 && (
-                <p>Planning non renseigné pour le moment.</p>
+                <EmptyState title="Aucun créneau affiché">
+                  Le planning sera bientôt mis à jour.
+                </EmptyState>
               )}
               {!scheduleLoading && !scheduleError && nextSessions.length > 0 && (
-                <p style={{ margin: 0 }}>
+                <p className="activite-schedule-list">
                   {nextSessions.map((s, idx) => (
                     <span key={`${s.day}-${s.time}-${idx}`}>
                       {idx === 0 ? '' : <br />}
@@ -221,7 +240,7 @@ const Activite = () => {
                 </p>
               )}
             </div>
-            <div className="card-footer" style={{ textAlign: 'center' }}>
+            <div className="card-footer activite-schedule-card__footer">
               <button className="btn btn-primary" onClick={() => navigate('/horaire')}>
                 <FontAwesomeIcon icon={faCalendarAlt} />
                 Voir le planning complet

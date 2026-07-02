@@ -1,47 +1,25 @@
 .manage-settings {
-  .page-header {
-    margin-bottom: 2rem;
+  .page-header__actions {
     display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    gap: 2rem;
+    gap: 1rem;
+    align-items: center;
     flex-wrap: wrap;
+  }
 
-    h2 {
-      font-size: 2rem;
-      color: var(--primary-black, #0b0b0b);
-      margin-bottom: 0.5rem;
-      font-weight: 700;
-    }
+  .unsaved-indicator {
+    padding: 0.5rem 1rem;
+    background: var(--status-warning-bg);
+    color: var(--status-warning-fg);
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
 
-    .page-subtitle {
-      color: var(--text-light, #555);
-      font-size: 1rem;
-      margin: 0;
-    }
-
-    .header-actions {
-      display: flex;
-      gap: 1rem;
-      align-items: center;
-      flex-wrap: wrap;
-    }
-
-    .unsaved-indicator {
-      padding: 0.5rem 1rem;
-      background: #fff8e1;
-      color: #f90;
-      border-radius: 8px;
-      font-size: 0.9rem;
-      font-weight: 500;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-
-      &::before {
-        content: '●';
-        font-size: 0.75rem;
-      }
+    &::before {
+      content: '●';
+      font-size: 0.75rem;
     }
   }
 
@@ -52,7 +30,7 @@
   }
 
   .settings-section {
-    background: white;
+    background: var(--surface-elevated);
     border-radius: var(--border-radius-lg, 16px);
     padding: 2rem;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
@@ -125,8 +103,8 @@
   }
 
   .settings-note {
-    background: #e3f2fd;
-    border-left: 4px solid #09f;
+    background: var(--status-info-bg);
+    border-left: 4px solid var(--status-info-fg);
     border-radius: var(--border-radius-md, 12px);
     padding: 1.5rem;
     display: flex;
@@ -134,7 +112,7 @@
     align-items: flex-start;
 
     svg {
-      color: #09f;
+      color: var(--status-info-fg);
       font-size: 1.25rem;
       margin-top: 0.25rem;
       flex-shrink: 0;
@@ -160,56 +138,28 @@
       .note-warning {
         margin-top: 1rem;
         padding-top: 1rem;
-        border-top: 1px solid rgba(0, 0, 0, 0.1);
-        color: #f90;
+        border-top: 1px solid var(--border-subtle);
+        color: var(--status-warning-fg);
+        font-weight: 500;
+      }
+
+      .note-success {
+        margin-top: 0.5rem;
+        color: var(--status-success-fg);
         font-weight: 500;
       }
     }
   }
 
-  .btn-primary,
-  .btn-secondary {
-    padding: 0.875rem 1.5rem;
-    border: none;
-    border-radius: var(--border-radius-md, 12px);
-    font-size: 1rem;
-    font-weight: 600;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    transition: all var(--transition-normal, 0.2s ease);
-
-    &:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-  }
-
-  .btn-primary {
-    background: var(--gradient-primary);
-    color: white;
-    box-shadow: 0 4px 12px rgba(230, 0, 0, 0.3);
-
-    &:hover:not(:disabled) {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 18px rgba(230, 0, 0, 0.4);
-    }
-  }
-
-  .btn-secondary {
-    background: var(--secondary-gray, #f3f3f3);
-    color: var(--text-dark, #111);
-
-    &:hover:not(:disabled) {
-      background: #ddd;
-    }
+  .page-header__actions .btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
   }
 
   .empty-state {
     text-align: center;
     padding: 3rem;
-    background: white;
+    background: var(--surface-elevated);
     border-radius: var(--border-radius-lg, 16px);
     color: var(--text-light, #555);
 
@@ -222,22 +172,18 @@
 
 @media (max-width: 768px) {
   .manage-settings {
-    .page-header {
+    .page-header__actions {
+      width: 100%;
       flex-direction: column;
 
-      .header-actions {
+      .unsaved-indicator {
         width: 100%;
-        flex-direction: column;
+        justify-content: center;
+      }
 
-        .unsaved-indicator {
-          width: 100%;
-          justify-content: center;
-        }
-
-        button {
-          width: 100%;
-          justify-content: center;
-        }
+      button {
+        width: 100%;
+        justify-content: center;
       }
     }
   }

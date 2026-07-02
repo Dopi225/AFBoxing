@@ -4,8 +4,10 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faFistRaised, faCalendarAlt, faTrophy, faEnvelope, faFileSignature, faGraduationCap } from '@fortawesome/free-solid-svg-icons';
 import { motion } from 'framer-motion';
 import { activitiesApi } from '../services/apiService';
+import { toUserMessage, logTechnicalError } from '../utils/userFacingError';
 import { horaireQueryForScheduleName, tarifQueryForActivityKind } from '../utils/activityPublicLinks';
 import SectionHeader from './SectionHeader';
+import { ErrorState, EmptyState, LoadingState } from './PageStates';
 import '../style/InfoPage.scss';
 import {
   faFistRaised as faFistRaisedIcon,
@@ -40,11 +42,13 @@ const InfoPage = () => {
   const [info, setInfo] = useState(null);
   const [allActivities, setAllActivities] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
 
   // Charger l'activité depuis l'API
   useEffect(() => {
     const loadActivity = async () => {
       setLoading(true);
+      setLoadError('');
       try {
         const activities = await activitiesApi.list();
         const activity = activities.find(a => a.id === type && a.enabled);
@@ -56,9 +60,8 @@ const InfoPage = () => {
           setInfo(null);
         }
       } catch (err) {
-        if (import.meta.env.DEV) {
-          console.warn('Error loading activity:', err);
-        }
+        logTechnicalError('InfoPage', err);
+        setLoadError(toUserMessage(err, 'Impossible de charger cette activité pour le moment.'));
         setInfo(null);
       } finally {
         setLoading(false);
@@ -72,13 +75,20 @@ const InfoPage = () => {
 
   if (loading) {
     return (
+      <div className="container-fluid info-page-loading">
+        <LoadingState label="Chargement de l'activité…" />
+      </div>
+    );
+  }
+
+  if (loadError) {
+    return (
       <div className="container-fluid">
-        <section className="error-section">
-          <div className="container">
-            <h1>Chargement...</h1>
-            <p>Chargement de l'activité en cours.</p>
-          </div>
-        </section>
+        <ErrorState
+          title="Activité indisponible"
+          message={loadError}
+          onRetry={() => window.location.reload()}
+        />
       </div>
     );
   }
@@ -86,15 +96,12 @@ const InfoPage = () => {
   if (!info) {
     return (
       <div className="container-fluid">
-        <section className="error-section">
-          <div className="container">
-            <h1>Activité non trouvée</h1>
-            <p>L'activité demandée n'existe pas ou n'est pas activée.</p>
-            <button className="btn btn-primary" onClick={() => navigate('/activite')}>
-              Retour aux activités
-            </button>
-          </div>
-        </section>
+        <EmptyState title="Activité introuvable">
+          Cette activité n'existe pas ou n'est plus proposée.
+          <button type="button" className="btn btn-primary" onClick={() => navigate('/activite')}>
+            Voir toutes les activités
+          </button>
+        </EmptyState>
       </div>
     );
   }
@@ -123,11 +130,11 @@ const InfoPage = () => {
           },
         ]}
       >
-        <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
-          <span className="hero-badge" style={{ margin: 0 }}>
+        <div className="hero-badges-row">
+          <span className="hero-badge">
             <span className="badge-text">{info.kind === 'boxing' ? 'Boxe' : 'Socio-éducatif'}</span>
           </span>
-          <span className="hero-badge" style={{ margin: 0 }}>
+          <span className="hero-badge">
             <span className="badge-text">{info.meta?.age}</span>
           </span>
         </div>
@@ -151,8 +158,8 @@ const InfoPage = () => {
                 </div>
                 <div className="content-text">
                   {(info.sections || []).map((block, idx) => (
-                    <div key={`${block.title}-${idx}`} style={{ marginBottom: '1.6rem' }}>
-                      <h3 style={{ margin: '0 0 0.75rem', fontWeight: 900 }}>{block.title}</h3>
+                    <div key={`${block.title}-${idx}`} className="program-block">
+                      <h3>{block.title}</h3>
                       {(block.paragraphs || []).map((p, pIdx) => (
                         <motion.p
                           key={`${idx}-p-${pIdx}`}
@@ -350,14 +357,13 @@ const InfoPage = () => {
                 <h3>Nous contacter</h3>
               </div>
               <p>On vous répond rapidement et on vous oriente vers le bon créneau.</p>
-              <motion.button 
-                className="btn btn-primary" 
+              <button
+                type="button"
+                className="btn btn-primary"
                 onClick={() => navigate('/contact')}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
               >
                 Contactez-nous
-              </motion.button>
+              </button>
             </motion.div>
 
             <motion.div 
@@ -384,14 +390,13 @@ const InfoPage = () => {
                 <h3>S'inscrire</h3>
               </div>
               <p>Consultez les tarifs et la liste des documents nécessaires.</p>
-              <motion.button 
-                className="btn btn-secondary" 
+              <button
+                type="button"
+                className="btn btn-secondary"
                 onClick={() => navigate('/tarif')}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
               >
                 S'inscrire
-              </motion.button>
+              </button>
             </motion.div>
           </div>
         </div>
@@ -416,20 +421,20 @@ const InfoPage = () => {
                   <motion.button
                     key={p.id}
                     type="button"
-                    className="modern-card info-related-card"
+                    className="modern-card info-related-card preview-card"
                     onClick={() => navigate(`/info/${p.id}`)}
                     whileHover={{ y: -6 }}
                     whileTap={{ scale: 0.98 }}
                   >
-                    <div className="card-header" style={{ textAlign: 'center' }}>
+                    <div className="card-header">
                       <FontAwesomeIcon icon={pIcon} className="card-icon" />
-                      <h3 style={{ margin: 0 }}>{p.title}</h3>
+                      <h3>{p.title}</h3>
                     </div>
                     <div className="card-content">
-                      <p style={{ margin: 0 }}>{p.subtitle}</p>
+                      <p>{p.subtitle}</p>
                     </div>
-                    <div className="card-footer" style={{ textAlign: 'center' }}>
-                      <span className="btn btn-primary" style={{ pointerEvents: 'none' }}>
+                    <div className="card-footer">
+                      <span className="btn btn-primary btn-primary--static">
                         En savoir plus
                       </span>
                     </div>

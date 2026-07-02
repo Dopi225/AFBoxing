@@ -100,6 +100,21 @@
   margin-top: var(--spacing-xl);
 }
 
+.error-boundary-fallback {
+  min-height: 50vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-xl) var(--spacing-md);
+}
+
+.info-page-loading {
+  min-height: 40vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .route-fallback__label {
   margin-top: var(--spacing-lg);
   font-size: 0.9rem;
@@ -138,7 +153,7 @@
 
 .afb-error-state {
   border-color: rgba(220, 0, 0, 0.25);
-  background: #fff8f8;
+  background: var(--status-error-bg);
 }
 
 .afb-error-state__title {

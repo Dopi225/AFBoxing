@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { newsApi } from '../services/apiService';
 import SectionHeader from './SectionHeader';
+import { EmptyState, ErrorState, InlineLoading } from './PageStates';
 import '../style/NewsPage.scss';
 
 const formatDate = (dateStr) => {
@@ -19,7 +20,7 @@ const formatDate = (dateStr) => {
 const NewsPage = () => {
   const navigate = useNavigate();
   const [news, setNews] = React.useState([]);
-  const [loading, setLoading] = React.useState(false);
+  const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState('');
 
   React.useEffect(() => {
@@ -58,22 +59,16 @@ const NewsPage = () => {
       {/* News Section */}
       <section className="news-main">
         <div className="container">
-          {loading && (
-            <div className="news-grid">
-              <p>Chargement des actualités...</p>
-            </div>
-          )}
+          {loading && <InlineLoading label="Chargement des actualités…" />}
           {error && !loading && (
-            <div className="news-grid">
-              <p>{error}</p>
-            </div>
+            <ErrorState message={error} onRetry={() => window.location.reload()} />
           )}
-          {!loading && !error && (
+          {!loading && !error && news.length === 0 && (
+            <EmptyState title="Aucune actualité pour le moment" />
+          )}
+          {!loading && !error && news.length > 0 && (
             <div className="news-grid">
-              {news.length === 0 ? (
-                <p>Aucune actualité pour le moment.</p>
-              ) : (
-                news.map((item, index) => (
+                {news.map((item, index) => (
                   <motion.article
                     key={item.id}
                     className="news-card"
@@ -97,8 +92,7 @@ const NewsPage = () => {
                       <p className="description">{item.description}</p>
                     </div>
                   </motion.article>
-                ))
-              )}
+                ))}
             </div>
           )}
         </div>

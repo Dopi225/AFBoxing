@@ -21,11 +21,16 @@ const PublicLayout = () => {
           content="AF Boxing Club 86 — boxe et accompagnement socio-éducatif à Poitiers. Horaires, tarifs, équipe, contact."
         />
       </Helmet>
+      <a href="#main-content" className="skip-link">
+        Aller au contenu principal
+      </a>
       <Navbar />
       <AnimatePresence mode="wait">
-        <motion.div
+        <motion.main
+          id="main-content"
           key={location.pathname}
           className="public-layout-outlet"
+          tabIndex={-1}
           initial={reduceMotion ? false : { opacity: 0 }}
           animate={reduceMotion ? undefined : { opacity: 1 }}
           exit={reduceMotion ? undefined : { opacity: 0 }}
@@ -35,7 +40,7 @@ const PublicLayout = () => {
           }}
         >
           <Outlet />
-        </motion.div>
+        </motion.main>
       </AnimatePresence>
       <Footer />
       <Suspense fallback={null}>

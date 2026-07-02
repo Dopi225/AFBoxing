@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Affiches prospection — AF Boxing</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Plus+Jakarta+Sans:wght@500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --primary-red: #dc0000;
+      --primary-red-dark: #a80000;
+      --primary-black: #0b0b0b;
+      --primary-white: #ffffff;
+      --text-dark: #111111;
+      --text-light: #555555;
+      --font-primary: "Plus Jakarta Sans", system-ui, sans-serif;
+      --font-display: "Playfair Display", Georgia, serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: var(--font-primary);
+      color: var(--text-dark);
+      background: #e8e8ec;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    .screen-hint {
+      max-width: 720px;
+      margin: 1rem auto;
+      padding: 1rem 1.25rem;
+      background: var(--primary-white);
+      border-left: 4px solid var(--primary-red);
+      font-size: 0.9rem;
+      line-height: 1.5;
+    }
+
+    .screen-hint code {
+      font-size: 0.85em;
+    }
+
+    .poster {
+      width: 210mm;
+      min-height: 297mm;
+      margin: 1rem auto;
+      padding: 14mm 16mm;
+      background: var(--primary-white);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+      page-break-after: always;
+      page-break-inside: avoid;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .poster:last-of-type {
+      page-break-after: auto;
+    }
+
+    .poster__accent {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 8mm;
+      background: linear-gradient(90deg, var(--primary-black), var(--primary-red));
+    }
+
+    .poster__inner {
+      position: relative;
+      padding-top: 6mm;
+    }
+
+    .brand {
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--primary-red);
+      margin-bottom: 0.5rem;
+    }
+
+    h1 {
+      font-family: var(--font-display);
+      font-size: 2.35rem;
+      font-weight: 700;
+      line-height: 1.12;
+      margin: 0 0 0.35rem;
+      color: var(--primary-black);
+    }
+
+    .subline {
+      font-size: 1.15rem;
+      font-weight: 600;
+      color: var(--text-light);
+      margin: 0 0 1.25rem;
+      max-width: 28ch;
+    }
+
+    .benefits {
+      list-style: none;
+      margin: 0 0 1.5rem;
+      padding: 0;
+    }
+
+    .benefits li {
+      position: relative;
+      padding-left: 1.35rem;
+      margin-bottom: 0.65rem;
+      font-size: 1rem;
+      line-height: 1.4;
+    }
+
+    .benefits li::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 0.45em;
+      width: 0.5rem;
+      height: 0.5rem;
+      background: var(--primary-red);
+      border-radius: 2px;
+    }
+
+    .contact-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-start;
+      gap: 1.25rem;
+      margin-top: auto;
+      padding-top: 1rem;
+      border-top: 2px solid var(--primary-black);
+    }
+
+    .contact-block {
+      flex: 1;
+      min-width: 12rem;
+    }
+
+    .contact-block p {
+      margin: 0.2rem 0;
+      font-size: 0.95rem;
+    }
+
+    .contact-block strong {
+      display: block;
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-light);
+      margin-bottom: 0.15rem;
+    }
+
+    .qr-wrap {
+      flex-shrink: 0;
+      text-align: center;
+    }
+
+    .qr-wrap img {
+      display: block;
+      width: 28mm;
+      height: 28mm;
+      border: 2px solid var(--primary-black);
+    }
+
+    .qr-wrap span {
+      display: block;
+      font-size: 0.65rem;
+      margin-top: 0.35rem;
+      color: var(--text-light);
+      max-width: 32mm;
+    }
+
+    .cta-banner {
+      margin-top: 1.25rem;
+      padding: 0.75rem 1rem;
+      background: var(--primary-black);
+      color: var(--primary-white);
+      font-weight: 700;
+      font-size: 0.95rem;
+      text-align: center;
+    }
+
+    /* Affiche languettes */
+    .poster--tabs .poster__body {
+      display: flex;
+      flex-direction: column;
+      min-height: 230mm;
+    }
+
+    .tabs-intro {
+      flex: 0 0 auto;
+    }
+
+    .tabs-strip {
+      margin-top: auto;
+      display: flex;
+      border: 2px solid var(--primary-black);
+      border-top: 3px solid var(--primary-red);
+      min-height: 95mm;
+    }
+
+    .tab {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-right: 2px dashed #333;
+      padding: 0.5rem 0.15rem;
+      writing-mode: vertical-rl;
+      text-orientation: mixed;
+      transform: rotate(180deg);
+      font-size: 0.8rem;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      color: var(--primary-black);
+      background: #fafafa;
+    }
+
+    .tab:last-child {
+      border-right: none;
+    }
+
+    .tabs-note {
+      font-size: 0.7rem;
+      color: var(--text-light);
+      margin-top: 0.35rem;
+      text-align: center;
+    }
+
+    /* Deux mini affiches sur une A4 */
+    .poster--duo {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      padding: 10mm 12mm;
+      min-height: 297mm;
+      break-inside: avoid;
+      page-break-inside: avoid;
+    }
+
+    .mini-poster {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      padding: 10mm 12mm;
+      border: 2px solid var(--primary-black);
+      page-break-inside: avoid;
+    }
+
+    .mini-poster:first-child {
+      border-bottom-width: 1px;
+    }
+
+    .mini-poster:last-child {
+      border-top-width: 1px;
+    }
+
+    .mini-poster h1 {
+      font-size: 1.65rem;
+    }
+
+    .mini-poster .subline {
+      font-size: 0.95rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .mini-poster .benefits {
+      margin-bottom: 0.75rem;
+    }
+
+    .mini-poster .benefits li {
+      font-size: 0.88rem;
+      margin-bottom: 0.4rem;
+    }
+
+    .mini-footer {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-top: auto;
+      padding-top: 0.75rem;
+      border-top: 1px solid #ccc;
+    }
+
+    .mini-footer .qr-wrap img {
+      width: 22mm;
+      height: 22mm;
+    }
+
+    .mini-footer .contact-block p {
+      font-size: 0.82rem;
+    }
+
+    @page {
+      size: A4;
+      margin: 10mm;
+    }
+
+    @media print {
+      body {
+        background: white;
+      }
+
+      .screen-hint {
+        display: none !important;
+      }
+
+      .poster {
+        margin: 0;
+        box-shadow: none;
+        width: 100%;
+        min-height: auto;
+      }
+
+      .poster--duo {
+        padding: 0;
+        min-height: 277mm;
+      }
+
+      .mini-poster {
+        min-height: 0;
+        flex: 1 1 0;
+        max-height: 50%;
+      }
+    }
+
+    @media screen and (max-width: 900px) {
+      .poster {
+        width: 100%;
+        max-width: 210mm;
+        min-height: 0;
+      }
+
+      h1 {
+        font-size: 1.75rem;
+      }
+
+      .tabs-strip {
+        min-height: 70mm;
+      }
+
+      .tab {
+        font-size: 0.65rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="screen-hint">
+    <strong>Écran uniquement :</strong> Remplissez l’objet <code>CONFIG</code> dans la balise
+    <code>&lt;script&gt;</code> en haut du fichier (téléphone, e-mail, liens). Enregistrez, rechargez la page,
+    puis <strong>Fichier → Imprimer</strong> (A4, marges minimales). Activez
+    <strong>Graphiques d’arrière-plan</strong> si les aplats de couleur ne sortent pas.
+    Le QR utilise le service <code>api.qrserver.com</code> (connexion Internet nécessaire à l’affichage).
+  </div>
+
+  <!--
+    CONFIG est défini dans le script ci-dessous.
+    Renseignez : brandName, headline, subline, benefits[], phone, email, location, website, qrTarget
+    qrTarget = URL principale pour le QR (ex. https://wa.me/33612345678 ou https://votresite.fr/contact)
+  -->
+  <script>
+    const CONFIG = {
+      brandName: "AF Boxing",
+      headline: "Envie de boxe ? Premier cours sur demande.",
+      subline: "Cours pour adultes et jeunes — encadrement pro, ambiance bienveillante.",
+      benefits: [
+        "Remise en forme et dépassement de soi",
+        "Technique et self-défense adaptées à votre niveau",
+        "Horaires flexibles — renseignez-vous !",
+      ],
+      phone: "Votre numéro (ex. 06 12 34 56 78)",
+      email: "contact@votredomaine.fr",
+      location: "Votre ville / adresse du club",
+      website: "www.votresite.fr",
+      qrTarget: "https://wa.me/33600000000",
+    };
+
+    function qrUrl(data, sizePx) {
+      const enc = encodeURIComponent(data);
+      return "https://api.qrserver.com/v1/create-qr-code/?size=" + sizePx + "x" + sizePx + "&margin=8&data=" + enc;
+    }
+
+    function applyConfig() {
+      var setAll = function (sel, val) {
+        document.querySelectorAll(sel).forEach(function (el) {
+          el.textContent = val;
+        });
+      };
+      setAll("[data-bind='brand']", CONFIG.brandName);
+      setAll("[data-bind='headline']", CONFIG.headline);
+      setAll("[data-bind='subline']", CONFIG.subline);
+      setAll("[data-bind='phone']", CONFIG.phone);
+      setAll("[data-bind='email']", CONFIG.email);
+      setAll("[data-bind='location']", CONFIG.location);
+      setAll("[data-bind='website']", CONFIG.website);
+      var b = CONFIG.benefits || [];
+      document.querySelectorAll("[data-benefit-index]").forEach(function (li) {
+        var i = parseInt(li.getAttribute("data-benefit-index"), 10);
+        if (b[i]) li.textContent = b[i];
+      });
+      document.querySelectorAll("[data-bind='tab-phone']").forEach(function (el) {
+        el.textContent = CONFIG.phone;
+      });
+      var qrSrc = qrUrl(CONFIG.qrTarget || ("tel:" + CONFIG.phone.replace(/\s/g, "")), 240);
+      document.querySelectorAll(".qr-img").forEach(function (img) {
+        img.src = qrSrc;
+        img.alt = "QR — " + (CONFIG.qrTarget || CONFIG.phone);
+      });
+    }
+
+    document.addEventListener("DOMContentLoaded", applyConfig);
+  </script>
+
+  <!-- A — Vitrine A4 -->
+  <article class="poster poster--vitrine" aria-label="Affiche vitrine A4">
+    <div class="poster__accent" aria-hidden="true"></div>
+    <div class="poster__inner">
+      <p class="brand" data-bind="brand">AF Boxing</p>
+      <h1 data-bind="headline">Titre accrocheur</h1>
+      <p class="subline" data-bind="subline">Sous-titre</p>
+      <ul class="benefits">
+        <li data-benefit-index="0"></li>
+        <li data-benefit-index="1"></li>
+        <li data-benefit-index="2"></li>
+      </ul>
+      <div class="cta-banner">Contactez-nous aujourd’hui — réponse rapide</div>
+      <div class="contact-row">
+        <div class="contact-block">
+          <strong>Téléphone</strong>
+          <p data-bind="phone"></p>
+          <strong>E-mail</strong>
+          <p data-bind="email"></p>
+          <strong>Lieu</strong>
+          <p data-bind="location"></p>
+          <strong>Site</strong>
+          <p data-bind="website"></p>
+        </div>
+        <div class="qr-wrap">
+          <img class="qr-img" src="" width="240" height="240" alt="" />
+          <span>Scannez pour nous écrire</span>
+        </div>
+      </div>
+    </div>
+  </article>
+
+  <!-- B — Languettes -->
+  <article class="poster poster--tabs" aria-label="Affiche avec languettes">
+    <div class="poster__accent" aria-hidden="true"></div>
+    <div class="poster__inner poster__body">
+      <div class="tabs-intro">
+        <p class="brand" data-bind="brand">AF Boxing</p>
+        <h1 data-bind="headline">Titre</h1>
+        <p class="subline" data-bind="subline">Sous-titre court</p>
+        <p style="margin:0 0 0.5rem;font-size:0.95rem;line-height:1.45;max-width:42ch">
+          Arrachez une languette et contactez-nous par téléphone ou SMS. Places limitées selon les créneaux.
+        </p>
+      </div>
+      <div>
+        <div class="tabs-strip" role="list">
+          <div class="tab" role="listitem" data-bind="tab-phone"></div>
+          <div class="tab" role="listitem" data-bind="tab-phone"></div>
+          <div class="tab" role="listitem" data-bind="tab-phone"></div>
+          <div class="tab" role="listitem" data-bind="tab-phone"></div>
+          <div class="tab" role="listitem" data-bind="tab-phone"></div>
+          <div class="tab" role="listitem" data-bind="tab-phone"></div>
+          <div class="tab" role="listitem" data-bind="tab-phone"></div>
+          <div class="tab" role="listitem" data-bind="tab-phone"></div>
+          <div class="tab" role="listitem" data-bind="tab-phone"></div>
+          <div class="tab" role="listitem" data-bind="tab-phone"></div>
+        </div>
+        <p class="tabs-note">Découpez le long des pointillés — une languette par prospect</p>
+      </div>
+    </div>
+  </article>
+
+  <!-- C — Deux mini affiches (format réduit sur une A4) -->
+  <article class="poster poster--duo" aria-label="Deux mini affiches sur une feuille">
+    <section class="mini-poster" aria-label="Mini affiche 1">
+      <div class="poster__accent" style="position:relative;height:4mm;margin:-10mm -12mm 6mm;border:2px solid var(--primary-black);border-bottom:none"></div>
+      <p class="brand" data-bind="brand">AF Boxing</p>
+      <h1 data-bind="headline">Titre</h1>
+      <p class="subline" data-bind="subline">Sous-titre</p>
+      <ul class="benefits">
+        <li data-benefit-index="0"></li>
+        <li data-benefit-index="1"></li>
+        <li data-benefit-index="2"></li>
+      </ul>
+      <div class="mini-footer">
+        <div class="qr-wrap">
+          <img class="qr-img" src="" width="180" height="180" alt="" />
+        </div>
+        <div class="contact-block">
+          <p><strong style="display:inline">Tél.</strong> <span data-bind="phone"></span></p>
+          <p><strong style="display:inline">Mail</strong> <span data-bind="email"></span></p>
+          <p data-bind="location"></p>
+        </div>
+      </div>
+    </section>
+    <section class="mini-poster" aria-label="Mini affiche 2 (copie)">
+      <div class="poster__accent" style="position:relative;height:4mm;margin:-10mm -12mm 6mm;border:2px solid var(--primary-black);border-bottom:none"></div>
+      <p class="brand" data-bind="brand">AF Boxing</p>
+      <h1 data-bind="headline">Titre</h1>
+      <p class="subline" data-bind="subline">Sous-titre</p>
+      <ul class="benefits">
+        <li data-benefit-index="0"></li>
+        <li data-benefit-index="1"></li>
+        <li data-benefit-index="2"></li>
+      </ul>
+      <div class="mini-footer">
+        <div class="qr-wrap">
+          <img class="qr-img" src="" width="180" height="180" alt="" />
+        </div>
+        <div class="contact-block">
+          <p><strong style="display:inline">Tél.</strong> <span data-bind="phone"></span></p>
+          <p><strong style="display:inline">Mail</strong> <span data-bind="email"></span></p>
+          <p data-bind="location"></p>
+        </div>
+      </div>
+    </section>
+  </article>
+</body>
+</html>

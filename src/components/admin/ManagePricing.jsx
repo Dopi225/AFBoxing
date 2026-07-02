@@ -2,10 +2,16 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faMoneyBillWave, faTrash, faPen, faPlus, faTimes } from '@fortawesome/free-solid-svg-icons';
-import { motion } from 'framer-motion';
 import { authApi, activitiesApi, pricingApi } from '../../services/apiService';
-import { useNotifications } from './NotificationSystem';
+import { useAdminNotify } from '../../hooks/useAdminNotify';
+import { preparePricingPayload } from '../../utils/adminAutoFill';
+import { PERIOD_LABELS, NAV_ITEMS } from '../../constants/adminCopy';
+import { adminBreadcrumbs } from '../../utils/adminBreadcrumbs';
 import ConfirmDialog from './ConfirmDialog';
+import DataTable from '../ui/DataTable';
+import PageHeader from '../ui/PageHeader';
+import { TextInput, TextArea, SelectField, CheckboxField } from '../ui/FormField';
+import HelpTip from './guided/HelpTip';
 import './ManagePricing.scss';
 
 const emptyForm = () => ({
@@ -16,12 +22,14 @@ const emptyForm = () => ({
   note: '',
   category: 'boxing',
   enabled: true,
-  activityId: ''
+  activityId: '',
 });
+
+const PERIOD_OPTIONS = Object.entries(PERIOD_LABELS).map(([value, label]) => ({ value, label }));
 
 const ManagePricing = () => {
   const navigate = useNavigate();
-  const { success, error: notifyError } = useNotifications();
+  const { notifySuccess, notifyError } = useAdminNotify('pricing');
   const [ready, setReady] = useState(false);
   const [rows, setRows] = useState([]);
   const [activities, setActivities] = useState([]);
@@ -29,7 +37,7 @@ const ManagePricing = () => {
   const [error, setError] = useState('');
   const [form, setForm] = useState(emptyForm);
   const [editingKey, setEditingKey] = useState(null);
-  const [deleteKey, setDeleteKey] = useState(null);
+  const [deleteRow, setDeleteRow] = useState(null);
 
   const enabledActivities = useMemo(
     () => (activities || []).filter((a) => a.enabled !== false),
@@ -40,10 +48,7 @@ const ManagePricing = () => {
     setLoading(true);
     setError('');
     try {
-      const [list, acts] = await Promise.all([
-        pricingApi.adminList(),
-        activitiesApi.list()
-      ]);
+      const [list, acts] = await Promise.all([pricingApi.adminList(), activitiesApi.list()]);
       setRows(Array.isArray(list) ? list : []);
       setActivities(Array.isArray(acts) ? acts : []);
     } catch (err) {
@@ -74,8 +79,7 @@ const ManagePricing = () => {
   }, [navigate]);
 
   useEffect(() => {
-    if (!ready) return;
-    load();
+    if (ready) load();
   }, [ready, load]);
 
   const resetForm = () => {
@@ -93,262 +97,212 @@ const ManagePricing = () => {
       note: r.note || '',
       category: r.category || 'boxing',
       enabled: r.enabled !== false,
-      activityId: r.activityId || ''
+      activityId: r.activityId || '',
     });
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  const pricingColumns = useMemo(
+    () => [
+      { key: 'label', label: 'Nom du tarif' },
+      {
+        key: 'amount',
+        label: 'Montant',
+        render: (r) => `${typeof r.amount === 'number' ? r.amount.toFixed(2) : r.amount} €`,
+      },
+      {
+        key: 'period',
+        label: 'Période',
+        render: (r) => PERIOD_LABELS[r.period] || r.period,
+      },
+      {
+        key: 'activityId',
+        label: 'Activité liée',
+        render: (r) => r.activityTitle || '—',
+      },
+      {
+        key: 'enabled',
+        label: 'Visible',
+        render: (r) => (r.enabled !== false ? 'Oui' : 'Non'),
+      },
+      {
+        key: 'actions',
+        label: 'Actions',
+        render: (r) => (
+          <div className="pricing-table__actions">
+            <button type="button" className="btn-edit" onClick={() => startEdit(r)}>
+              Modifier
+            </button>
+            <button type="button" className="btn-delete" onClick={() => setDeleteRow(r)}>
+              Supprimer
+            </button>
+          </div>
+        ),
+      },
+    ],
+    []
+  );
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
     const amountNum = Number(String(form.amount).replace(',', '.'));
     if (Number.isNaN(amountNum) || amountNum < 0) {
-      notifyError('Montant invalide.');
+      notifyError('Indiquez un montant valide en euros.');
       return;
     }
-
+    const existingKeys = rows.map((r) => r.priceKey);
+    const prepared = preparePricingPayload(
+      { ...form, amount: amountNum },
+      activities,
+      existingKeys,
+      !!editingKey
+    );
     try {
       if (editingKey) {
         await pricingApi.updateOne(editingKey, {
-          label: form.label.trim(),
+          label: prepared.label,
           amount: amountNum,
-          period: form.period,
-          note: form.note.trim() || null,
-          category: form.category,
-          enabled: form.enabled ? 1 : 0,
-          activityId: form.activityId || null
+          period: prepared.period,
+          note: prepared.note.trim() || null,
+          category: prepared.category,
+          enabled: prepared.enabled ? 1 : 0,
+          activityId: prepared.activityId || null,
         });
-        success('Tarif mis à jour.');
+        notifySuccess('Tarif enregistré.');
       } else {
-        const pk = form.price_key.trim();
-        if (!pk) {
-          notifyError('La clé technique est obligatoire.');
-          return;
-        }
         await pricingApi.create({
-          price_key: pk,
-          label: form.label.trim(),
+          price_key: prepared.price_key,
+          label: prepared.label,
           amount: amountNum,
-          period: form.period,
-          note: form.note.trim() || null,
-          category: form.category,
-          enabled: form.enabled ? 1 : 0,
-          activity_id: form.activityId || null
+          period: prepared.period,
+          note: prepared.note.trim() || null,
+          category: prepared.category,
+          enabled: prepared.enabled ? 1 : 0,
+          activity_id: prepared.activityId || null,
         });
-        success('Tarif créé.');
+        notifySuccess('Tarif ajouté.');
       }
       resetForm();
       load();
     } catch (err) {
-      notifyError(err.message || 'Enregistrement impossible.');
+      notifyError(err, 'Impossible d\'enregistrer ce tarif.');
     }
   };
 
   const confirmDelete = async () => {
-    if (!deleteKey) return;
+    if (!deleteRow?.priceKey) return;
     try {
-      await pricingApi.remove(deleteKey);
-      success('Tarif supprimé.');
-      if (editingKey === deleteKey) resetForm();
+      await pricingApi.remove(deleteRow.priceKey);
+      notifySuccess('Tarif supprimé.');
+      if (editingKey === deleteRow.priceKey) resetForm();
       load();
     } catch (err) {
-      notifyError(err.message || 'Suppression impossible.');
+      notifyError(err, 'Impossible de supprimer ce tarif.');
     } finally {
-      setDeleteKey(null);
+      setDeleteRow(null);
     }
   };
 
+  if (!ready) return null;
+
   return (
     <div className="manage-pricing">
-      <div className="page-header">
-        <h2>
-          <FontAwesomeIcon icon={faMoneyBillWave} aria-hidden />
-          <span>Tarifs</span>
-        </h2>
-        <p className="page-header__hint">
-          Créez ou modifiez les lignes de la grille tarifaire. Vous pouvez lier au plus une activité par tarif ; la fiche
-          activité affichera ce montant lorsque la clé correspond (<code>meta.priceKey</code>).
-        </p>
-      </div>
+      <PageHeader
+        title="Tarifs"
+        subtitle="Les tarifs s'affichent sur la page Tarifs du site et sur les fiches activités."
+        breadcrumbs={adminBreadcrumbs(NAV_ITEMS.pricing)}
+      />
 
-      <motion.section
-        className="pricing-form-card modern-card"
-        initial={{ opacity: 0, y: 8 }}
-        animate={{ opacity: 1, y: 0 }}
-      >
-        <h3>{editingKey ? `Modifier — ${editingKey}` : 'Nouveau tarif'}</h3>
+      <HelpTip text="Vous n'avez pas besoin de référence technique : donnez simplement un nom au tarif et le montant." />
+
+      <section className="pricing-form-card modern-card">
+        <h3>{editingKey ? `Modifier : ${form.label}` : 'Ajouter un tarif'}</h3>
         <form onSubmit={handleSubmit} className="pricing-form">
-          {!editingKey && (
-            <div className="form-row">
-              <label htmlFor="mp-key">Clé technique (unique)</label>
-              <input
-                id="mp-key"
-                type="text"
-                value={form.price_key}
-                onChange={(ev) => setForm((f) => ({ ...f, price_key: ev.target.value }))}
-                placeholder="ex. boxing.loisir"
-                required
-                maxLength={100}
-                autoComplete="off"
-              />
-            </div>
-          )}
-          <div className="form-row">
-            <label htmlFor="mp-label">Libellé</label>
-            <input
-              id="mp-label"
-              type="text"
-              value={form.label}
-              onChange={(ev) => setForm((f) => ({ ...f, label: ev.target.value }))}
-              required
-              maxLength={255}
-            />
-          </div>
+          <TextInput
+            label="Nom du tarif"
+            name="mp-label"
+            value={form.label}
+            onChange={(ev) => setForm((f) => ({ ...f, label: ev.target.value }))}
+            required
+            example="Licence loisir adulte"
+          />
           <div className="form-row form-row--inline">
-            <div>
-              <label htmlFor="mp-amount">Montant (€)</label>
-              <input
-                id="mp-amount"
-                type="text"
-                inputMode="decimal"
-                value={form.amount}
-                onChange={(ev) => setForm((f) => ({ ...f, amount: ev.target.value }))}
-                required
-              />
-            </div>
-            <div>
-              <label htmlFor="mp-period">Période</label>
-              <input
-                id="mp-period"
-                type="text"
-                value={form.period}
-                onChange={(ev) => setForm((f) => ({ ...f, period: ev.target.value }))}
-                placeholder="an"
-                maxLength={20}
-              />
-            </div>
-            <div>
-              <label htmlFor="mp-cat">Catégorie</label>
-              <select
-                id="mp-cat"
-                value={form.category}
-                onChange={(ev) => setForm((f) => ({ ...f, category: ev.target.value }))}
-              >
-                <option value="boxing">boxing</option>
-                <option value="social">social</option>
-              </select>
-            </div>
-          </div>
-          <div className="form-row">
-            <label htmlFor="mp-note">Note (affichage public)</label>
-            <textarea
-              id="mp-note"
-              rows={2}
-              value={form.note}
-              onChange={(ev) => setForm((f) => ({ ...f, note: ev.target.value }))}
+            <TextInput
+              label="Montant (€)"
+              name="mp-amount"
+              type="text"
+              inputMode="decimal"
+              value={form.amount}
+              onChange={(ev) => setForm((f) => ({ ...f, amount: ev.target.value }))}
+              required
+            />
+            <SelectField
+              label="Période"
+              name="mp-period"
+              value={form.period}
+              onChange={(ev) => setForm((f) => ({ ...f, period: ev.target.value }))}
+              options={PERIOD_OPTIONS}
             />
           </div>
-          <div className="form-row">
-            <label htmlFor="mp-act">Activité liée (optionnel)</label>
-            <select
-              id="mp-act"
-              value={form.activityId}
-              onChange={(ev) => setForm((f) => ({ ...f, activityId: ev.target.value }))}
-            >
-              <option value="">— Aucune —</option>
-              {enabledActivities.map((a) => (
-                <option key={a.id} value={a.id}>
-                  {a.title || a.id}
-                </option>
-              ))}
-            </select>
-            <span className="form-hint">
-              Une seule ligne tarif peut être liée à une activité donnée. Les activités désactivées ne sont pas proposées.
-            </span>
-          </div>
-          <div className="form-row form-row--checkbox">
-            <label>
-              <input
-                type="checkbox"
-                checked={form.enabled}
-                onChange={(ev) => setForm((f) => ({ ...f, enabled: ev.target.checked }))}
-              />
-              Tarif visible sur le site (API publique)
-            </label>
-          </div>
+          <SelectField
+            label="Activité liée"
+            name="mp-act"
+            value={form.activityId}
+            onChange={(ev) => setForm((f) => ({ ...f, activityId: ev.target.value }))}
+            optionalLabel="(facultatif)"
+            options={[
+              { value: '', label: '— Aucune activité —' },
+              ...enabledActivities.map((a) => ({ value: a.id, label: a.title || a.id })),
+            ]}
+            help="Lie ce tarif à une activité pour l'afficher sur sa fiche."
+          />
+          <TextArea
+            label="Note complémentaire"
+            name="mp-note"
+            rows={2}
+            value={form.note}
+            onChange={(ev) => setForm((f) => ({ ...f, note: ev.target.value }))}
+            optionalLabel="(facultatif)"
+            help="Texte affiché sous le montant sur le site."
+          />
+          <CheckboxField
+            label="Visible sur le site"
+            name="pricing-enabled"
+            checked={form.enabled}
+            onChange={(ev) => setForm((f) => ({ ...f, enabled: ev.target.checked }))}
+          />
           <div className="form-actions">
-            <button type="submit" className="btn-primary">
+            <button type="submit" className="btn btn-primary">
               <FontAwesomeIcon icon={editingKey ? faPen : faPlus} aria-hidden />
-              {editingKey ? 'Enregistrer' : 'Créer'}
+              {editingKey ? 'Enregistrer' : 'Ajouter'}
             </button>
-            {editingKey && (
+            {editingKey ? (
               <button type="button" className="btn-ghost" onClick={resetForm}>
-                <FontAwesomeIcon icon={faTimes} aria-hidden />
-                Annuler
+                <FontAwesomeIcon icon={faTimes} aria-hidden /> Annuler
               </button>
-            )}
+            ) : null}
           </div>
         </form>
-      </motion.section>
+      </section>
 
       <section className="pricing-table-wrap modern-card" aria-busy={loading}>
-        {loading && <p className="muted">Chargement…</p>}
-        {error && !loading && <p className="error-text">{error}</p>}
-        {!loading && !error && (
-          <div className="table-responsive">
-            <table className="pricing-table">
-              <thead>
-                <tr>
-                  <th>Clé</th>
-                  <th>Libellé</th>
-                  <th>Montant</th>
-                  <th>Période</th>
-                  <th>Cat.</th>
-                  <th>Activité</th>
-                  <th>Actif</th>
-                  <th />
-                </tr>
-              </thead>
-              <tbody>
-                {rows.map((r) => (
-                  <tr key={r.priceKey}>
-                    <td>
-                      <code>{r.priceKey}</code>
-                    </td>
-                    <td>{r.label}</td>
-                    <td>{typeof r.amount === 'number' ? r.amount.toFixed(2) : r.amount} €</td>
-                    <td>{r.period}</td>
-                    <td>{r.category}</td>
-                    <td>{r.activityTitle || (r.activityId ? r.activityId : '—')}</td>
-                    <td>{r.enabled ? 'oui' : 'non'}</td>
-                    <td className="pricing-table__actions">
-                      <button type="button" className="btn-icon" onClick={() => startEdit(r)} title="Modifier">
-                        <FontAwesomeIcon icon={faPen} />
-                      </button>
-                      <button
-                        type="button"
-                        className="btn-icon btn-icon--danger"
-                        onClick={() => setDeleteKey(r.priceKey)}
-                        title="Supprimer"
-                      >
-                        <FontAwesomeIcon icon={faTrash} />
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-            {rows.length === 0 && <p className="muted">Aucun tarif.</p>}
-          </div>
-        )}
+        {loading ? <p className="admin-state--loading"><span className="admin-state__spinner" aria-hidden />Chargement…</p> : null}
+        {error && !loading ? <div className="admin-state--error" role="alert">{error}</div> : null}
+        {!loading && !error ? (
+          <DataTable columns={pricingColumns} data={rows} rowKey="priceKey" emptyMessage="Aucun tarif pour le moment." className="pricing-table" />
+        ) : null}
       </section>
 
       <ConfirmDialog
-        isOpen={!!deleteKey}
-        onClose={() => setDeleteKey(null)}
+        isOpen={!!deleteRow}
+        onClose={() => setDeleteRow(null)}
         onConfirm={confirmDelete}
         title="Supprimer ce tarif ?"
-        message="Les activités qui utilisaient cette clé devront être mises à jour si besoin."
+        itemLabel={deleteRow?.label}
+        consequences={[
+          'Le tarif disparaîtra de la page Tarifs.',
+          'Les activités liées n\'afficheront plus ce montant.',
+        ]}
         type="danger"
         danger
         confirmText="Supprimer"

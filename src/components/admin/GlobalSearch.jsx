@@ -6,6 +6,11 @@ import { faSearch, faNewspaper, faTrophy, faImages, faEnvelope, faCalendarAlt, f
 import { motion } from 'framer-motion';
 import { newsApi, palmaresApi, galleryApi, contactsApi, scheduleApi, activitiesApi } from '../../services/apiService';
 import { useNotifications } from './NotificationSystem';
+import { LoadingState } from '../PageStates';
+import PageHeader from '../ui/PageHeader';
+import { EmptyStateGuided } from './guided';
+import { adminBreadcrumbs } from '../../utils/adminBreadcrumbs';
+import { NAV_ITEMS } from '../../constants/adminCopy';
 import './GlobalSearch.scss';
 
 const GlobalSearch = () => {
@@ -136,7 +141,7 @@ const GlobalSearch = () => {
     { id: 'news', label: 'Actualités', count: results.news.length },
     { id: 'palmares', label: 'Palmarès', count: results.palmares.length },
     { id: 'gallery', label: 'Galerie', count: results.gallery.length },
-    { id: 'contacts', label: 'Contacts', count: results.contacts.length },
+    { id: 'contacts', label: 'Messages', count: results.contacts.length },
     { id: 'schedule', label: 'Planning', count: results.schedule.length },
     { id: 'activities', label: 'Activités', count: results.activities.length }
   ];
@@ -150,7 +155,7 @@ const GlobalSearch = () => {
       news: 'Actualité',
       palmares: 'Palmarès',
       gallery: 'Galerie',
-      contacts: 'Contact',
+      contacts: 'Message reçu',
       schedule: 'Planning',
       activities: 'Activité'
     };
@@ -166,30 +171,32 @@ const GlobalSearch = () => {
       schedule: '/admin/schedule',
       activities: '/admin/activities'
     };
-    navigate(paths[result.type]);
+    navigate(`${paths[result.type]}?highlight=${result.id}`);
   };
 
   return (
     <div className="global-search">
-      <div className="search-header">
-        <h2>Recherche globale</h2>
-        <form onSubmit={handleSearch} className="search-form">
-          <div className="search-input-wrapper">
-            <FontAwesomeIcon icon={faSearch} className="search-icon" />
-            <input
-              type="text"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Rechercher dans tous les contenus..."
-              className="search-input"
-              autoFocus
-            />
-          </div>
-          <button type="submit" className="btn-search" disabled={loading}>
-            {loading ? 'Recherche...' : 'Rechercher'}
-          </button>
-        </form>
-      </div>
+      <PageHeader
+        title="Rechercher sur le site"
+        subtitle="Trouvez rapidement une actualité, un message, une activité ou une photo."
+        breadcrumbs={adminBreadcrumbs(NAV_ITEMS.search)}
+      />
+      <form onSubmit={handleSearch} className="search-form">
+        <div className="search-input-wrapper">
+          <FontAwesomeIcon icon={faSearch} className="search-icon" />
+          <input
+            type="text"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            placeholder="Rechercher une actualité, un nom, une activité…"
+            className="search-input"
+            autoFocus
+          />
+        </div>
+        <button type="submit" className="btn-search" disabled={loading}>
+          {loading ? 'Recherche...' : 'Rechercher'}
+        </button>
+      </form>
 
       {query && (
         <>
@@ -208,13 +215,13 @@ const GlobalSearch = () => {
 
           <div className="search-results">
             {loading ? (
-              <div className="empty-state">
-                <p>Recherche en cours...</p>
-              </div>
+              <LoadingState label="Recherche en cours…" />
             ) : displayedResults.length === 0 ? (
-              <div className="empty-state">
-                <p>Aucun résultat pour "{query}"</p>
-              </div>
+              <EmptyStateGuided
+                icon={faSearch}
+                title="Aucun résultat"
+                message={`Aucun élément ne correspond à « ${query} ». Essayez un autre mot-clé.`}
+              />
             ) : (
               displayedResults.map((result, index) => (
                 <motion.div

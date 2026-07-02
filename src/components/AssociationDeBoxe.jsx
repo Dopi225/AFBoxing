@@ -16,23 +16,8 @@ import { newsApi, scheduleApi } from '../services/apiService';
 import therapie from '../assets/p1.png';
 import social from '../assets/social.jpg';
 import '../style/Home.scss';
+import '../style/AssociationDeBoxe.scss';
 import '../style/PublicFuturistic.scss';
-
-export const CTAButton = ({ icon, label, onClick, delay = 0 }) => (
-  <motion.a
-    href="#"
-    className="cta-btn"
-    initial={{ opacity: 0, y: 20 }}
-    animate={{ opacity: 1, y: 0 }}
-    transition={{ duration: 0.5, delay }}
-    whileHover={{ scale: 1.05 }}
-    whileTap={{ scale: 0.95 }}
-    onClick={onClick}
-  >
-    <FontAwesomeIcon icon={icon} className="icon" />
-    {label}
-  </motion.a>
-);
 
 const formatDate = (dateStr) => {
   const date = new Date(dateStr);
@@ -365,20 +350,6 @@ const AssociationDeBoxe = () => {
           </video>
         )}
 
-        {canOfferVideo && !videoRequested && (
-          <div className="hero-video-cta">
-            <button
-              type="button"
-              className="hero-video-cta__btn"
-              onClick={() => setVideoRequested(true)}
-            >
-              <FontAwesomeIcon icon={faPlay} aria-hidden />
-              <span>Voir la vidéo d’ambiance</span>
-            </button>
-            <span className="hero-video-cta__hint">Optionnel — charge une vidéo HD</span>
-          </div>
-        )}
-
         <div className="container">
           <motion.div 
             className="hero-content"
@@ -438,31 +409,42 @@ const AssociationDeBoxe = () => {
  
 
             <motion.div 
-              className="btn-group"
+              className="btn-group btn-group--equal hero-actions"
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 1.2 }}
             >
-              <motion.button 
+              <button 
+                type="button"
                 onClick={() => navigate('/apropos')} 
                 className="btn btn-primary"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
               >
-                <FontAwesomeIcon icon={faFistRaised} />
+                <FontAwesomeIcon icon={faFistRaised} aria-hidden />
                 Le Club
-              </motion.button>
-              <motion.button 
+              </button>
+              <button 
+                type="button"
                 onClick={() => navigate('/contact')} 
                 className="btn btn-outline"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
               >
-                <FontAwesomeIcon icon={faEnvelope} />
+                <FontAwesomeIcon icon={faEnvelope} aria-hidden />
                 Contact
-              </motion.button>
-              
+              </button>
             </motion.div>
+
+            {canOfferVideo && !videoRequested && (
+              <div className="hero-video-cta hero-video-cta--inline">
+                <button
+                  type="button"
+                  className="hero-video-cta__btn"
+                  onClick={() => setVideoRequested(true)}
+                >
+                  <FontAwesomeIcon icon={faPlay} aria-hidden />
+                  <span>Voir la vidéo d’ambiance</span>
+                </button>
+                <span className="hero-video-cta__hint">Optionnel — charge une vidéo HD</span>
+              </div>
+            )}
           </motion.div>
         </div>
       </section>
@@ -613,15 +595,14 @@ const AssociationDeBoxe = () => {
           </div>
 
           <div className="home-schedule-cta">
-            <motion.button
+            <button
+              type="button"
               className="btn btn-primary"
               onClick={() => navigate('/horaire')}
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.97 }}
             >
               <FontAwesomeIcon icon={faCalendarAlt} />
               Voir tout le planning
-            </motion.button>
+            </button>
           </div>
         </div>
       </motion.section>
@@ -772,16 +753,14 @@ const AssociationDeBoxe = () => {
                 Passez à la salle Nelson Mandela : nous répondrons à vos questions sur les cours, les horaires
                 et l’inscription.
               </p>
-              <motion.button
+              <button
                 type="button"
                 className="btn btn-primary home-map-cta__btn"
                 onClick={() => handleNavigate('/contact')}
-                whileHover={{ scale: 1.03 }}
-                whileTap={{ scale: 0.97 }}
               >
                 <FontAwesomeIcon icon={faEnvelope} />
                 Contact
-              </motion.button>
+              </button>
             </div>
 
             <motion.div
@@ -797,14 +776,14 @@ const AssociationDeBoxe = () => {
                   src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2741.968787766348!2d0.3724682999999999!3d46.5878544!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x47fdbf8354a062bd%3A0x3083448a662d0747!2sAF%20BOXING%20CLUB%2086%20-%20Salle%20Nelson%20Mandela!5e0!3m2!1sfr!2sfr!4v1753109311699!5m2!1sfr!2sfr"
                   width="100%"
                   height="400"
-                  style={{ border: 0, borderRadius: '20px' }}
+                  className="map-embed"
                   allowFullScreen=""
                   loading="lazy"
                   referrerPolicy="no-referrer-when-downgrade"
                   title="AF Boxing Club 86 — Salle Nelson Mandela, Poitiers"
                 />
               ) : (
-                <div style={{ height: 400, borderRadius: 20, background: 'rgba(255,255,255,0.06)' }} />
+                <div className="map-placeholder" />
               )}
             </motion.div>
           </div>

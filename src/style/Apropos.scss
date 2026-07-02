@@ -3,7 +3,7 @@
 .about-hero {
   background: linear-gradient(135deg, var(--primary-black), var(--primary-red));
   color: white;
-  padding: var(--spacing-xxl) 0;
+  padding: var(--section-padding-y) 0;
   text-align: center;
 
   .hero-content {
@@ -30,7 +30,7 @@
 }
 
 .mission-section {
-  padding: var(--spacing-xxl) 0;
+  padding: var(--section-padding-y) 0;
   background: var(--surface-elevated);
 
   .mission-content {
@@ -95,7 +95,7 @@
 }
 
 .values-section {
-  padding: var(--spacing-xxl) 0;
+  padding: var(--section-padding-y) 0;
   background: var(--secondary-gray);
 
   h2 {
@@ -119,7 +119,7 @@
 
   .values-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr));
     gap: var(--spacing-xl);
 
     .value-card {
@@ -157,7 +157,7 @@
 }
 
 .activities-section {
-  padding: var(--spacing-xxl) 0;
+  padding: var(--section-padding-y) 0;
   background: var(--surface-elevated);
 
   h2 {
@@ -181,7 +181,7 @@
 
   .activities-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 400px), 1fr));
     gap: var(--spacing-xl);
 
     @media (max-width: 768px) {
@@ -229,7 +229,7 @@
 }
 
 .team-section {
-  padding: var(--spacing-xxl) 0;
+  padding: var(--section-padding-y) 0;
   background: var(--secondary-gray);
 
   .team-content {
@@ -263,19 +263,18 @@
     }
 
     .btn {
-      padding: var(--spacing-md) var(--spacing-xl);
-      font-size: 1.1rem;
+      width: 100%;
     }
   }
 }
 
 .cta-section {
-  padding: var(--spacing-xxl) 0;
+  padding: var(--section-padding-y) 0;
   background: var(--surface-elevated);
 
   .cta-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
     gap: var(--spacing-xl);
 
     .cta-card {

@@ -4,76 +4,17 @@ import { faExternalLinkAlt, faHandshake, faHeart, faEnvelope } from '@fortawesom
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import SectionHeader from './SectionHeader';
+import { PARTNERS } from '../data/partners';
 import '../style/Partenaire.scss';
 
-import logoPoitiers from '../assets/LOGOPOITIERS.jpg';
-import logoFFBoxe from '../assets/FFBOXE.png';
-import logoEkidom from '../assets/ekidom.jpg';
-
-const partenaires = [
-  { 
-    name: 'Ville de Poitiers', 
-    logo: logoPoitiers, 
-    link: 'https://poitiers.fr',
-    description: 'Soutien institutionnel et mise à disposition d\'équipements sportifs',
-    type: 'Institutionnel'
-  },
-  { 
-    name: 'FFBOXE - Nouvelle Aquitaine', 
-    logo: logoFFBoxe, 
-    link: 'https://ffboxe.fr',
-    description: 'Fédération Française de Boxe - Formation et compétitions officielles',
-    type: 'Fédération'
-  },
-  { 
-    name: 'Ekidom', 
-    logo: logoEkidom, 
-    link: 'https://www.ekidom.fr',
-    description: 'Partenariat pour l\'accompagnement socio-éducatif des jeunes',
-    type: 'Social'
-  },
-  { 
-    name: 'Conseil Départemental de la Vienne', 
-    logo: logoPoitiers, 
-    link: '#',
-    description: 'Soutien financier pour les projets d\'insertion par le sport',
-    type: 'Institutionnel'
-  },
-  { 
-    name: 'Région Nouvelle-Aquitaine', 
-    logo: logoFFBoxe, 
-    link: '#',
-    description: 'Aide au développement des activités sportives et éducatives',
-    type: 'Régional'
-  },
-  { 
-    name: 'Association Sportive Locale', 
-    logo: logoEkidom, 
-    link: '#',
-    description: 'Partenariat pour l\'organisation d\'événements sportifs',
-    type: 'Sportif'
-  }
-];
+const TYPE_CLASS = {
+  Institutionnel: 'partner-type--institutionnel',
+  Federation: 'partner-type--federation',
+  Social: 'partner-type--social',
+};
 
 const Partenaire = () => {
   const navigate = useNavigate();
-
-  const getTypeColor = (type) => {
-    switch (type) {
-      case 'Institutionnel':
-        return 'var(--primary-red)';
-      case 'Fédération':
-        return 'var(--primary-black)';
-      case 'Social':
-        return 'var(--primary-red-dark)';
-      case 'Régional':
-        return 'var(--primary-red)';
-      case 'Sportif':
-        return 'var(--primary-red-dark)';
-      default:
-        return 'var(--primary-red)';
-    }
-  };
 
   return (
     <div className="container-fluid">
@@ -82,12 +23,11 @@ const Partenaire = () => {
         subtitle="Merci à ceux qui nous soutiennent et partagent nos valeurs sportives, humaines et inclusives."
         eyebrow="Confiance & engagement"
         actions={[
-          { label: "Devenir partenaire", to: "/contact", className: "btn-primary", icon: <FontAwesomeIcon icon={faHandshake} /> },
-          { label: "Contact", to: "/contact", className: "btn-outline", icon: <FontAwesomeIcon icon={faEnvelope} /> },
+          { label: 'Devenir partenaire', to: '/contact', className: 'btn-primary', icon: <FontAwesomeIcon icon={faHandshake} /> },
+          { label: 'Contact', to: '/contact', className: 'btn-outline', icon: <FontAwesomeIcon icon={faEnvelope} /> },
         ]}
       />
 
-      {/* Partners Section */}
       <section className="partners-main">
         <div className="container">
           <motion.h2
@@ -98,17 +38,17 @@ const Partenaire = () => {
           >
             Ils nous font confiance
           </motion.h2>
-          
-          <div className="partners-grid">
-            {partenaires.map((partner, index) => (
+
+          <div className="partners-grid partners-grid--compact">
+            {PARTNERS.map((partner, index) => (
               <motion.div
-                key={index}
+                key={partner.id}
                 className="partner-card"
                 initial={{ opacity: 0, y: 30 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: index * 0.1 }}
                 viewport={{ once: true }}
-                whileHover={{ scale: 1.05 }}
+                whileHover={{ scale: 1.02 }}
               >
                 <div className="partner-logo">
                   <img src={partner.logo} alt={partner.name} loading="lazy" decoding="async" />
@@ -116,17 +56,17 @@ const Partenaire = () => {
                     <FontAwesomeIcon icon={faExternalLinkAlt} />
                   </div>
                 </div>
-                
+
                 <div className="partner-info">
-                  <div className="partner-type" style={{ backgroundColor: getTypeColor(partner.type) }}>
-                    {partner.type}
-      </div>
+                  <div className={`partner-type ${TYPE_CLASS[partner.type] || 'partner-type--institutionnel'}`}>
+                    {partner.type === 'Federation' ? 'Fédération' : partner.type}
+                  </div>
                   <h3>{partner.name}</h3>
                   <p>{partner.description}</p>
-                  
-                  <a 
-                    href={partner.link} 
-                    target="_blank" 
+
+                  <a
+                    href={partner.href}
+                    target="_blank"
                     rel="noopener noreferrer"
                     className="partner-link"
                   >
@@ -140,10 +80,9 @@ const Partenaire = () => {
         </div>
       </section>
 
-      {/* Values Section */}
       <section className="partners-values">
         <div className="container">
-          <motion.div 
+          <motion.div
             className="values-content"
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -172,10 +111,9 @@ const Partenaire = () => {
         </div>
       </section>
 
-      {/* CTA Section */}
       <section className="partners-cta">
         <div className="container">
-          <motion.div 
+          <motion.div
             className="cta-content"
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -184,7 +122,7 @@ const Partenaire = () => {
           >
             <h2>Devenir Partenaire</h2>
             <p>Vous souhaitez nous soutenir et devenir partenaire de l'AF Boxing Club 86 ?</p>
-            <button className="btn btn-primary" onClick={() => navigate('/contact')}>
+            <button type="button" className="btn btn-primary" onClick={() => navigate('/contact')}>
               <FontAwesomeIcon icon={faEnvelope} />
               Nous contacter
             </button>
@@ -196,4 +134,3 @@ const Partenaire = () => {
 };
 
 export default Partenaire;
-

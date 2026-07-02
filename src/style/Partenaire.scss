@@ -54,11 +54,15 @@
 
   .partners-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: var(--spacing-xl);
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+    gap: var(--grid-gap);
+    max-width: var(--page-max-width);
+    margin: 0 auto;
 
-    @media (max-width: 768px) {
-      grid-template-columns: 1fr;
+    &--compact {
+      @media (min-width: 900px) {
+        grid-template-columns: repeat(3, 1fr);
+      }
     }
 
     .partner-card {
@@ -129,11 +133,23 @@
           display: inline-block;
           padding: var(--spacing-xs) var(--spacing-sm);
           border-radius: 12px;
-          color: white;
+          color: #fff;
           font-size: 0.8rem;
           font-weight: 600;
           text-transform: uppercase;
           margin-bottom: var(--spacing-md);
+
+          &--institutionnel {
+            background: var(--primary-red);
+          }
+
+          &--federation {
+            background: var(--text-dark);
+          }
+
+          &--social {
+            background: var(--primary-red-dark);
+          }
         }
 
         h3 {

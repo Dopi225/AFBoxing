@@ -1,5 +1,20 @@
 /* Styles pour la page Tarifs - AF Boxing Club */
 
+.tarif-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-lg) 0;
+  color: var(--text-muted);
+}
+
+.pricing-empty-category {
+  text-align: center;
+  color: var(--text-muted);
+  padding: var(--spacing-md);
+}
+
 .pricing-hero {
   background: var(--gradient-hero);
   color: white;
@@ -30,7 +45,7 @@
 }
 
 .pricing-section {
-  padding: var(--spacing-xxl) 0;
+  padding: var(--section-padding-y) 0;
   background: var(--secondary-gray);
 
   h2 {
@@ -106,7 +121,7 @@
 
         h3 {
           font-size: 1.8rem;
-          color: var(--primary-black);
+          color: var(--heading-on-light);
           margin: 0;
         }
       }
@@ -164,8 +179,6 @@
 
         .btn {
           width: 100%;
-          padding: var(--spacing-md);
-          font-size: 1.1rem;
         }
       }
     }
@@ -200,7 +213,7 @@
       }
 
       h3 {
-        color: var(--primary-black);
+        color: var(--heading-on-light);
         margin-bottom: var(--spacing-md);
         font-size: 1.4rem;
       }
@@ -220,7 +233,7 @@
     margin-bottom: var(--spacing-xl);
 
     h3 {
-      color: var(--primary-black);
+      color: var(--heading-on-light);
       margin-bottom: var(--spacing-lg);
       display: flex;
       align-items: center;
@@ -253,7 +266,7 @@
         }
 
         h4 {
-          color: var(--primary-black);
+          color: var(--heading-on-light);
           margin-bottom: var(--spacing-sm);
           font-size: 1.2rem;
         }
@@ -304,7 +317,7 @@
 
   .documents-section {
     h3 {
-      color: var(--primary-black);
+      color: var(--heading-on-light);
       margin-bottom: var(--spacing-lg);
       display: flex;
       align-items: center;
@@ -363,5 +376,15 @@
         }
       }
     }
+  }
+}
+
+:root[data-theme='dark'] {
+  .pricing-section .main-card .card-header h3,
+  .info-section .info-card h3,
+  .modal-content .pricing-section h3,
+  .modal-content .pricing-grid .pricing-card h4,
+  .modal-content .documents-section h3 {
+    color: var(--heading-on-dark);
   }
 }

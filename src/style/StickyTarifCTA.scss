@@ -15,11 +15,12 @@
 
 .sticky-tarif-cta__btn {
   width: 100%;
-  height: 52px;
+  min-height: var(--btn-height-md);
+  height: auto;
   border: none;
-  border-radius: 16px;
+  border-radius: var(--border-radius-md);
   background: var(--gradient-primary);
-  color: white;
+  color: var(--text-on-dark);
   font-weight: 800;
   letter-spacing: 0.02em;
   text-transform: uppercase;
@@ -29,10 +30,11 @@
   justify-content: center;
   gap: 0.6rem;
   cursor: pointer;
-  transition: all var(--transition-normal);
+  transition: box-shadow var(--transition-normal), filter var(--transition-fast);
   user-select: none;
   position: relative;
   overflow: hidden;
+  padding: 0 var(--spacing-md);
 
   &::before {
     content: '';
@@ -52,19 +54,15 @@
   &:hover {
     background: linear-gradient(135deg, var(--primary-red-dark), var(--primary-red));
     box-shadow: 0 16px 40px rgba(230, 0, 0, 0.45);
-    transform: translateY(-2px);
+    filter: brightness(1.05);
 
     &::before {
       left: 100%;
     }
-
-    svg {
-      transform: scale(1.1);
-    }
   }
 
   &:active {
-    transform: translateY(0);
+    filter: brightness(0.98);
     box-shadow: 0 8px 20px rgba(230, 0, 0, 0.35);
   }
 
@@ -80,10 +78,13 @@
     display: block;
   }
 
-  /* évite que le CTA masque le bas des pages */
   body {
     padding-bottom: 90px;
   }
 }
 
-
+:root[data-theme='dark'] .sticky-tarif-cta {
+  background: linear-gradient(180deg, transparent, rgba(8, 8, 12, 0.88) 30%, rgba(8, 8, 12, 0.96));
+  border-top-color: var(--border-subtle);
+  box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.35);
+}
