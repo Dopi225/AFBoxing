@@ -32,14 +32,25 @@ const defaultSchedule = [
 const resolveSlotFromApi = (item, activityList) => {
   const label = item.activity || '';
   let activityId = item.activityId || '';
-  if (!activityId && label && activityList.length) {
-    const m = activityList.find(
+  const list = Array.isArray(activityList) ? activityList : [];
+  if (!activityId && label && list.length) {
+    const m = list.find(
       (a) => (a.scheduleActivityName && a.scheduleActivityName === label) || a.title === label
     );
     activityId = m?.id || '';
   }
   return { time: item.time, activityId, activity: label, level: item.level || 'Tous niveaux' };
 };
+
+const isValidScheduleDraft = (draft) =>
+  Array.isArray(draft) &&
+  draft.every(
+    (day) =>
+      day &&
+      typeof day === 'object' &&
+      typeof day.day === 'string' &&
+      Array.isArray(day.activities)
+  );
 
 const ManageSchedule = () => {
   const navigate = useNavigate();
@@ -71,15 +82,17 @@ const ManageSchedule = () => {
       setLoading(true);
       setError('');
       try {
-        const [data, acts] = await Promise.all([scheduleApi.list(), activitiesApi.list()]);
-        setActivities(Array.isArray(acts) ? acts : []);
+        const [rawSchedule, acts] = await Promise.all([scheduleApi.list(), activitiesApi.list()]);
+        const data = Array.isArray(rawSchedule) ? rawSchedule : [];
+        const activityList = Array.isArray(acts) ? acts : [];
+        setActivities(activityList);
         let next = defaultSchedule;
         if (data.length) {
           next = defaultSchedule.map((day) => ({
             day: day.day,
             activities: data
               .filter((item) => item.day === day.day)
-              .map((item) => resolveSlotFromApi(item, acts)),
+              .map((item) => resolveSlotFromApi(item, activityList)),
           }));
         }
         setSchedule(next);
@@ -88,9 +101,11 @@ const ManageSchedule = () => {
           const draftRaw = localStorage.getItem(DRAFT_KEY);
           if (draftRaw) {
             const draft = JSON.parse(draftRaw);
-            if (draft && JSON.stringify(draft) !== savedBaselineRef.current) {
+            if (isValidScheduleDraft(draft) && JSON.stringify(draft) !== savedBaselineRef.current) {
               setSchedule(draft);
               notifyInfo('Un brouillon du planning a été restauré. Enregistrez pour publier sur le site.');
+            } else if (!isValidScheduleDraft(draft)) {
+              localStorage.removeItem(DRAFT_KEY);
             }
           }
         } catch {
