@@ -8,7 +8,8 @@
   Header always set X-Frame-Options "DENY"
   Header always set Permissions-Policy "geolocation=(self), microphone=(), camera=()"
   Header always set X-Robots-Tag "noindex, nofollow" "expr=%{REQUEST_URI} =~ m#^/(admin)(/.*)?$#"
-  Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains; preload" "expr=%{HTTPS} == 'on' && %{HTTP_HOST} =~ m#^(www\\.)?afboxingclub86\\.com$#"
+  # HSTS : HTTPS direct OU derrière proxy (X-Forwarded-Proto)
+  Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains; preload" "expr=(%{HTTPS} == 'on' || %{HTTP:X-Forwarded-Proto} == 'https') && %{HTTP_HOST} =~ m#^(www\\.)?afboxingclub86\\.com$#"
 </IfModule>
 
 # NOTE:
@@ -78,9 +79,16 @@
     # Sans ça, l'API peut répondre "Authorization header missing" même si le navigateur envoie le header.
     RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
     
-    # Rediriger HTTP vers HTTPS (décommentez si vous avez SSL)
-    # RewriteCond %{HTTPS} off
-    # RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+    # Rediriger HTTP → HTTPS uniquement sur le domaine de production
+    # (ne pas activer sur localhost / XAMPP)
+    RewriteCond %{HTTP_HOST} ^(www\.)?afboxingclub86\.com$ [NC]
+    RewriteCond %{HTTPS} off
+    RewriteCond %{HTTP:X-Forwarded-Proto} !https
+    RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+    # Canonique www → apex (production uniquement)
+    RewriteCond %{HTTP_HOST} ^www\.afboxingclub86\.com$ [NC]
+    RewriteRule ^(.*)$ https://afboxingclub86.com/$1 [L,R=301]
     
     # ============================================
     # PRIORITÉ 1 : Servir les fichiers uploads

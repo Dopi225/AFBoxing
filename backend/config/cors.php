@@ -5,6 +5,7 @@ declare(strict_types=1);
 /**
  * Configuration CORS sécurisée pour l'API.
  * En production, ne jamais autoriser '*' pour les requêtes avec credentials.
+ * Seul APP_ENV=development autorise la réflexion d'origines non listées.
  */
 
 if (!function_exists('afboxing_apply_cors')) {
@@ -14,31 +15,32 @@ if (!function_exists('afboxing_apply_cors')) {
 
         // Liste des origines autorisées (à configurer via .env en production)
         $allowedOrigins = [];
-        
+
         // Charge depuis .env si disponible
         $envOrigins = $_ENV['CORS_ALLOWED_ORIGINS'] ?? getenv('CORS_ALLOWED_ORIGINS');
         if ($envOrigins) {
-            $allowedOrigins = array_map('trim', explode(',', $envOrigins));
+            $allowedOrigins = array_map('trim', explode(',', (string) $envOrigins));
+            $allowedOrigins = array_values(array_filter($allowedOrigins, static fn (string $o): bool => $o !== ''));
         }
 
-        // Origines par défaut (développement local)
-        if (empty($allowedOrigins)) {
+        // Origines par défaut (production du club) si rien n'est configuré
+        if ($allowedOrigins === []) {
             $allowedOrigins = [
-                // 'http://localhost',
-                // 'http://localhost:5173',
-                // 'http://localhost:3000',
-                // 'http://127.0.0.1',
-                // 'http://127.0.0.1:5173',
                 'https://afboxingclub86.com',
+                'https://www.afboxingclub86.com',
             ];
         }
 
-        // En production, on refuse les requêtes sans origine valide (jamais de wildcard *)
-        $isProduction = ($_ENV['APP_ENV'] ?? getenv('APP_ENV')) === 'production';
-        $corsStrict = ($_ENV['CORS_STRICT'] ?? getenv('CORS_STRICT')) === '1' || $isProduction;
+        $appEnv = (string) ($_ENV['APP_ENV'] ?? getenv('APP_ENV') ?: '');
+        $isProduction = $appEnv === 'production';
+        // Strict sauf développement explicite (évite une prod mal configurée qui reflète n'importe quelle Origin)
+        $isDev = $appEnv === 'development';
+        $corsStrict = ($_ENV['CORS_STRICT'] ?? getenv('CORS_STRICT')) === '1'
+            || $isProduction
+            || !$isDev;
 
-        // Refuse explicitement un wildcard configuré par erreur en production
-        if ($isProduction) {
+        // Refuse explicitement un wildcard configuré par erreur hors développement
+        if ($corsStrict) {
             $allowedOrigins = array_values(array_filter(
                 $allowedOrigins,
                 static fn (string $o): bool => $o !== '*' && $o !== ''
@@ -62,7 +64,6 @@ if (!function_exists('afboxing_apply_cors')) {
             header('Vary: Origin');
         } elseif (!$origin) {
             // Same-origin / curl / healthchecks : pas d'Origin → pas de blocage
-            // (le navigateur n'envoie Origin que pour les requêtes cross-origin)
         } elseif ($corsStrict) {
             http_response_code(403);
             header('Content-Type: application/json; charset=utf-8');
@@ -82,5 +83,3 @@ if (!function_exists('afboxing_apply_cors')) {
         }
     }
 }
-
-

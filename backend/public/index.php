@@ -9,7 +9,8 @@ require_once dirname(__DIR__) . '/config/cors.php';
 
 use AFBoxing\Core\JsonErrorResponse;
 use AFBoxing\Core\Router;
-use Monolog\Handler\StreamHandler;
+use Dotenv\Dotenv;
+use Monolog\Handler\RotatingFileHandler;
 use Monolog\Level;
 use Monolog\Logger;
 use AFBoxing\Controllers\AuthController;
@@ -28,6 +29,16 @@ use AFBoxing\Controllers\TeamMemberController;
 use AFBoxing\Controllers\SeasonController;
 use AFBoxing\Middlewares\AuthMiddleware;
 
+// Charge .env avant CORS / APP_ENV / logs
+$backendRoot = dirname(__DIR__);
+if (class_exists(Dotenv::class)) {
+    if (file_exists($backendRoot . '/.env')) {
+        Dotenv::createImmutable($backendRoot)->safeLoad();
+    } elseif (file_exists($backendRoot . '/../.env')) {
+        Dotenv::createImmutable($backendRoot . '/..')->safeLoad();
+    }
+}
+
 $logDir = dirname(__DIR__) . '/storage/logs';
 if (!is_dir($logDir)) {
     @mkdir($logDir, 0775, true);
@@ -35,8 +46,13 @@ if (!is_dir($logDir)) {
 @ini_set('log_errors', '1');
 @ini_set('error_log', $logDir . '/php_error.log');
 
+$isProduction = ($_ENV['APP_ENV'] ?? getenv('APP_ENV')) === 'production';
 $logger = new Logger('afboxing');
-$logger->pushHandler(new StreamHandler($logDir . '/app.log', Level::Debug));
+$logger->pushHandler(new RotatingFileHandler(
+    $logDir . '/app.log',
+    30,
+    $isProduction ? Level::Info : Level::Debug
+));
 
 set_exception_handler(static function (\Throwable $e) use ($logDir, $logger): void {
     $isProduction = ($_ENV['APP_ENV'] ?? getenv('APP_ENV')) === 'production';
@@ -70,7 +86,6 @@ header('X-Frame-Options: DENY');
 header('Referrer-Policy: no-referrer');
 header('Permissions-Policy: geolocation=(), microphone=(), camera=()');
 
-$isProduction = ($_ENV['APP_ENV'] ?? getenv('APP_ENV')) === 'production';
 if ($isProduction) {
     @ini_set('display_errors', '0');
     @ini_set('display_startup_errors', '0');

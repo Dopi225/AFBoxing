@@ -16,6 +16,7 @@ final class AuthMiddlewareTest extends TestCase
             $_SERVER['REDIRECT_HTTP_AUTHORIZATION'],
             $_SERVER['HTTPS_AUTHORIZATION']
         );
+        http_response_code(200);
         parent::tearDown();
     }
 
@@ -30,13 +31,39 @@ final class AuthMiddlewareTest extends TestCase
         self::assertSame(401, http_response_code());
     }
 
+    public function testEmptyBearerReturnsNull(): void
+    {
+        $_SERVER['HTTP_AUTHORIZATION'] = 'Bearer ';
+        $m = new AuthMiddleware();
+        ob_start();
+        $user = $m->handle();
+        $out = ob_get_clean();
+
+        self::assertNull($user);
+        self::assertSame(401, http_response_code());
+        self::assertNotSame('', $out);
+    }
+
+    public function testMalformedJwtReturnsUnauthorized(): void
+    {
+        $_SERVER['HTTP_AUTHORIZATION'] = 'Bearer eyJhbGciOiJIUzI1NiJ9.not.valid.signature';
+        $m = new AuthMiddleware();
+        ob_start();
+        $user = $m->handle();
+        $out = ob_get_clean();
+
+        self::assertNull($user);
+        self::assertSame(401, http_response_code());
+        self::assertMatchesRegularExpression('/INVALID_TOKEN|AUTH_|JWT|token/i', $out);
+    }
+
     public function testRoleRequiredRejectsWrongRoleWhenTokenWouldBeValid(): void
     {
-        // Sans header : même flux 401 (on ne teste pas JWT + DB ici)
         $m = new AuthMiddleware(['admin']);
         ob_start();
         $user = $m->handle();
         ob_end_clean();
         self::assertNull($user);
+        self::assertSame(401, http_response_code());
     }
 }

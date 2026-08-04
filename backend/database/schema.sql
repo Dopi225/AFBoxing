@@ -207,22 +207,9 @@ INSERT INTO pricing (season_id, price_key, label, amount, period, note, category
 ON DUPLICATE KEY UPDATE label = VALUES(label);
 
 -- ⚠️ SÉCURITÉ : Ne pas utiliser ce mot de passe en production !
--- Utilisateur admin par défaut (UNIQUEMENT pour développement)
--- En production, créez un utilisateur avec un mot de passe fort via :
--- INSERT INTO users (username, password, role) VALUES ('admin', '$2y$10$...', 'admin');
--- où le hash est généré avec: password_hash('votre_mot_de_passe_fort', PASSWORD_BCRYPT)
--- 
--- Pour générer un hash de mot de passe en PHP :
--- php -r "echo password_hash('votre_mot_de_passe', PASSWORD_BCRYPT);"
---
--- Mot de passe par défaut (DEV UNIQUEMENT) : admin123
--- Hash correspondant (à NE JAMAIS utiliser en production) :
-INSERT INTO users (username, password, role)
-VALUES (
-  'admin',
-  '$2y$10$uZCnqO0jzZMfjNV8iPBUFeIhTQe4F7DYxJt3Ghqy5uD4rwZ0w.z6', -- ⚠️ DEV ONLY - À CHANGER EN PROD
-  'admin'
-)
-ON DUPLICATE KEY UPDATE username = username;
-
+-- Utilisateur admin : NE PAS créer automatiquement via schema.sql en production.
+-- Utilisez backend/database/seed_dev_admin.sql UNIQUEMENT en local,
+-- ou créez un compte fort manuellement :
+--   php -r "echo password_hash('votre_mot_de_passe_fort', PASSWORD_BCRYPT), PHP_EOL;"
+--   INSERT INTO users (username, password, role) VALUES ('votre_login', '<hash>', 'admin');
 

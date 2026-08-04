@@ -2,6 +2,8 @@ import { defineConfig } from 'vitest/config'
 import react from '@vitejs/plugin-react-swc'
 import viteImagemin from 'vite-plugin-imagemin'
 
+const apiProxyTarget = (process.env.VITE_API_PROXY_TARGET || '').trim().replace(/\/$/, '')
+
 // https://vite.dev/config/
 export default defineConfig({
   build: {
@@ -20,7 +22,15 @@ export default defineConfig({
         }
       }
     }
-  }, 
+  },
+  server: apiProxyTarget
+    ? {
+        proxy: {
+          '/api': { target: apiProxyTarget, changeOrigin: true },
+          '/uploads': { target: apiProxyTarget, changeOrigin: true }
+        }
+      }
+    : undefined,
   plugins: [
     react(),
     // Évite imagemin pendant les tests Vitest (trop lent / inutile)
@@ -31,7 +41,7 @@ export default defineConfig({
             gifsicle: { optimizationLevel: 3 },
             optipng: { optimizationLevel: 7 },
             mozjpeg: { quality: 75 },
-            pngquant: { quality: [0.7, 0.85], speed: 3 },
+            pngquant: { quality: [0.7, 0.85], speed: 5 },
             svgo: true,
             webp: { quality: 75 }
           })
