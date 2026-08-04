@@ -24,6 +24,8 @@ use AFBoxing\Controllers\SettingController;
 use AFBoxing\Controllers\ActivityLogController;
 use AFBoxing\Controllers\PricingController;
 use AFBoxing\Controllers\UserController;
+use AFBoxing\Controllers\TeamMemberController;
+use AFBoxing\Controllers\SeasonController;
 use AFBoxing\Middlewares\AuthMiddleware;
 
 $logDir = dirname(__DIR__) . '/storage/logs';
@@ -144,6 +146,8 @@ $router->get('/api/contacts', [ContactController::class, 'index'])
     ->middleware($authAdmin);
 $router->post('/api/contacts/{id}/restore', [ContactController::class, 'restore'])
     ->middleware($authAdmin);
+$router->post('/api/contacts/{id}/reply', [ContactController::class, 'reply'])
+    ->middleware($authAdmin);
 $router->put('/api/contacts/{id}/read', [ContactController::class, 'markAsRead'])
     ->middleware($authAdmin);
 $router->delete('/api/contacts/{id}', [ContactController::class, 'destroy'])
@@ -161,6 +165,22 @@ $router->post('/api/activities', [ActivityController::class, 'store'])
 $router->put('/api/activities/{id}', [ActivityController::class, 'update'])
     ->middleware($authStaff);
 $router->delete('/api/activities/{id}', [ActivityController::class, 'destroy'])
+    ->middleware($authStaff);
+
+// Team members (équipe)
+$router->get('/api/team-members/trash', [TeamMemberController::class, 'trash'])
+    ->middleware($authStaff);
+$router->get('/api/team-members', [TeamMemberController::class, 'index']);
+$router->get('/api/team-members/{id}', [TeamMemberController::class, 'show']);
+$router->post('/api/team-members/{id}/restore', [TeamMemberController::class, 'restore'])
+    ->middleware($authStaff);
+$router->post('/api/team-members/{id}/move', [TeamMemberController::class, 'move'])
+    ->middleware($authStaff);
+$router->post('/api/team-members', [TeamMemberController::class, 'store'])
+    ->middleware($authStaff);
+$router->put('/api/team-members/{id}', [TeamMemberController::class, 'update'])
+    ->middleware($authStaff);
+$router->delete('/api/team-members/{id}', [TeamMemberController::class, 'destroy'])
     ->middleware($authStaff);
 
 // Settings
@@ -199,6 +219,16 @@ $router->put('/api/pricing/{key}', [PricingController::class, 'update'])
 $router->post('/api/pricing/{key}/restore', [PricingController::class, 'restore'])
     ->middleware($authAdmin);
 $router->delete('/api/pricing/{key}', [PricingController::class, 'destroy'])
+    ->middleware($authAdmin);
+
+// Seasons (tarifs par saison)
+$router->get('/api/seasons', [SeasonController::class, 'index'])
+    ->middleware($authAdmin);
+$router->post('/api/seasons', [SeasonController::class, 'store'])
+    ->middleware($authAdmin);
+$router->put('/api/seasons/{id}', [SeasonController::class, 'update'])
+    ->middleware($authAdmin);
+$router->post('/api/seasons/{id}/set-current', [SeasonController::class, 'setCurrent'])
     ->middleware($authAdmin);
 
 // Uploads (images) — staff (éditeurs inclus)

@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faSearch, faNewspaper, faTrophy, faImages, faEnvelope, faCalendarAlt, faFistRaised } from '@fortawesome/free-solid-svg-icons';
+import { faSearch, faNewspaper, faTrophy, faImages, faEnvelope, faCalendarAlt, faFistRaised, faUserFriends } from '@fortawesome/free-solid-svg-icons';
 // eslint-disable-next-line no-unused-vars
 import { motion } from 'framer-motion';
-import { newsApi, palmaresApi, galleryApi, contactsApi, scheduleApi, activitiesApi } from '../../services/apiService';
+import { newsApi, palmaresApi, galleryApi, contactsApi, scheduleApi, activitiesApi, teamMembersApi } from '../../services/apiService';
 import { useNotifications } from './NotificationSystem';
 import { LoadingState } from '../PageStates';
 import PageHeader from '../ui/PageHeader';
@@ -25,7 +25,8 @@ const GlobalSearch = () => {
     gallery: [],
     contacts: [],
     schedule: [],
-    activities: []
+    activities: [],
+    team: []
   });
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('all');
@@ -46,7 +47,8 @@ const GlobalSearch = () => {
         gallery: [],
         contacts: [],
         schedule: [],
-        activities: []
+        activities: [],
+        team: []
       });
       return;
     }
@@ -65,6 +67,7 @@ const GlobalSearch = () => {
 
       // Charger les activités depuis l'API
       const activities = await activitiesApi.list().catch(() => []);
+      const team = await teamMembersApi.list().catch(() => []);
 
       const filteredResults = {
         news: news.filter(item => 
@@ -102,6 +105,12 @@ const GlobalSearch = () => {
             (section.paragraphs || []).some(p => p.toLowerCase().includes(lowerTerm)) ||
             (section.bullets || []).some(b => b.toLowerCase().includes(lowerTerm))
           )
+        ),
+        team: team.filter(item =>
+          item.fullName?.toLowerCase().includes(lowerTerm) ||
+          item.role?.toLowerCase().includes(lowerTerm) ||
+          item.bio?.toLowerCase().includes(lowerTerm) ||
+          item.certifications?.toLowerCase().includes(lowerTerm)
         )
       };
 
@@ -133,7 +142,8 @@ const GlobalSearch = () => {
     ...results.gallery.map(r => ({ ...r, type: 'gallery', icon: faImages })),
     ...results.contacts.map(r => ({ ...r, type: 'contacts', icon: faEnvelope })),
     ...results.schedule.map(r => ({ ...r, type: 'schedule', icon: faCalendarAlt })),
-    ...results.activities.map(r => ({ ...r, type: 'activities', icon: faFistRaised }))
+    ...results.activities.map(r => ({ ...r, type: 'activities', icon: faFistRaised })),
+    ...results.team.map(r => ({ ...r, title: r.fullName, type: 'team', icon: faUserFriends }))
   ];
 
   const tabs = [
@@ -143,12 +153,18 @@ const GlobalSearch = () => {
     { id: 'gallery', label: 'Galerie', count: results.gallery.length },
     { id: 'contacts', label: 'Messages', count: results.contacts.length },
     { id: 'schedule', label: 'Planning', count: results.schedule.length },
-    { id: 'activities', label: 'Activités', count: results.activities.length }
+    { id: 'activities', label: 'Activités', count: results.activities.length },
+    { id: 'team', label: 'Équipe', count: results.team.length }
   ];
 
   const displayedResults = activeTab === 'all' 
     ? allResults 
-    : results[activeTab]?.map(r => ({ ...r, type: activeTab, icon: tabs.find(t => t.id === activeTab)?.icon })) || [];
+    : results[activeTab]?.map(r => ({
+        ...r,
+        title: r.title || r.fullName,
+        type: activeTab,
+        icon: tabs.find(t => t.id === activeTab)?.icon
+      })) || [];
 
   const getTypeLabel = (type) => {
     const labels = {
@@ -157,7 +173,8 @@ const GlobalSearch = () => {
       gallery: 'Galerie',
       contacts: 'Message reçu',
       schedule: 'Planning',
-      activities: 'Activité'
+      activities: 'Activité',
+      team: 'Équipe'
     };
     return labels[type] || type;
   };
@@ -169,7 +186,8 @@ const GlobalSearch = () => {
       gallery: '/admin/gallery',
       contacts: '/admin/contacts',
       schedule: '/admin/schedule',
-      activities: '/admin/activities'
+      activities: '/admin/activities',
+      team: '/admin/team'
     };
     navigate(`${paths[result.type]}?highlight=${result.id}`);
   };

@@ -1,134 +1,197 @@
-
-import React from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faFistRaised, faGraduationCap, faHeart, faTrophy, faUsers, faEnvelope } from '@fortawesome/free-solid-svg-icons';
+import {
+  faFistRaised,
+  faGraduationCap,
+  faHeart,
+  faUsers,
+  faEnvelope,
+  faUser,
+} from '@fortawesome/free-solid-svg-icons';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import SectionHeader from './SectionHeader';
+import { LoadingState, ErrorState, EmptyState } from './PageStates';
+import { teamMembersApi } from '../services/apiService';
+import { TEAM_CATEGORIES } from '../constants/adminCopy';
 import '../style/Equipe.scss';
 
-import coach1 from '../assets/coach1.jpg';
-import coach2 from '../assets/coach2.jpg';
+const memberInitials = (name) => {
+  const parts = String(name || '')
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean);
+  if (!parts.length) return '?';
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return `${parts[0][0]}${parts[parts.length - 1][0]}`.toUpperCase();
+};
 
-const equipeData = [
-  {
-    name: "Encadrement boxe anglaise",
-    role: "Coach principal",
-    description: "Encadrement des séances (technique, sécurité, progression) et suivi des pratiquants du débutant au confirmé, dans le respect du cadre fédéral.",
-    image: coach1,
-    experience: "Encadrement diplômé",
-    speciality: "Technique, progression, sécurité",
-    certifications: ["Encadrement fédéral", "Formation continue"]
-  },
-  {
-    name: "Encadrement jeunes",
-    role: "Éducateur / éducatrice",
-    description: "Organisation des groupes jeunes : apprentissage des bases, respect, confiance et progression, avec des contenus adaptés à l’âge et au niveau.",
-    image: coach2,
-    experience: "Suivi pédagogique",
-    speciality: "Boxe éducative, motricité",
-    certifications: ["Encadrement diplômé", "Prévention & sécurité"]
-  },
-  {
-    name: "Accompagnement socio-éducatif",
-    role: "Référent socio-éducatif",
-    description: "Coordination des actions (aide aux devoirs, suivi, ateliers) et lien avec les familles pour un accompagnement concret et bienveillant.",
-    image: coach1,
-    experience: "Accompagnement",
-    speciality: "Soutien scolaire, ateliers",
-    certifications: ["Animation / médiation", "Coordination de projets"]
-  },
-  {
-    name: "Inclusion & sport adapté",
-    role: "Référent handiboxe",
-    description: "Mise en place d’adaptations, progression individualisée et accueil de tous les publics, dans une logique d’inclusion par le sport.",
-    image: coach2,
-    experience: "Accompagnement adapté",
-    speciality: "Handiboxe, inclusion",
-    certifications: ["Formation sport adapté", "Sensibilisation handicap"]
-  }
-];
+const parseCertifications = (raw) => {
+  if (!raw || !String(raw).trim()) return [];
+  return String(raw)
+    .split(/\n|•|;/)
+    .map((line) => line.trim())
+    .filter(Boolean);
+};
 
 const Equipe = () => {
   const navigate = useNavigate();
+  const [members, setMembers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      setLoading(true);
+      setError('');
+      try {
+        const data = await teamMembersApi.list();
+        if (!cancelled) {
+          setMembers(Array.isArray(data) ? data : []);
+        }
+      } catch {
+        if (!cancelled) {
+          setError('Impossible de charger l\'équipe pour le moment. Réessayez dans un instant.');
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const grouped = useMemo(() => {
+    const active = members.filter((m) => m.enabled !== false);
+    return TEAM_CATEGORIES.map((cat) => ({
+      ...cat,
+      members: active
+        .filter((m) => m.category === cat.value)
+        .sort((a, b) => (a.displayOrder ?? 0) - (b.displayOrder ?? 0)),
+    })).filter((group) => group.members.length > 0);
+  }, [members]);
+
+  const totalActive = grouped.reduce((sum, g) => sum + g.members.length, 0);
 
   return (
     <div className="container-fluid">
       <SectionHeader
-        title="L’équipe"
+        title="L'équipe"
         subtitle="Des professionnels passionnés (sport & socio-éducatif) pour vous accompagner avec exigence, bienveillance et sécurité."
         eyebrow="Encadrement qualifié"
         actions={[
-          { label: "Activités", to: "/activite", className: "btn-primary", icon: <FontAwesomeIcon icon={faFistRaised} /> },
-          { label: "Contact", to: "/contact", className: "btn-secondary", icon: <FontAwesomeIcon icon={faEnvelope} /> },
+          {
+            label: 'Activités',
+            to: '/activite',
+            className: 'btn-primary',
+            icon: <FontAwesomeIcon icon={faFistRaised} />,
+          },
+          {
+            label: 'Contact',
+            to: '/contact',
+            className: 'btn-secondary',
+            icon: <FontAwesomeIcon icon={faEnvelope} />,
+          },
         ]}
       />
 
-      {/* Team Section Moderne */}
       <section className="content-section">
         <div className="container">
-          <motion.h2
-            className="section-title"
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            viewport={{ once: true }}
-          >
-            Rencontrez nos éducateurs
-          </motion.h2>
-          
-          <div className="team-grid">
-            {equipeData.map((member, index) => (
-              <motion.div
-                key={index}
-                className="member-card"
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
-                viewport={{ once: true }}
-              >
-                <div className="member-photo">
-                  <img src={member.image} alt={member.name} loading="lazy" />
-                  <div className="photo-overlay">
-                    <FontAwesomeIcon icon={faFistRaised} />
+          {loading ? <LoadingState label="Chargement de l'équipe…" /> : null}
+
+          {!loading && error ? (
+            <ErrorState
+              title="Équipe indisponible"
+              message={error}
+              onRetry={() => window.location.reload()}
+            />
+          ) : null}
+
+          {!loading && !error && totalActive === 0 ? (
+            <EmptyState title="L'équipe sera bientôt présentée">
+              Les fiches des coachs, du bureau et des bénévoles seront publiées ici.
+            </EmptyState>
+          ) : null}
+
+          {!loading && !error && totalActive > 0
+            ? grouped.map((group) => (
+                <div key={group.value} className="team-category-block">
+                  <motion.h2
+                    className="section-title"
+                    initial={{ opacity: 0, y: 30 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.6 }}
+                    viewport={{ once: true }}
+                  >
+                    {group.label}
+                  </motion.h2>
+
+                  <div className="team-grid">
+                    {group.members.map((member, index) => {
+                      const certs = parseCertifications(member.certifications);
+                      return (
+                        <motion.div
+                          key={member.id}
+                          className="member-card"
+                          initial={{ opacity: 0, y: 30 }}
+                          whileInView={{ opacity: 1, y: 0 }}
+                          transition={{ duration: 0.5, delay: index * 0.08 }}
+                          viewport={{ once: true }}
+                        >
+                          <div className="member-photo">
+                            {member.photo ? (
+                              <img
+                                src={member.photo}
+                                alt={member.fullName}
+                                loading="lazy"
+                              />
+                            ) : (
+                              <div
+                                className="member-photo-placeholder"
+                                aria-label={`Photo non disponible pour ${member.fullName}`}
+                              >
+                                <FontAwesomeIcon icon={faUser} aria-hidden />
+                                <span>{memberInitials(member.fullName)}</span>
+                              </div>
+                            )}
+                            <div className="photo-overlay">
+                              <FontAwesomeIcon icon={faFistRaised} />
+                            </div>
+                          </div>
+
+                          <div className="member-info">
+                            <h3>{member.fullName}</h3>
+                            <h4>{member.role}</h4>
+                            {member.bio ? (
+                              <p className="description">{member.bio}</p>
+                            ) : null}
+
+                            {certs.length > 0 ? (
+                              <div className="certifications">
+                                <h5>Diplômes et certifications</h5>
+                                <ul>
+                                  {certs.map((cert) => (
+                                    <li key={cert}>{cert}</li>
+                                  ))}
+                                </ul>
+                              </div>
+                            ) : null}
+                          </div>
+                        </motion.div>
+                      );
+                    })}
                   </div>
                 </div>
-                
-                <div className="member-info">
-                  <h3>{member.name}</h3>
-                  <h4>{member.role}</h4>
-                  <p className="description">{member.description}</p>
-                  
-                  <div className="member-details">
-                    <div className="detail-item">
-                      <FontAwesomeIcon icon={faTrophy} />
-                      <span>{member.experience}</span>
-                    </div>
-                    <div className="detail-item">
-                      <FontAwesomeIcon icon={faGraduationCap} />
-                      <span>{member.speciality}</span>
-                    </div>
-                  </div>
-                  
-                  <div className="certifications">
-                    <h5>Certifications :</h5>
-                    <ul>
-                      {member.certifications.map((cert, certIndex) => (
-                        <li key={certIndex}>{cert}</li>
-                      ))}
-                    </ul>
-                  </div>
-                </div>
-              </motion.div>
-            ))}
-          </div>
+              ))
+            : null}
         </div>
       </section>
 
-      {/* Values Section */}
       <section className="team-values">
         <div className="container">
-          <motion.div 
+          <motion.div
             className="values-content"
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -157,10 +220,9 @@ const Equipe = () => {
         </div>
       </section>
 
-      {/* CTA Section */}
       <section className="team-cta">
         <div className="container">
-          <motion.div 
+          <motion.div
             className="cta-content"
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -169,7 +231,7 @@ const Equipe = () => {
           >
             <h2>Rejoignez notre équipe</h2>
             <p>Vous souhaitez nous rejoindre ou devenir bénévole ? Contactez-nous !</p>
-            <button className="btn btn-primary" onClick={() => navigate('/contact')}>
+            <button className="btn btn-primary" type="button" onClick={() => navigate('/contact')}>
               <FontAwesomeIcon icon={faEnvelope} />
               Nous contacter
             </button>

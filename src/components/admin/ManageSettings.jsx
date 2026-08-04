@@ -33,6 +33,9 @@ const defaultSettings = {
     phone: '06 37 23 26 98',
     email: 'afboxingclub86@gmail.com'
   },
+  mail: {
+    fromName: 'AF Boxing Club 86'
+  },
   social: {
     facebook: 'https://www.facebook.com/afboxingclub86',
     instagram: 'https://www.instagram.com/afboxingclub86'
@@ -80,6 +83,12 @@ const ManageSettings = () => {
           address: data.contact?.['contact.address'] || defaultSettings.contact.address,
           phone: data.contact?.['contact.phone'] || defaultSettings.contact.phone,
           email: data.contact?.['contact.email'] || defaultSettings.contact.email
+        },
+        mail: {
+          fromName:
+            data.mail?.['mail.from_name'] ||
+            data.site?.['site.name'] ||
+            defaultSettings.mail.fromName
         },
         social: {
           facebook: data.social?.['social.facebook'] || defaultSettings.social.facebook,
@@ -131,6 +140,7 @@ const ManageSettings = () => {
         'contact.address': settings.contact.address,
         'contact.phone': settings.contact.phone,
         'contact.email': settings.contact.email,
+        'mail.from_name': settings.mail.fromName,
         'social.facebook': settings.social.facebook,
         'social.instagram': settings.social.instagram,
         'site.name': settings.site.name,
@@ -263,6 +273,30 @@ const ManageSettings = () => {
               onBlur={(e) => validateField('email', e.target.value)}
               error={fieldErrors.email}
               placeholder="contact@example.com"
+              help="Adresse affichée sur le site et utilisée pour envoyer les réponses aux messages."
+            />
+          </div>
+        </motion.section>
+
+        <motion.section
+          className="settings-section"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.05 }}
+        >
+          <div className="section-header">
+            <FontAwesomeIcon icon={faEnvelope} />
+            <h3>Envoi des réponses aux messages</h3>
+          </div>
+          <div className="settings-form">
+            <TextInput
+              label="Nom affiché comme expéditeur"
+              name="mail-from-name"
+              value={settings.mail.fromName}
+              onChange={(e) => updateSetting('mail', 'fromName', e.target.value)}
+              placeholder="AF Boxing Club 86"
+              help="C'est le nom que le contact verra dans sa boîte mail. L'adresse utilisée est l'email du club ci-dessus. Si l'envoi échoue, vérifiez aussi la configuration serveur avec la personne qui gère le site."
+              example="AF Boxing Club 86"
             />
           </div>
         </motion.section>

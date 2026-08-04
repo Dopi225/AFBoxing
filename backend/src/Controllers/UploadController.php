@@ -60,7 +60,7 @@ class UploadController extends BaseController
         }
 
         $folder = $_POST['folder'] ?? 'misc';
-        $allowedFolders = ['news', 'gallery', 'palmares', 'settings', 'misc'];
+        $allowedFolders = ['news', 'gallery', 'palmares', 'settings', 'team', 'misc'];
         if (!in_array($folder, $allowedFolders, true)) {
             $folder = 'misc';
         }

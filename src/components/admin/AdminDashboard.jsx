@@ -16,6 +16,7 @@ import {
   faFistRaised,
   faHistory,
   faUsers,
+  faUserFriends,
   faMoneyBillWave,
   faChevronDown,
   faChevronUp,
@@ -109,6 +110,7 @@ const AdminDashboard = () => {
     { icon: faTrophy, label: NAV_ITEMS.palmares, path: '/admin/palmares', badge: stats.palmares },
     { icon: faImages, label: NAV_ITEMS.gallery, path: '/admin/gallery', badge: stats.gallery },
     { icon: faFistRaised, label: NAV_ITEMS.activities, path: '/admin/activities' },
+    { icon: faUserFriends, label: NAV_ITEMS.team, path: '/admin/team' },
     { icon: faCalendarAlt, label: NAV_ITEMS.schedule, path: '/admin/schedule' },
   ];
 

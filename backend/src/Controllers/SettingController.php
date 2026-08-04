@@ -88,6 +88,7 @@ class SettingController extends BaseController
     private function getCategoryForKey(string $key): string
     {
         if (strpos($key, 'contact.') === 0) return 'contact';
+        if (strpos($key, 'mail.') === 0) return 'mail';
         if (strpos($key, 'social.') === 0) return 'social';
         if (strpos($key, 'site.') === 0) return 'site';
         return 'general';

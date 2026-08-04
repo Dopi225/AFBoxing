@@ -1,4 +1,131 @@
 .manage-pricing {
+  .season-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1.25rem;
+
+    &__label {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--text-dark);
+    }
+
+    &__chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+  }
+
+  .season-chip {
+    min-height: 44px;
+    padding: 0.45rem 1rem;
+    border-radius: 999px;
+    border: 2px solid var(--secondary-gray, #ccc);
+    background: var(--surface-elevated, #fff);
+    color: var(--text-dark);
+    font-size: 1rem;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+
+    &.active {
+      border-color: var(--primary-red, #e60000);
+      color: var(--primary-red, #e60000);
+      font-weight: 600;
+      background: rgba(230, 0, 0, 0.06);
+    }
+
+    &.current .season-chip__badge {
+      margin-left: 0.25rem;
+      padding: 0.15rem 0.5rem;
+      border-radius: 999px;
+      background: rgba(34, 139, 34, 0.15);
+      color: #1a7a1a;
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+  }
+
+  .season-archive-banner {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.25rem;
+    padding: 1rem 1.25rem;
+    border-radius: 12px;
+    border: 2px solid #d4a017;
+    background: #fff8e6;
+
+    p {
+      margin: 0;
+      flex: 1;
+      min-width: 220px;
+      font-size: 1rem;
+      line-height: 1.45;
+      color: #5c4813;
+    }
+
+    .btn {
+      min-height: 44px;
+      font-size: 1rem;
+    }
+  }
+
+  .form-archive-hint {
+    margin: 0 0 1rem;
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    background: #fff8e6;
+    color: #5c4813;
+    font-size: 0.95rem;
+  }
+
+  .create-season-form {
+    display: grid;
+    gap: 1rem;
+
+    &__help {
+      margin: 0;
+      font-size: 1rem;
+      color: var(--text-light);
+      line-height: 1.5;
+    }
+
+    &__copy-note {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.6rem;
+      padding: 0.75rem 1rem;
+      border-radius: 10px;
+      background: rgba(230, 0, 0, 0.06);
+      font-size: 0.95rem;
+      color: var(--text-dark);
+
+      svg {
+        margin-top: 0.15rem;
+        color: var(--primary-red);
+      }
+    }
+
+    .form-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      margin-top: 0.5rem;
+
+      .btn {
+        min-height: 48px;
+        font-size: 1rem;
+      }
+    }
+  }
+
   .pricing-form-card {
     padding: 1.5rem;
     margin-bottom: 1.5rem;

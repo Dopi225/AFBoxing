@@ -71,8 +71,22 @@ CREATE TABLE IF NOT EXISTS contacts (
   email VARCHAR(255) NOT NULL,
   message TEXT NOT NULL,
   is_read TINYINT(1) NOT NULL DEFAULT 0,
+  is_replied TINYINT(1) NOT NULL DEFAULT 0,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   deleted_at TIMESTAMP NULL DEFAULT NULL
+) ENGINE=InnoDB;
+
+-- Réponses envoyées depuis l'admin aux messages de contact
+CREATE TABLE IF NOT EXISTS contact_replies (
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  contact_id INT UNSIGNED NOT NULL,
+  body TEXT NOT NULL,
+  sent_by_user_id INT UNSIGNED NULL,
+  sent_by_name VARCHAR(100) NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  INDEX idx_contact_replies_contact (contact_id, created_at),
+  CONSTRAINT fk_contact_replies_contact
+    FOREIGN KEY (contact_id) REFERENCES contacts(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
 -- Activités
@@ -120,10 +134,45 @@ CREATE TABLE IF NOT EXISTS activity_log (
   INDEX idx_created_at (created_at)
 ) ENGINE=InnoDB;
 
+-- Membres de l'équipe (page publique /equipe)
+CREATE TABLE IF NOT EXISTS team_members (
+  id              INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  full_name       VARCHAR(255) NOT NULL,
+  role_label      VARCHAR(255) NOT NULL,
+  category        VARCHAR(100) NOT NULL,
+  bio             TEXT NULL,
+  photo           VARCHAR(500) NULL,
+  certifications  TEXT NULL,
+  display_order   INT NOT NULL DEFAULT 0,
+  enabled         TINYINT(1) NOT NULL DEFAULT 1,
+  created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  deleted_at      TIMESTAMP NULL DEFAULT NULL,
+  INDEX idx_team_category_order (category, display_order),
+  INDEX idx_team_deleted_at (deleted_at)
+) ENGINE=InnoDB;
+
+-- Saisons sportives (tarifs)
+CREATE TABLE IF NOT EXISTS seasons (
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  label VARCHAR(100) NOT NULL,
+  starts_on DATE NOT NULL,
+  ends_on DATE NOT NULL,
+  is_current TINYINT(1) NOT NULL DEFAULT 0,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  INDEX idx_seasons_current (is_current)
+) ENGINE=InnoDB;
+
+INSERT INTO seasons (label, starts_on, ends_on, is_current)
+VALUES ('2025-2026', '2025-09-01', '2026-08-31', 1)
+ON DUPLICATE KEY UPDATE label = VALUES(label);
+
 -- Tarifs
 CREATE TABLE IF NOT EXISTS pricing (
   id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-  price_key VARCHAR(100) NOT NULL UNIQUE,
+  season_id INT UNSIGNED NOT NULL,
+  price_key VARCHAR(100) NOT NULL,
   label VARCHAR(255) NOT NULL,
   amount DECIMAL(10, 2) NOT NULL,
   period VARCHAR(20) NOT NULL DEFAULT 'an',
@@ -137,18 +186,21 @@ CREATE TABLE IF NOT EXISTS pricing (
   INDEX idx_category (category),
   INDEX idx_enabled (enabled),
   INDEX idx_pricing_activity_id (activity_id),
-  UNIQUE KEY uq_pricing_activity_id (activity_id)
+  INDEX idx_pricing_season (season_id),
+  UNIQUE KEY uq_pricing_season_key (season_id, price_key),
+  UNIQUE KEY uq_pricing_season_activity (season_id, activity_id),
+  CONSTRAINT fk_pricing_season FOREIGN KEY (season_id) REFERENCES seasons(id)
 ) ENGINE=InnoDB;
 
--- Données par défaut pour les tarifs
-INSERT INTO pricing (price_key, label, amount, period, note, category) VALUES
-('boxing.educative', 'Boxe Éducative', 80.00, 'an', 'Licence comprise – Certificat médical obligatoire', 'boxing'),
-('boxing.loisir', 'Boxe Loisir', 120.00, 'an', 'Licence comprise – Certificat médical obligatoire', 'boxing'),
-('boxing.amateur', 'Boxe Amateur', 120.00, 'an', 'Licence comprise – Certificat médical obligatoire', 'boxing'),
-('boxing.handiboxe', 'Handiboxe', 120.00, 'an', 'Licence comprise – Certificat médical obligatoire', 'boxing'),
-('boxing.aeroboxe', 'Aeroboxe', 120.00, 'an', 'Licence comprise – Certificat médical obligatoire', 'boxing'),
-('boxing.therapie', 'Boxe Thérapie', 120.00, 'an', 'Licence comprise – Certificat médical obligatoire', 'boxing'),
-('social.periscolaire', 'Programme Social-Éducatif', 30.00, 'an', 'Tarif dégressif selon quotient familial (CAF)', 'social')
+-- Données par défaut pour les tarifs (saison courante id=1 après seed)
+INSERT INTO pricing (season_id, price_key, label, amount, period, note, category) VALUES
+(1, 'boxing.educative', 'Boxe Éducative', 80.00, 'an', 'Licence comprise – Certificat médical obligatoire', 'boxing'),
+(1, 'boxing.loisir', 'Boxe Loisir', 120.00, 'an', 'Licence comprise – Certificat médical obligatoire', 'boxing'),
+(1, 'boxing.amateur', 'Boxe Amateur', 120.00, 'an', 'Licence comprise – Certificat médical obligatoire', 'boxing'),
+(1, 'boxing.handiboxe', 'Handiboxe', 120.00, 'an', 'Licence comprise – Certificat médical obligatoire', 'boxing'),
+(1, 'boxing.aeroboxe', 'Aeroboxe', 120.00, 'an', 'Licence comprise – Certificat médical obligatoire', 'boxing'),
+(1, 'boxing.therapie', 'Boxe Thérapie', 120.00, 'an', 'Licence comprise – Certificat médical obligatoire', 'boxing'),
+(1, 'social.periscolaire', 'Programme Social-Éducatif', 30.00, 'an', 'Tarif dégressif selon quotient familial (CAF)', 'social')
 ON DUPLICATE KEY UPDATE label = VALUES(label);
 
 -- ⚠️ SÉCURITÉ : Ne pas utiliser ce mot de passe en production !

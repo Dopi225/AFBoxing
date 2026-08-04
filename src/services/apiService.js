@@ -421,6 +421,14 @@ export const contactsApi = {
       headers: buildHeaders()
     });
     return handleResponse(res);
+  },
+  reply: async (id, data) => {
+    const res = await fetch(`${API_BASE_URL}/api/contacts/${id}/reply`, {
+      method: 'POST',
+      headers: buildHeaders(),
+      body: JSON.stringify(data)
+    });
+    return handleResponse(res);
   }
 };
 
@@ -484,6 +492,64 @@ export const activitiesApi = {
     const res = await fetch(`${API_BASE_URL}/api/activities/${id}/restore`, {
       method: 'POST',
       headers: buildHeaders()
+    });
+    return handleResponse(res);
+  }
+};
+
+export const teamMembersApi = {
+  list: async () =>
+    takeCachedPublicList('team-members', async () => {
+      const res = await fetch(`${API_BASE_URL}/api/team-members`, {
+        headers: buildHeaders()
+      });
+      return handleResponse(res);
+    }),
+  get: async (id) => {
+    const res = await fetch(`${API_BASE_URL}/api/team-members/${id}`, {
+      headers: buildHeaders()
+    });
+    return handleResponse(res);
+  },
+  create: async (data) => {
+    const res = await fetch(`${API_BASE_URL}/api/team-members`, {
+      method: 'POST',
+      headers: buildHeaders(),
+      body: JSON.stringify(data)
+    });
+    return handleResponse(res);
+  },
+  update: async (id, data) => {
+    const res = await fetch(`${API_BASE_URL}/api/team-members/${id}`, {
+      method: 'PUT',
+      headers: buildHeaders(),
+      body: JSON.stringify(data)
+    });
+    return handleResponse(res);
+  },
+  remove: async (id) => {
+    const res = await fetch(`${API_BASE_URL}/api/team-members/${id}`, {
+      method: 'DELETE',
+      headers: buildHeaders()
+    });
+    return handleResponse(res);
+  },
+  listTrash: async () => {
+    const res = await fetch(`${API_BASE_URL}/api/team-members/trash`, { headers: buildHeaders() });
+    return handleResponse(res);
+  },
+  restore: async (id) => {
+    const res = await fetch(`${API_BASE_URL}/api/team-members/${id}/restore`, {
+      method: 'POST',
+      headers: buildHeaders()
+    });
+    return handleResponse(res);
+  },
+  move: async (id, direction) => {
+    const res = await fetch(`${API_BASE_URL}/api/team-members/${id}/move`, {
+      method: 'POST',
+      headers: buildHeaders(),
+      body: JSON.stringify({ direction })
     });
     return handleResponse(res);
   }
@@ -590,8 +656,9 @@ export const pricingApi = {
       return handleResponse(res);
     }),
   /** Liste détaillée (admin) : une ligne par tarif + activité liée */
-  adminList: async () => {
-    const res = await fetch(`${API_BASE_URL}/api/pricing/admin-list`, {
+  adminList: async (seasonId) => {
+    const q = seasonId != null ? `?seasonId=${encodeURIComponent(seasonId)}` : '';
+    const res = await fetch(`${API_BASE_URL}/api/pricing/admin-list${q}`, {
       headers: buildHeaders(true, true)
     });
     return handleResponse(res);
@@ -624,26 +691,32 @@ export const pricingApi = {
     return handleResponse(res);
   },
   updateOne: async (key, data) => {
-    const res = await fetch(`${API_BASE_URL}/api/pricing/${key}`, {
+    const seasonQ = data?.seasonId != null ? `?seasonId=${encodeURIComponent(data.seasonId)}` : '';
+    const res = await fetch(`${API_BASE_URL}/api/pricing/${encodeURIComponent(key)}${seasonQ}`, {
       method: 'PUT',
       headers: buildHeaders(),
       body: JSON.stringify(data)
     });
     return handleResponse(res);
   },
-  remove: async (key) => {
-    const res = await fetch(`${API_BASE_URL}/api/pricing/${key}`, {
+  remove: async (key, seasonId) => {
+    const q = seasonId != null ? `?seasonId=${encodeURIComponent(seasonId)}` : '';
+    const res = await fetch(`${API_BASE_URL}/api/pricing/${encodeURIComponent(key)}${q}`, {
       method: 'DELETE',
       headers: buildHeaders()
     });
     return handleResponse(res);
   },
-  listTrash: async () => {
-    const res = await fetch(`${API_BASE_URL}/api/pricing/trash`, { headers: buildHeaders() });
+  listTrash: async (seasonId) => {
+    const q = seasonId != null ? `?seasonId=${encodeURIComponent(seasonId)}` : '';
+    const res = await fetch(`${API_BASE_URL}/api/pricing/trash${q}`, { headers: buildHeaders() });
     return handleResponse(res);
   },
-  restore: async (key) => {
-    const res = await fetch(`${API_BASE_URL}/api/pricing/${key}/restore`, {
+  /** Restaure par id numérique (corbeille) ou par price_key + seasonId */
+  restore: async (idOrKey, seasonId) => {
+    const key = encodeURIComponent(String(idOrKey));
+    const q = seasonId != null ? `?seasonId=${encodeURIComponent(seasonId)}` : '';
+    const res = await fetch(`${API_BASE_URL}/api/pricing/${key}/restore${q}`, {
       method: 'POST',
       headers: buildHeaders()
     });
@@ -651,5 +724,35 @@ export const pricingApi = {
   }
 };
 
- 
+export const seasonsApi = {
+  list: async () => {
+    const res = await fetch(`${API_BASE_URL}/api/seasons`, {
+      headers: buildHeaders()
+    });
+    return handleResponse(res);
+  },
+  create: async (data) => {
+    const res = await fetch(`${API_BASE_URL}/api/seasons`, {
+      method: 'POST',
+      headers: buildHeaders(),
+      body: JSON.stringify(data)
+    });
+    return handleResponse(res);
+  },
+  update: async (id, data) => {
+    const res = await fetch(`${API_BASE_URL}/api/seasons/${id}`, {
+      method: 'PUT',
+      headers: buildHeaders(),
+      body: JSON.stringify(data)
+    });
+    return handleResponse(res);
+  },
+  setCurrent: async (id) => {
+    const res = await fetch(`${API_BASE_URL}/api/seasons/${id}/set-current`, {
+      method: 'POST',
+      headers: buildHeaders()
+    });
+    return handleResponse(res);
+  }
+};
 

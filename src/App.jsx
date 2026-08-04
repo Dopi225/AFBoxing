@@ -36,6 +36,7 @@ const GlobalSearch = React.lazy(() => import('./components/admin/GlobalSearch'))
 const ManageSettings = React.lazy(() => import('./components/admin/ManageSettings'));
 const ManageUsers = React.lazy(() => import('./components/admin/ManageUsers'));
 const ManageActivities = React.lazy(() => import('./components/admin/ManageActivities'));
+const ManageTeam = React.lazy(() => import('./components/admin/ManageTeam'));
 const ManagePricing = React.lazy(() => import('./components/admin/ManagePricing'));
 const ActivityLog = React.lazy(() => import('./components/admin/ActivityLog'));
 const NotFound = React.lazy(() => import('./components/NotFound'));
@@ -83,6 +84,7 @@ function App() {
                 <Route path="gallery" element={<ManageGallery />} />
                 <Route path="contacts" element={<ManageContacts />} />
                 <Route path="activities" element={<ManageActivities />} />
+                <Route path="team" element={<ManageTeam />} />
                 <Route path="pricing" element={<ManagePricing />} />
                 <Route path="history" element={<ActivityLog />} />
                 <Route path="search" element={<GlobalSearch />} />

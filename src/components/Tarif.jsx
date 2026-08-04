@@ -51,6 +51,7 @@ const Tarif = () => {
   const [modalTitle, setModalTitle] = useState('');
   const [modalContent, setModalContent] = useState(null);
   const [pricing, setPricing] = useState(null);
+  const [seasonLabel, setSeasonLabel] = useState('');
   const [pricingLoading, setPricingLoading] = useState(true);
   const [pricingError, setPricingError] = useState('');
 
@@ -65,12 +66,20 @@ const Tarif = () => {
       setPricingError('');
       try {
         const data = await pricingApi.list();
-        setPricing(data);
+        if (data && typeof data === 'object' && data.season) {
+          setSeasonLabel(data.season.label || '');
+          // Conserver boxing/social au même niveau pour le reste du composant
+          setPricing(data);
+        } else {
+          setSeasonLabel('');
+          setPricing(data);
+        }
       } catch (err) {
         if (import.meta.env.DEV) {
           console.warn('Error loading pricing:', err);
         }
         setPricing(null);
+        setSeasonLabel('');
         setPricingError('Les tarifs sont temporairement indisponibles. Contactez le club pour connaître les montants à jour.');
       } finally {
         setPricingLoading(false);
@@ -215,7 +224,11 @@ const Tarif = () => {
     <div className="container-fluid">
       <SectionHeader
         title="Tarifs & inscriptions"
-        subtitle="Tarifs, modalités et documents : choisissez votre programme (boxe ou socio-éducatif) et démarrez simplement."
+        subtitle={
+          seasonLabel
+            ? `Saison ${seasonLabel} — Tarifs, modalités et documents : choisissez votre programme (boxe ou socio-éducatif) et démarrez simplement.`
+            : 'Tarifs, modalités et documents : choisissez votre programme (boxe ou socio-éducatif) et démarrez simplement.'
+        }
         eyebrow="Simple • Clair • Accompagné"
         actions={[
           { label: "Contact", to: "/contact", className: "btn-secondary" },

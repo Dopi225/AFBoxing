@@ -1,0 +1,3 @@
+gestion de l'equipe  fait par eux.
+pouvoir repondre directement aux demandes de contact
+ajouter une periode d'exercice comptable

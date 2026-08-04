@@ -21,6 +21,7 @@ export const NAV_ITEMS = {
   schedule: 'Planning',
   gallery: 'Galerie',
   activities: 'Activités',
+  team: 'Équipe',
   contacts: 'Messages reçus',
   pricing: 'Tarifs',
   settings: 'Informations du club',
@@ -48,6 +49,8 @@ export const ENTITY_LABELS = {
   gallery: 'Photo',
   activities: 'Activité',
   activity: 'Activité',
+  team_member: 'Membre de l\'équipe',
+  team: 'Équipe',
   schedule: 'Planning',
   contact: 'Message',
   contacts: 'Message',
@@ -56,6 +59,7 @@ export const ENTITY_LABELS = {
   users: 'Compte',
   auth: 'Connexion',
   pricing: 'Tarif',
+  season: 'Saison',
 };
 
 export const ACTION_LABELS = {
@@ -78,6 +82,29 @@ export const ACTIVITY_KIND_LABELS = {
   boxing: 'Boxe',
   social: 'Socio-éducatif',
 };
+
+/** Catégories d'affichage de l'équipe (page publique regroupée) */
+export const TEAM_CATEGORIES = [
+  { value: 'coaches', label: 'Coachs' },
+  { value: 'board', label: 'Bureau / Dirigeants' },
+  { value: 'volunteers', label: 'Bénévoles' },
+];
+
+/** Rôles suggérés — l'admin peut aussi saisir un rôle libre */
+export const TEAM_ROLE_SUGGESTIONS = [
+  'Entraîneur principal',
+  'Coach boxe éducative',
+  'Coach boxe loisir',
+  'Éducateur / éducatrice',
+  'Président',
+  'Présidente',
+  'Trésorier',
+  'Trésorière',
+  'Secrétaire',
+  'Référent socio-éducatif',
+  'Référent handiboxe',
+  'Bénévole',
+];
 
 export const GALLERY_CATEGORIES = [
   { value: 'Infrastructure', label: 'Infrastructure', help: 'Photos des locaux et équipements' },
@@ -103,6 +130,47 @@ export const PALMARES_CATEGORIES = [
   { value: 'Jeunes', label: 'Jeunes' },
   { value: 'Féminin', label: 'Féminin' },
   { value: 'Équipe', label: 'Équipe' },
+];
+
+/** Modèles de réponse pré-écrits pour les messages de contact */
+export const CONTACT_REPLY_TEMPLATES = [
+  {
+    id: 'inscription',
+    label: 'Demande d\'inscription',
+    body: `Bonjour,
+
+Merci pour votre message concernant une inscription au club.
+
+Nous serons ravis de vous accueillir. Pour formaliser l'inscription, merci de vous présenter à une séance d'essai ou de nous contacter par téléphone afin de convenir d'un rendez-vous. Pensez à prévoir un certificat médical de non contre-indication à la pratique de la boxe.
+
+N'hésitez pas si vous avez d'autres questions.
+
+Sportivement,`,
+  },
+  {
+    id: 'tarifs',
+    label: 'Infos tarifs',
+    body: `Bonjour,
+
+Merci pour votre intérêt pour le club.
+
+Vous trouverez le détail de nos tarifs sur la page Tarifs du site. Les licences et le certificat médical sont à prévoir selon l'activité choisie.
+
+Si vous souhaitez un renseignement plus précis (âge, créneau, formule), répondez à cet email en précisant votre situation : nous vous indiquerons la formule la plus adaptée.
+
+Sportivement,`,
+  },
+  {
+    id: 'general',
+    label: 'Demande générale',
+    body: `Bonjour,
+
+Merci de nous avoir contactés.
+
+Nous avons bien reçu votre message et revenons vers vous rapidement. En attendant, n'hésitez pas à consulter les pages Activités, Horaires et Tarifs du site pour plus d'informations.
+
+Sportivement,`,
+  },
 ];
 
 export function formatRelativeDate(dateStr) {

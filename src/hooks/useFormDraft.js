@@ -14,6 +14,10 @@ export function useFormDraft(storageKey, data, options = {}) {
   const skipNextSaveRef = useRef(false);
 
   useEffect(() => {
+    restoredRef.current = false;
+  }, [storageKey]);
+
+  useEffect(() => {
     if (!enabled || restoredRef.current) return;
     restoredRef.current = true;
     try {

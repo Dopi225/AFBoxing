@@ -232,14 +232,15 @@
                 <li><a href="#palmares">5. Gestion des palmarès</a></li>
                 <li><a href="#galerie">6. Gestion de la galerie</a></li>
                 <li><a href="#planning">7. Gestion du planning</a></li>
-                <li><a href="#contacts">8. Gestion des contacts</a></li>
+                <li><a href="#contacts">8. Gestion des messages (contacts)</a></li>
                 <li><a href="#activites">9. Gestion des activités</a></li>
-                <li><a href="#tarifs">10. Gestion des tarifs</a></li>
-                <li><a href="#parametres">11. Paramètres du site</a></li>
-                <li><a href="#historique">12. Historique des actions</a></li>
-                <li><a href="#recherche">13. Recherche globale</a></li>
-                <li><a href="#conseils">14. Conseils et bonnes pratiques</a></li>
-                <li><a href="#problemes">15. Résolution de problèmes</a></li>
+                <li><a href="#equipe">10. Gestion de l'équipe</a></li>
+                <li><a href="#tarifs">11. Gestion des tarifs (par saison)</a></li>
+                <li><a href="#parametres">12. Paramètres du site</a></li>
+                <li><a href="#historique">13. Historique des actions</a></li>
+                <li><a href="#recherche">14. Recherche globale</a></li>
+                <li><a href="#conseils">15. Conseils et bonnes pratiques</a></li>
+                <li><a href="#problemes">16. Résolution de problèmes</a></li>
             </ul>
         </div>
         
@@ -270,16 +271,20 @@
                     <p>Mettre à jour les horaires d'entraînement</p>
                 </div>
                 <div class="feature-card">
-                    <h4>✉️ Contacts</h4>
-                    <p>Consulter et répondre aux messages</p>
+                    <h4>✉️ Messages</h4>
+                    <p>Lire les messages reçus et y répondre directement par email</p>
                 </div>
                 <div class="feature-card">
                     <h4>🎯 Activités</h4>
                     <p>Gérer les activités de boxe et socio-éducatives</p>
                 </div>
                 <div class="feature-card">
+                    <h4>👥 Équipe</h4>
+                    <p>Présenter les coachs, le bureau et les bénévoles sur le site</p>
+                </div>
+                <div class="feature-card">
                     <h4>💰 Tarifs</h4>
-                    <p>Modifier les prix et formules</p>
+                    <p>Gérer les prix par saison sportive (avec copie d'une saison à l'autre)</p>
                 </div>
                 <div class="feature-card">
                     <h4>⚙️ Paramètres</h4>
@@ -348,10 +353,11 @@
                 <li>📰 <strong>Actualités</strong> - Gérer les news</li>
                 <li>🏆 <strong>Palmarès</strong> - Gérer les résultats</li>
                 <li>📸 <strong>Galerie</strong> - Gérer les photos</li>
-                <li>📅 <strong>Planning</strong> - Gérer les horaires</li>
-                <li>✉️ <strong>Contacts</strong> - Voir les messages</li>
                 <li>🎯 <strong>Activités</strong> - Gérer les activités</li>
-                <li>💰 <strong>Tarifs</strong> - Gérer les prix</li>
+                <li>👥 <strong>Équipe</strong> - Présenter les coachs et bénévoles</li>
+                <li>📅 <strong>Planning</strong> - Gérer les horaires</li>
+                <li>✉️ <strong>Messages reçus</strong> - Lire et répondre aux messages</li>
+                <li>💰 <strong>Tarifs</strong> - Gérer les prix par saison</li>
                 <li>⚙️ <strong>Paramètres</strong> - Modifier les coordonnées</li>
                 <li>📜 <strong>Historique</strong> - Voir toutes les actions</li>
             </ul>
@@ -606,14 +612,14 @@
         </section>
         
         <section id="contacts">
-            <h2>8. Gestion des contacts</h2>
+            <h2>8. Gestion des messages (contacts)</h2>
             
-            <p>Les contacts sont les messages envoyés via le formulaire de contact du site.</p>
+            <p>Les messages sont envoyés via le formulaire de contact du site. Vous pouvez les lire <strong>et y répondre directement par email</strong> depuis l'administration.</p>
             
             <h3>📬 Consulter les messages</h3>
             <div class="step">
                 <span class="step-number">1</span>
-                Cliquez sur <strong>"Contacts"</strong> dans le menu
+                Cliquez sur <strong>"Messages reçus"</strong> dans le menu
             </div>
             
             <div class="step">
@@ -623,34 +629,76 @@
             
             <div class="step">
                 <span class="step-number">3</span>
-                Les messages <strong>non lus</strong> apparaissent en premier et sont marqués différemment
+                Les messages <strong>non lus</strong> sont mis en avant. Un badge <strong>« Répondu »</strong> apparaît quand vous avez déjà envoyé une réponse
             </div>
             
-            <h3>👁️ Marquer comme lu</h3>
+            <div class="step">
+                <span class="step-number">4</span>
+                Cliquez sur un message pour le lire : nom, email, téléphone, sujet, contenu, date, et l'historique des réponses déjà envoyées
+            </div>
+            
+            <h3>✉️ Répondre à un message</h3>
             <div class="step">
                 <span class="step-number">1</span>
-                Cliquez sur un message pour le lire
+                Ouvrez le message, puis cliquez sur <strong>"Répondre"</strong>
             </div>
             
             <div class="step">
                 <span class="step-number">2</span>
-                Le message s'ouvre avec toutes les informations (nom, email, téléphone, message)
+                (Optionnel) Choisissez un <strong>modèle de réponse</strong> pour préremplir le texte :
+                <ul>
+                    <li><strong>Demande d'inscription</strong> — pour orienter vers une séance d'essai ou un rendez-vous</li>
+                    <li><strong>Infos tarifs</strong> — pour renvoyer vers la page Tarifs du site</li>
+                    <li><strong>Demande générale</strong> — accusé de réception simple</li>
+                </ul>
+                Vous pouvez ensuite modifier le texte avant d'envoyer.
             </div>
             
             <div class="step">
                 <span class="step-number">3</span>
-                Cliquez sur <strong>"Marquer comme lu"</strong> pour indiquer que vous avez traité le message
+                Cliquez sur <strong>"Envoyer la réponse"</strong>
             </div>
             
-            <h3>🗑️ Supprimer un message</h3>
+            <div class="success">
+                <strong>✅ Succès !</strong> Un email est envoyé à la personne. La conversation reste visible dans le détail du message, et celui-ci est marqué comme « Répondu ».
+            </div>
+            
+            <div class="info">
+                <strong>💡 Astuce :</strong> Votre réponse est enregistrée automatiquement en brouillon pendant que vous écrivez. Si vous quittez la page par erreur, vous pourrez la récupérer.
+            </div>
+            
+            <div class="warning">
+                <strong>⚠️ Important :</strong> Si l'envoi échoue (problème internet ou configuration email), un message d'erreur s'affiche et rien n'est enregistré comme « répondu ». Vous pourrez réessayer.
+            </div>
+            
+            <div class="info">
+                <strong>💡 Nom affiché dans les emails :</strong> Dans <strong>Paramètres → Envoi des réponses aux messages</strong>, vous pouvez choisir le nom qui apparaît comme expéditeur (ex. « AF Boxing Club 86 »). L'adresse d'envoi utilise l'email du club.
+            </div>
+            
+            <h3>👁️ Marquer comme lu / non lu</h3>
             <div class="step">
                 <span class="step-number">1</span>
-                Cliquez sur l'icône <strong>🗑️ Supprimer</strong> à côté du message
+                Ouvrir un message le marque aussi comme lu automatiquement
             </div>
             
             <div class="step">
                 <span class="step-number">2</span>
-                Confirmez la suppression
+                Vous pouvez aussi utiliser le bouton <strong>"Marquer comme lu"</strong> ou <strong>"Marquer comme non lu"</strong> pour indiquer que vous avez traité (ou non) le message
+            </div>
+            
+            <h3>🗑️ Mettre un message à la corbeille</h3>
+            <div class="step">
+                <span class="step-number">1</span>
+                Cliquez sur <strong>"Mettre à la corbeille"</strong> (ou l'icône poubelle) à côté du message
+            </div>
+            
+            <div class="step">
+                <span class="step-number">2</span>
+                Confirmez. Le message disparaît de la liste, mais reste récupérable pendant <strong>30 jours</strong> via le bouton « Corbeille »
+            </div>
+            
+            <div class="warning">
+                <strong>⚠️ Attention :</strong> Après 30 jours, le message est effacé définitivement. Assurez-vous d'y avoir répondu si besoin avant de le mettre à la corbeille.
             </div>
             
             <h3>🔍 Filtrer les messages</h3>
@@ -659,6 +707,7 @@
                 <li><strong>Tous</strong> : Voir tous les messages</li>
                 <li><strong>Non lus</strong> : Voir uniquement les nouveaux messages</li>
                 <li><strong>Lus</strong> : Voir uniquement les messages déjà traités</li>
+                <li><strong>Répondu</strong> : Voir uniquement les messages auxquels vous avez déjà répondu</li>
             </ul>
         </section>
         
@@ -746,56 +795,208 @@
             </div>
         </section>
         
-        <section id="tarifs">
-            <h2>10. Gestion des tarifs</h2>
+        <section id="equipe">
+            <h2>10. Gestion de l'équipe</h2>
             
-            <p>Les tarifs sont gérés depuis la section <strong>"Tarifs"</strong> de l'admin.</p>
+            <p>La section <strong>"Équipe"</strong> permet de présenter les coachs, le bureau et les bénévoles sur la page <strong>Notre équipe</strong> du site public.</p>
+            
+            <h3>➕ Ajouter un membre</h3>
+            <div class="step">
+                <span class="step-number">1</span>
+                Cliquez sur <strong>"Équipe"</strong> dans le menu
+            </div>
+            
+            <div class="step">
+                <span class="step-number">2</span>
+                Cliquez sur <strong>"Ajouter un membre"</strong>
+            </div>
+            
+            <div class="step">
+                <span class="step-number">3</span>
+                <strong>Étape « Identité »</strong> — remplissez :
+                <ul>
+                    <li><strong>Nom complet *</strong> : Prénom et nom tels qu'ils apparaîtront sur le site (ex: Marie Dupont)</li>
+                    <li><strong>Rôle ou fonction *</strong> : Ex. Entraîneur principal, Président, Bénévole (suggestions disponibles, ou texte libre)</li>
+                    <li><strong>Catégorie d'affichage *</strong> :
+                        <ul>
+                            <li><strong>Coachs</strong></li>
+                            <li><strong>Bureau / Dirigeants</strong></li>
+                            <li><strong>Bénévoles</strong></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+            
+            <div class="step">
+                <span class="step-number">4</span>
+                <strong>Étape « Présentation »</strong> (facultatif) :
+                <ul>
+                    <li><strong>Courte biographie</strong> : Quelques lignes sur le parcours ou le rôle</li>
+                    <li><strong>Diplômes et certifications</strong> : Ex. BPJEPS (une ligne par diplôme)</li>
+                </ul>
+            </div>
+            
+            <div class="step">
+                <span class="step-number">5</span>
+                <strong>Étape « Photo »</strong> (facultatif) : choisissez une photo (JPG ou PNG, idéalement carrée, moins de 2 Mo)
+            </div>
+            
+            <div class="step">
+                <span class="step-number">6</span>
+                Cliquez sur le bouton pour enregistrer le membre
+            </div>
+            
+            <div class="success">
+                <strong>✅ Succès !</strong> Le membre apparaît sur la page Notre équipe du site (s'il est visible).
+            </div>
             
             <div class="info">
-                <strong>💡 Note :</strong> La gestion des tarifs est actuellement en développement donc pas disponiblen. Pour l'instant, les tarifs sont gérés via la base de données directement.
+                <strong>💡 Astuce :</strong> Vous pouvez prévisualiser la fiche avant ou après enregistrement avec l'icône 👁️.
+            </div>
+            
+            <h3>✏️ Modifier / masquer / corbeille</h3>
+            <div class="step">
+                <span class="step-number">1</span>
+                Cliquez sur l'icône <strong>✏️ Modifier</strong> pour changer les informations
+            </div>
+            
+            <div class="step">
+                <span class="step-number">2</span>
+                Utilisez le bouton de visibilité pour <strong>afficher ou masquer</strong> le membre sur le site, sans le supprimer
+            </div>
+            
+            <div class="step">
+                <span class="step-number">3</span>
+                Cliquez sur l'icône poubelle pour le <strong>mettre à la corbeille</strong> (récupérable 30 jours)
+            </div>
+            
+            <h3>↕️ Changer l'ordre d'affichage</h3>
+            <div class="step">
+                <span class="step-number">1</span>
+                Utilisez les boutons <strong>"Monter"</strong> et <strong>"Descendre"</strong> à côté de chaque membre
+            </div>
+            
+            <div class="step">
+                <span class="step-number">2</span>
+                L'ordre est géré <strong>par catégorie</strong> (Coachs, Bureau, Bénévoles)
+            </div>
+            
+            <div class="info">
+                <strong>💡 Astuce :</strong> Filtrez la liste par catégorie en haut de page pour vous concentrer sur un groupe à la fois.
+            </div>
+        </section>
+        
+        <section id="tarifs">
+            <h2>11. Gestion des tarifs (par saison)</h2>
+            
+            <p>Les tarifs sont gérés depuis la section <strong>"Tarifs"</strong> de l'admin. Ils sont organisés par <strong>saison sportive</strong> (ex. 2025-2026). Seule la <strong>saison courante</strong> (marquée « Sur le site ») est affichée sur la page Tarifs du site public.</p>
+            
+            <h3>📅 Choisir la saison à consulter ou modifier</h3>
+            <div class="step">
+                <span class="step-number">1</span>
+                Cliquez sur <strong>"Tarifs"</strong> dans le menu
+            </div>
+            
+            <div class="step">
+                <span class="step-number">2</span>
+                En haut de la page, cliquez sur la pastille de la saison souhaitée (ex. « Saison 2025-2026 »)
+            </div>
+            
+            <div class="info">
+                <strong>💡 Astuce :</strong> La saison affichée sur le site public porte un badge <strong>« Sur le site »</strong> et une étoile.
+            </div>
+            
+            <div class="warning">
+                <strong>⚠️ Saison archivée :</strong> Si vous consultez une ancienne saison, un bandeau vous le rappelle : ces tarifs ne sont plus visibles sur le site. Vous pouvez quand même corriger une erreur, ou cliquer sur <strong>"Définir comme saison courante"</strong> pour les republier.
+            </div>
+            
+            <h3>➕ Ajouter ou modifier un tarif</h3>
+            <div class="step">
+                <span class="step-number">1</span>
+                Sélectionnez d'abord la bonne saison
+            </div>
+            
+            <div class="step">
+                <span class="step-number">2</span>
+                Remplissez le formulaire <strong>"Ajouter un tarif"</strong> (ou cliquez sur Modifier dans la liste) :
+                <ul>
+                    <li><strong>Nom du tarif *</strong> : Ex. Licence loisir adulte</li>
+                    <li><strong>Montant (€) *</strong> : Indiquez 0 pour afficher « Gratuit » sur le site</li>
+                    <li><strong>Période</strong> : Par an, par mois, par séance, par trimestre</li>
+                    <li><strong>Activité liée</strong> (facultatif) : Pour afficher le tarif sur la fiche d'une activité</li>
+                    <li><strong>Note complémentaire</strong> : Informations utiles (licence, certificat médical…)</li>
+                    <li><strong>Catégorie</strong> : Boxe ou Socio-éducatif</li>
+                </ul>
+            </div>
+            
+            <div class="step">
+                <span class="step-number">3</span>
+                Enregistrez. Le tarif apparaît dans la liste de la saison sélectionnée
+            </div>
+            
+            <div class="success">
+                <strong>✅ Important :</strong> Si vous modifiez la saison courante, les changements sont visibles immédiatement sur la page Tarifs du site.
+            </div>
+            
+            <h3>🆕 Créer une nouvelle saison (fin d'année)</h3>
+            <p>En fin de saison, créez la suivante : les tarifs sont <strong>copiés automatiquement</strong>, vous n'avez qu'à ajuster les montants qui changent.</p>
+            
+            <div class="step">
+                <span class="step-number">1</span>
+                Cliquez sur <strong>"Créer une nouvelle saison"</strong>
+            </div>
+            
+            <div class="step">
+                <span class="step-number">2</span>
+                Indiquez :
+                <ul>
+                    <li><strong>Libellé</strong> : Ex. 2026-2027 (souvent prérempli)</li>
+                    <li><strong>Date de début</strong> et <strong>date de fin</strong> (souvent du 1er septembre au 31 août)</li>
+                    <li><strong>Saison à copier</strong> : Choisissez la saison dont vous voulez reprendre les tarifs</li>
+                </ul>
+            </div>
+            
+            <div class="step">
+                <span class="step-number">3</span>
+                Cliquez sur <strong>"Créer la saison et copier les tarifs"</strong>
+            </div>
+            
+            <div class="step">
+                <span class="step-number">4</span>
+                Ajustez les montants qui évoluent, puis cliquez sur <strong>"Définir comme saison courante"</strong> quand vous êtes prêt à les publier sur le site
+            </div>
+            
+            <div class="info">
+                <strong>💡 Astuce :</strong> Tant que la nouvelle saison n'est pas définie comme « courante », l'ancienne reste affichée sur le site. Vous pouvez préparer la nouvelle saison tranquillement.
             </div>
             
             <h3>💰 Structure des tarifs</h3>
             <p>Les tarifs sont organisés par catégorie :</p>
             <ul>
-                <li><strong>Boxe</strong> :
-                    <ul>
-                        <li>Boxe Éducative</li>
-                        <li>Boxe Loisir</li>
-                    </ul>
-                </li>
-                <li><strong>Socio-éducatif</strong> :
-                    <ul>
-                        <li>Activité Périscolaire</li>
-                    </ul>
-                </li>
+                <li><strong>Boxe</strong> (ex. Boxe Éducative, Boxe Loisir)</li>
+                <li><strong>Socio-éducatif</strong> (ex. Activité Périscolaire)</li>
             </ul>
             
-            <p>Chaque tarif contient :</p>
-            <ul>
-                <li><strong>Label</strong> : Nom du tarif</li>
-                <li><strong>Montant</strong> : Prix (peut être "Gratuit" ou un nombre)</li>
-                <li><strong>Période</strong> : "an" ou "mois"</li>
-                <li><strong>Note</strong> : Informations complémentaires</li>
-            </ul>
+            <p>Chaque tarif contient un nom, un montant, une période et éventuellement une note ou un lien vers une activité.</p>
         </section>
         
         <section id="parametres">
-            <h2>11. Paramètres du site</h2>
+            <h2>12. Paramètres du site</h2>
             
-            <p>Les paramètres permettent de modifier les coordonnées du club et les liens vers les réseaux sociaux. Ces modifications apparaissent immédiatement sur tout le site.</p>
+            <p>Les paramètres permettent de modifier les coordonnées du club, le nom d'expéditeur des réponses aux messages, et les liens vers les réseaux sociaux. Ces modifications apparaissent immédiatement sur tout le site.</p>
             
             <h3>📝 Modifier les paramètres</h3>
             <div class="step">
                 <span class="step-number">1</span>
-                Cliquez sur <strong>"Paramètres"</strong> dans le menu
+                Cliquez sur <strong>"Paramètres"</strong> (ou « Informations du club ») dans le menu
             </div>
             
             <div class="step">
                 <span class="step-number">2</span>
-                Vous voyez trois sections :
+                Vous voyez plusieurs sections :
                 <ul>
                     <li><strong>Contact</strong> : Adresse, téléphone, email</li>
+                    <li><strong>Envoi des réponses aux messages</strong> : Nom affiché comme expéditeur des emails de réponse</li>
                     <li><strong>Réseaux sociaux</strong> : Facebook, Instagram</li>
                     <li><strong>Site</strong> : Nom du club, slogan</li>
                 </ul>
@@ -816,6 +1017,7 @@
                 <ul>
                     <li>La page de contact</li>
                     <li>Le pied de page (footer)</li>
+                    <li>Les emails de réponse aux messages (nom d'expéditeur)</li>
                     <li>Tous les endroits où ces informations apparaissent</li>
                 </ul>
             </div>
@@ -824,8 +1026,17 @@
             <ul>
                 <li><strong>Adresse</strong> : L'adresse complète du club</li>
                 <li><strong>Téléphone</strong> : Numéro de téléphone (format : 06 37 23 26 98)</li>
-                <li><strong>Email</strong> : Adresse email de contact</li>
+                <li><strong>Email</strong> : Adresse email de contact (aussi utilisée pour envoyer les réponses aux messages)</li>
             </ul>
+            
+            <h3>✉️ Envoi des réponses aux messages</h3>
+            <ul>
+                <li><strong>Nom affiché comme expéditeur</strong> : C'est le nom que le contact verra dans sa boîte mail (ex. AF Boxing Club 86)</li>
+            </ul>
+            
+            <div class="info">
+                <strong>💡 Astuce :</strong> Si l'envoi d'emails échoue, vérifiez d'abord ce nom et l'email du club, puis contactez la personne qui gère le site pour la configuration serveur.
+            </div>
             
             <h3>🌐 Réseaux sociaux</h3>
             <ul>
@@ -839,7 +1050,7 @@
         </section>
         
         <section id="historique">
-            <h2>12. Historique des actions</h2>
+            <h2>13. Historique des actions</h2>
             
             <p>L'historique enregistre toutes les actions effectuées dans l'administration (création, modification, suppression).</p>
             
@@ -888,7 +1099,7 @@
         </section>
         
         <section id="recherche">
-            <h2>13. Recherche globale</h2>
+            <h2>14. Recherche globale</h2>
             
             <p>La recherche globale permet de trouver rapidement n'importe quel contenu dans l'administration.</p>
             
@@ -910,9 +1121,10 @@
                     <li>Actualités</li>
                     <li>Palmarès</li>
                     <li>Galerie</li>
-                    <li>Contacts</li>
+                    <li>Messages</li>
                     <li>Planning</li>
                     <li>Activités</li>
+                    <li>Équipe</li>
                 </ul>
             </div>
             
@@ -923,7 +1135,7 @@
         </section>
         
         <section id="conseils">
-            <h2>14. Conseils et bonnes pratiques</h2>
+            <h2>15. Conseils et bonnes pratiques</h2>
             
             <h3>✅ À faire</h3>
             <ul>
@@ -931,15 +1143,16 @@
                 <li><strong>Vérifier avant de publier</strong> : Relisez vos textes avant de les publier</li>
                 <li><strong>Utiliser des images de qualité</strong> : Les photos doivent être nettes et bien cadrées</li>
                 <li><strong>Remplir tous les champs obligatoires</strong> : Les champs marqués d'un * sont obligatoires</li>
-                <li><strong>Marquer les messages comme lus</strong> : Cela aide à suivre les messages traités</li>
+                <li><strong>Répondre aux messages</strong> : Consultez régulièrement « Messages reçus » et répondez depuis l'admin</li>
                 <li><strong>Utiliser la prévisualisation</strong> : Vérifiez comment votre contenu apparaîtra avant de publier</li>
+                <li><strong>Préparer la nouvelle saison</strong> : En fin d'année, créez la saison suivante (copie des tarifs) avant de la publier comme « courante »</li>
             </ul>
             
             <h3>❌ À éviter</h3>
             <ul>
-                <li><strong>Ne pas supprimer sans réfléchir</strong> : La suppression est définitive</li>
+                <li><strong>Ne pas supprimer sans réfléchir</strong> : Préférez la corbeille ; après 30 jours la suppression devient définitive</li>
                 <li><strong>Ne pas utiliser de texte trop long</strong> : Les textes trop longs sont difficiles à lire</li>
-                <li><strong>Ne pas oublier de sauvegarder</strong> : Vos modifications ne sont pas enregistrées automatiquement</li>
+                <li><strong>Ne pas oublier de sauvegarder</strong> : Vos modifications ne sont pas enregistrées automatiquement (sauf brouillons de réponse aux messages)</li>
                 <li><strong>Ne pas partager vos identifiants</strong> : Gardez vos identifiants secrets</li>
                 <li><strong>Ne pas utiliser d'images trop lourdes</strong> : Les images de plus de 5 Mo peuvent être lentes à charger</li>
             </ul>
@@ -948,13 +1161,13 @@
             <ul>
                 <li><strong>Utilisez la recherche</strong> : Si vous cherchez quelque chose, utilisez la recherche globale plutôt que de parcourir toutes les pages</li>
                 <li><strong>Filtrez les listes</strong> : Utilisez les filtres pour trouver rapidement ce que vous cherchez</li>
-                <li><strong>Vérifiez les messages non lus</strong> : Consultez régulièrement les nouveaux messages dans "Contacts"</li>
+                <li><strong>Vérifiez les messages non lus</strong> : Consultez régulièrement les nouveaux messages dans « Messages reçus »</li>
                 <li><strong>Testez sur le site public</strong> : Après avoir publié quelque chose, vérifiez qu'il apparaît bien sur le site</li>
             </ul>
         </section>
         
         <section id="problemes">
-            <h2>15. Résolution de problèmes</h2>
+            <h2>16. Résolution de problèmes</h2>
             
             <h3>🔐 Problème de connexion</h3>
             <div class="step">

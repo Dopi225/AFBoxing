@@ -1,5 +1,13 @@
 /* Styles pour la page Équipe - AF Boxing Club */
 
+.team-category-block {
+  margin-bottom: 3rem;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
 /* Grille des membres de l'équipe */
 .team-grid {
   display: grid;
@@ -41,6 +49,29 @@
         object-fit: cover;
         object-position: center;
         transition: transform 0.3s ease;
+      }
+
+      .member-photo-placeholder {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        background: linear-gradient(145deg, #f0f0f0 0%, #e2e2e2 100%);
+        color: var(--primary-red);
+
+        svg {
+          font-size: 2rem;
+          opacity: 0.85;
+        }
+
+        span {
+          font-size: 1.75rem;
+          font-weight: 800;
+          letter-spacing: 0.04em;
+        }
       }
 
       .photo-overlay {
@@ -99,34 +130,6 @@
         margin-bottom: 1.25rem;
         font-size: 0.95rem;
         flex: 1;
-      }
-
-      .member-details {
-        display: flex;
-        flex-direction: column;
-        gap: 0.75rem;
-        margin-bottom: 1.25rem;
-
-        .detail-item {
-          display: flex;
-          align-items: center;
-          gap: 0.75rem;
-          padding: 0.75rem;
-          background: var(--secondary-gray);
-          border-radius: 8px;
-
-          svg {
-            color: var(--primary-red);
-            font-size: 1rem;
-            flex-shrink: 0;
-          }
-
-          span {
-            color: var(--text-dark);
-            font-weight: 500;
-            font-size: 0.9rem;
-          }
-        }
       }
 
       .certifications {
