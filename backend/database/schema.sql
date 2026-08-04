@@ -83,8 +83,11 @@ CREATE TABLE IF NOT EXISTS contact_replies (
   body TEXT NOT NULL,
   sent_by_user_id INT UNSIGNED NULL,
   sent_by_name VARCHAR(100) NOT NULL,
+  status VARCHAR(20) NOT NULL DEFAULT 'sent',
+  idempotency_key VARCHAR(64) NULL DEFAULT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   INDEX idx_contact_replies_contact (contact_id, created_at),
+  UNIQUE KEY uq_contact_replies_idempotency (idempotency_key),
   CONSTRAINT fk_contact_replies_contact
     FOREIGN KEY (contact_id) REFERENCES contacts(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;

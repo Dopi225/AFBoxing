@@ -18,6 +18,7 @@ import { useAdminNotify } from '../../hooks/useAdminNotify';
 import ConfirmDialog from './ConfirmDialog';
 import { settingsApi } from '../../services/apiService';
 import { logActivity } from '../../utils/activityLogger';
+import { invalidateSettingsCache } from '../../hooks/useSettings';
 import { TextInput } from '../ui/FormField';
 import { LoadingState } from '../PageStates';
 import PageHeader from '../ui/PageHeader';
@@ -148,6 +149,7 @@ const ManageSettings = () => {
       };
       
       await settingsApi.update(settingsToSave);
+      invalidateSettingsCache();
       logActivity('update', 'settings', 'Paramètres du site mis à jour');
       notifySuccess('Informations du club enregistrées.');
       savedBaselineRef.current = JSON.stringify(settings);

@@ -23,6 +23,7 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import { authApi, newsApi, palmaresApi, contactsApi, galleryApi } from '../../services/apiService';
 import { NotificationProvider } from './NotificationSystem';
+import SessionExpiryGuard from './SessionExpiryGuard';
 import ThemeToggle from '../ThemeToggle';
 import { APP_TITLE, NAV_SECTIONS, NAV_ITEMS, ROLES } from '../../constants/adminCopy';
 import AdminOnboardingGuide from './AdminOnboardingGuide';
@@ -179,6 +180,7 @@ const AdminDashboard = () => {
 
   return (
     <NotificationProvider>
+      <SessionExpiryGuard />
       <Helmet>
         <title>{APP_TITLE} — AF BOXING CLUB 86</title>
         <meta name="robots" content="noindex, nofollow" />

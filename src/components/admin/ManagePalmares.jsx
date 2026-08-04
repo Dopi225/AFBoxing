@@ -7,7 +7,9 @@ import { useAdminNotify } from '../../hooks/useAdminNotify';
 import { useFormDraft } from '../../hooks/useFormDraft';
 import { useEntityTrash } from '../../hooks/useEntityTrash';
 import { todayISO } from '../../utils/adminAutoFill';
+import { formatDateFR, parseLocalDate } from '../../utils/dateFormat';
 import { validateRequired } from '../../utils/formValidation';
+import { toPersistableMediaUrl, isEphemeralMediaUrl } from '../../utils/mediaUrl';
 import { PALMARES_CATEGORIES, PALMARES_RESULTS } from '../../constants/adminCopy';
 import ConfirmDialog from './ConfirmDialog';
 import TrashPanel, { TrashTabs } from './TrashPanel';
@@ -43,12 +45,17 @@ const ManagePalmares = () => {
   const [formData, setFormData] = useState({ ...DEFAULT_FORM });
   const [file, setFile] = useState(null);
   const [uploading, setUploading] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [fieldErrors, setFieldErrors] = useState({});
 
   const restoreDraft = useCallback((data) => {
-    setFormData((prev) => ({ ...prev, ...data }));
+    setFormData((prev) => ({
+      ...prev,
+      ...data,
+      image: isEphemeralMediaUrl(data.image) ? '' : (data.image || ''),
+    }));
   }, []);
 
   const { clearDraft } = useFormDraft(DRAFT_KEY, formData, {
@@ -61,7 +68,7 @@ const ManagePalmares = () => {
     setError('');
     try {
       const data = await palmaresApi.list();
-      setPalmares(data.sort((a, b) => new Date(b.date) - new Date(a.date)));
+      setPalmares(data.sort((a, b) => (parseLocalDate(b.date)?.getTime() || 0) - (parseLocalDate(a.date)?.getTime() || 0)));
     } catch (err) {
       setError(err.message || 'Impossible de charger les palmarès.');
     } finally {
@@ -101,8 +108,13 @@ const ManagePalmares = () => {
   };
 
   const handleSubmit = async () => {
+    if (saving || uploading) return;
     try {
-      const payload = { ...formData };
+      setSaving(true);
+      const payload = {
+        ...formData,
+        image: toPersistableMediaUrl(formData.image) || null,
+      };
       if (file) {
         setUploading(true);
         const result = await uploadApi.uploadImage('palmares', file);
@@ -122,6 +134,7 @@ const ManagePalmares = () => {
       notifyError(err, 'Impossible d\'enregistrer ce palmarès.');
     } finally {
       setUploading(false);
+      setSaving(false);
     }
   };
 
@@ -338,7 +351,7 @@ const ManagePalmares = () => {
               <div className="result-badge">{item.result}</div>
               <h3>{item.title}</h3>
               <div className="palmares-meta">
-                <span><FontAwesomeIcon icon={faCalendarAlt} aria-hidden /> {new Date(item.date).toLocaleDateString('fr-FR')}</span>
+                <span><FontAwesomeIcon icon={faCalendarAlt} aria-hidden /> {formatDateFR(item.date)}</span>
                 <span><FontAwesomeIcon icon={faMapMarkerAlt} aria-hidden /> {item.location}</span>
                 <span><FontAwesomeIcon icon={faUser} aria-hidden /> {item.boxer}</span>
               </div>
@@ -368,7 +381,7 @@ const ManagePalmares = () => {
         canProceed={canProceed}
         getBlockedMessage={getBlockedMessage}
         isDirty={isFormDirty}
-        completing={uploading}
+        completing={saving || uploading}
       />
 
       <ConfirmDialog

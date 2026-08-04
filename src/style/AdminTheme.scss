@@ -313,3 +313,14 @@
     margin-top: var(--spacing-md);
   }
 }
+
+@media (max-width: 768px) {
+  .admin-dashboard,
+  .admin-login {
+    input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='hidden']):not([type='submit']):not([type='button']):not([type='reset']),
+    textarea,
+    select {
+      font-size: 16px;
+    }
+  }
+}

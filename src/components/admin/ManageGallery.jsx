@@ -8,6 +8,7 @@ import { useFormDraft } from '../../hooks/useFormDraft';
 import { useEntityTrash } from '../../hooks/useEntityTrash';
 import { GALLERY_CATEGORIES } from '../../constants/adminCopy';
 import { validateRequired } from '../../utils/formValidation';
+import { toPersistableMediaUrl, isEphemeralMediaUrl } from '../../utils/mediaUrl';
 import ConfirmDialog from './ConfirmDialog';
 import TrashPanel, { TrashTabs } from './TrashPanel';
 import PageHeader from '../ui/PageHeader';
@@ -15,6 +16,8 @@ import { TextInput, TextArea, SelectField } from '../ui/FormField';
 import { LoadingState, ErrorState } from '../PageStates';
 import { WizardModal, ImageUploadField, EmptyStateGuided, HighlightableCard } from './guided';
 import HelpTip from './guided/HelpTip';
+import LoadMoreButton from '../ui/LoadMoreButton';
+import { toUserMessage } from '../../utils/userFacingError';
 import { adminBreadcrumbs } from '../../utils/adminBreadcrumbs';
 import { NAV_ITEMS } from '../../constants/adminCopy';
 import './ManageGallery.scss';
@@ -35,6 +38,10 @@ const ManageGallery = () => {
   const { notifySuccess, notifyError } = useAdminNotify('gallery');
   const [searchParams, setSearchParams] = useSearchParams();
   const [gallery, setGallery] = useState([]);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -48,11 +55,16 @@ const ManageGallery = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [uploading, setUploading] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [file, setFile] = useState(null);
   const [fieldErrors, setFieldErrors] = useState({});
 
   const restoreDraft = useCallback((data) => {
-    setFormData((prev) => ({ ...prev, ...data }));
+    setFormData((prev) => ({
+      ...prev,
+      ...data,
+      src: isEphemeralMediaUrl(data.src) ? '' : (data.src || ''),
+    }));
   }, []);
 
   const { clearDraft } = useFormDraft(DRAFT_KEY, formData, {
@@ -60,16 +72,26 @@ const ManageGallery = () => {
     onRestore: restoreDraft,
   });
 
-  const loadGallery = useCallback(async () => {
-    setLoading(true);
+  const loadGallery = useCallback(async (opts = {}) => {
+    const nextPage = opts.page ?? 1;
+    const append = Boolean(opts.append);
+    if (append) setLoadingMore(true);
+    else setLoading(true);
     setError('');
     try {
-      const data = await galleryApi.list();
-      setGallery(data.map((item) => ({ ...item, src: item.image })));
+      const raw = await galleryApi.list({ page: nextPage, per_page: 48, withMeta: true });
+      const items = (Array.isArray(raw?.data) ? raw.data : (Array.isArray(raw) ? raw : []))
+        .map((item) => ({ ...item, src: item.image }));
+      const meta = raw?.meta || {};
+      setGallery((prev) => (append ? [...prev, ...items] : items));
+      setPage(meta.page || nextPage);
+      setTotalPages(meta.total_pages || 1);
+      setTotalItems(meta.total ?? items.length);
     } catch (err) {
-      setError(err.message || 'Impossible de charger la galerie.');
+      setError(toUserMessage(err, 'Impossible de charger la galerie.'));
     } finally {
       setLoading(false);
+      setLoadingMore(false);
     }
   }, []);
 
@@ -82,20 +104,20 @@ const ManageGallery = () => {
     restoreItem,
     loadTrash,
   } = useEntityTrash(galleryApi, {
-    onReload: loadGallery,
+    onReload: () => loadGallery({ page: 1 }),
     notifySuccess,
     notifyError,
     entityLabel: 'Photo',
   });
 
   useEffect(() => {
-    loadGallery();
+    loadGallery({ page: 1 });
     loadTrash();
   }, [loadGallery, loadTrash]);
 
   useEffect(() => {
     if (searchParams.get('action') === 'add') {
-      setShowModal(true);
+      handleAddNew();
       setSearchParams({}, { replace: true });
     }
   }, [searchParams]);
@@ -105,7 +127,9 @@ const ManageGallery = () => {
   };
 
   const handleSubmit = async () => {
-    if (!file && !formData.src && !editingItem) {
+    if (saving) return;
+    const persistedSrc = toPersistableMediaUrl(formData.src);
+    if (!file && !persistedSrc && !editingItem) {
       notifyError('Veuillez choisir une photo avant d\'enregistrer.');
       return;
     }
@@ -113,9 +137,10 @@ const ManageGallery = () => {
       title: formData.title.trim(),
       category: formData.category,
       description: formData.description?.trim() || null,
-      image: formData.src || null,
+      image: persistedSrc || null,
     };
     try {
+      setSaving(true);
       if (file) {
         setUploading(true);
         const result = await uploadApi.uploadImage('gallery', file);
@@ -128,13 +153,14 @@ const ManageGallery = () => {
         await galleryApi.create(payload);
         notifySuccess(`Photo « ${payload.title} » ajoutée à la galerie.`);
       }
-      await loadGallery();
+      await loadGallery({ page: 1 });
       clearDraft();
       handleCloseModal();
     } catch (err) {
       notifyError(err, 'Impossible d\'enregistrer la photo.');
     } finally {
       setUploading(false);
+      setSaving(false);
     }
   };
 
@@ -160,7 +186,7 @@ const ManageGallery = () => {
     try {
       await galleryApi.remove(deleteTarget.id);
       notifySuccess('Photo déplacée en corbeille (conservation 30 jours).');
-      await loadGallery();
+      await loadGallery({ page: 1 });
       loadTrash();
     } catch (err) {
       notifyError(err, 'Impossible de supprimer cette photo.');
@@ -177,10 +203,18 @@ const ManageGallery = () => {
     setFieldErrors({});
   };
 
+  const handleAddNew = () => {
+    setEditingItem(null);
+    setFormData({ title: '', category: 'Infrastructure', description: '', src: '' });
+    setFile(null);
+    setFieldErrors({});
+    setShowModal(true);
+  };
+
   const selectedCategoryHelp = CATEGORIES.find((c) => c.value === formData.category)?.help;
 
   const getBlockedMessage = (step) => {
-    if (step === 1 && !file && !formData.src && !editingItem) {
+    if (step === 1 && !file && !toPersistableMediaUrl(formData.src) && !editingItem) {
       return 'Choisissez une photo pour continuer.';
     }
     if (step === 2) {
@@ -198,7 +232,7 @@ const ManageGallery = () => {
   );
 
   const canProceed = (step) => {
-    if (step === 1) return (file || formData.src) || editingItem;
+    if (step === 1) return !!(file || toPersistableMediaUrl(formData.src) || editingItem);
     if (step === 2) return formData.title.trim() && formData.category;
     return true;
   };
@@ -267,7 +301,7 @@ const ManageGallery = () => {
         subtitle="Les photos apparaissent sur la page Galerie du site."
         breadcrumbs={adminBreadcrumbs(NAV_ITEMS.gallery)}
         actions={
-          <button type="button" className="btn btn-primary" onClick={() => setShowModal(true)}>
+          <button type="button" className="btn btn-primary" onClick={handleAddNew}>
             <FontAwesomeIcon icon={faPlus} />
             Ajouter une photo
           </button>
@@ -295,7 +329,7 @@ const ManageGallery = () => {
       <div className="gallery-grid">
         {loading && <LoadingState label="Chargement de la galerie…" />}
         {error && !loading && (
-          <ErrorState title="Galerie indisponible" message={error} onRetry={loadGallery} />
+          <ErrorState title="Galerie indisponible" message={error} onRetry={() => loadGallery({ page: 1 })} />
         )}
         {!loading && !error && gallery.length === 0 ? (
           <EmptyStateGuided
@@ -303,7 +337,7 @@ const ManageGallery = () => {
             title="Aucune photo"
             message="Ajoutez votre première photo pour illustrer le club sur le site."
             actionLabel="Ajouter une photo"
-            onAction={() => setShowModal(true)}
+            onAction={handleAddNew}
           />
         ) : null}
         {!loading && !error && gallery.map((item) => (
@@ -325,6 +359,15 @@ const ManageGallery = () => {
             </div>
           </HighlightableCard>
         ))}
+        {!loading && !error && view !== 'trash' ? (
+          <LoadMoreButton
+            hasMore={page < totalPages}
+            loading={loadingMore}
+            loadedCount={gallery.length}
+            total={totalItems}
+            onClick={() => loadGallery({ page: page + 1, append: true })}
+          />
+        ) : null}
       </div>
       )}
 
@@ -338,7 +381,7 @@ const ManageGallery = () => {
         canProceed={canProceed}
         getBlockedMessage={getBlockedMessage}
         isDirty={isFormDirty}
-        completing={uploading}
+        completing={saving || uploading}
       />
 
       <ConfirmDialog

@@ -110,8 +110,10 @@
           flex-shrink: 0;
 
           .btn-icon {
-            width: 40px;
-            height: 40px;
+            min-width: var(--touch-target-min);
+            min-height: var(--touch-target-min);
+            width: auto;
+            height: auto;
             border-radius: var(--border-radius-md, 12px);
             border: 2px solid var(--secondary-gray);
             background: var(--surface-elevated);
@@ -155,14 +157,14 @@
   }
 
   .modal-large {
-    max-width: 900px;
-    max-height: 90vh;
+    max-width: min(900px, 100%);
+    max-height: min(90dvh, 90vh);
     overflow-y: auto;
-    width: 50em;
+    width: 100%;
     margin: 0 auto;
     background: var(--surface-elevated);
-    padding: 3em;
-    border-radius: 31px;
+    padding: clamp(1rem, 4vw, 3em);
+    border-radius: var(--border-radius-xl, 16px);
   }
 
   .activity-form {
@@ -172,11 +174,12 @@
           gap: 1rem;
           margin: 0 auto;
           // align-content: stretch;
-          flex-wrap: nowrap;
+          flex-wrap: wrap;
           justify-content: center;
 
       @media (max-width: 768px) {
-        grid-template-columns: 1fr;
+        flex-direction: column;
+        flex-wrap: wrap;
       }
     }
 
@@ -457,6 +460,47 @@
     p {
       margin: 0;
       font-size: 1.1rem;
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .manage-activities {
+    .activities-list .activity-card {
+      .activity-header {
+        flex-direction: column;
+        align-items: stretch;
+
+        .activity-actions {
+          width: 100%;
+          justify-content: stretch;
+
+          .btn-icon {
+            flex: 1 1 auto;
+          }
+        }
+      }
+
+      .activity-meta {
+        flex-direction: column;
+        gap: 0.5rem;
+      }
+
+      .status-toggle {
+        min-width: var(--touch-target-min);
+        min-height: var(--touch-target-min);
+        width: auto;
+        height: auto;
+      }
+    }
+
+    .activity-form {
+      input,
+      textarea,
+      select {
+        font-size: 16px;
+        min-height: var(--touch-target-min);
+      }
     }
   }
 }

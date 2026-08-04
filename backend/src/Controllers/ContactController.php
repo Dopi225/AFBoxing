@@ -14,6 +14,7 @@ use AFBoxing\Services\MailSendException;
 class ContactController extends BaseController
 {
     use TrashActions;
+    use LogsActivity;
 
     private Contact $contacts;
     private Setting $settings;
@@ -30,7 +31,19 @@ class ContactController extends BaseController
 
     public function index(array $params): void
     {
-        $this->json($this->contacts->all());
+        $page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
+        $perPage = isset($_GET['per_page']) ? min(200, max(1, (int)$_GET['per_page'])) : 50;
+        $total = $this->contacts->countAll();
+        $items = $this->contacts->paginate($page, $perPage);
+        $this->json([
+            'data' => $items,
+            'meta' => [
+                'total' => $total,
+                'page' => $page,
+                'per_page' => $perPage,
+                'total_pages' => $perPage > 0 ? (int)ceil($total / $perPage) : 0,
+            ],
+        ]);
     }
 
     public function submit(array $params): void
@@ -54,6 +67,15 @@ class ContactController extends BaseController
         }
 
         $data = $params['_body'] ?? [];
+
+        // Honeypot anti-spam : champs que seuls les bots remplissent
+        $honeypot = trim((string)($data['website'] ?? $data['company'] ?? $data['url'] ?? ''));
+        if ($honeypot !== '') {
+            // Succès factice pour ne pas guider les bots
+            $this->json(['id' => 0, 'message' => 'Message reçu.'], 201);
+            return;
+        }
+
         $errors = $this->validateRequired($data, ['name', 'email', 'message']);
 
         if (empty($errors['email']) && isset($data['email'])) {
@@ -80,10 +102,15 @@ class ContactController extends BaseController
         }
 
         $sanitized = [
-            'name' => $this->sanitizeString($data['name'], 255),
-            'email' => filter_var($data['email'], FILTER_SANITIZE_EMAIL),
-            'message' => $this->sanitizeString($data['message'], 5000),
+            'name' => $this->sanitizePlainText((string)$data['name'], 255),
+            'email' => filter_var((string)$data['email'], FILTER_SANITIZE_EMAIL) ?: '',
+            'message' => $this->sanitizePlainText((string)$data['message'], 5000),
         ];
+
+        if ($sanitized['email'] === '' || !$this->validateEmail($sanitized['email'])) {
+            $this->json(['errors' => ['email' => 'Format d\'email invalide.']], 422);
+            return;
+        }
 
         $item = $this->contacts->create($sanitized);
         $this->json($item, 201);
@@ -101,8 +128,8 @@ class ContactController extends BaseController
     }
 
     /**
-     * Envoie une réponse email au contact, puis enregistre le fil.
-     * En cas d'échec d'envoi : aucune écriture, message non marqué « répondu ».
+     * Enregistre une réponse pending, envoie l'email, puis finalise (sent + is_replied).
+     * Idempotence via clé client : un double-clic renvoie le même résultat.
      */
     public function reply(array $params): void
     {
@@ -158,6 +185,87 @@ class ContactController extends BaseController
         $sentByName = (string)($authUser['username'] ?? 'Admin');
         $sentByUserId = isset($authUser['id']) ? (int)$authUser['id'] : null;
 
+        $idempotencyKey = isset($data['idempotencyKey']) && is_string($data['idempotencyKey'])
+            ? trim($data['idempotencyKey'])
+            : '';
+        if ($idempotencyKey !== '' && !$this->validateLength($idempotencyKey, 8, 64)) {
+            $this->json(['errors' => ['idempotencyKey' => 'Clé d\'idempotence invalide.']], 422);
+            return;
+        }
+        if ($idempotencyKey === '') {
+            $idempotencyKey = null;
+        }
+
+        // Réponse déjà finalisée avec cette clé → retourner le résultat sans renvoyer l'email
+        if ($idempotencyKey !== null) {
+            $this->contacts->expireStalePendingReplies(120);
+            $existing = $this->contacts->findReplyByIdempotencyKey($idempotencyKey);
+            if ($existing && ($existing['status'] ?? '') === 'sent') {
+                $this->json([
+                    'message' => 'Réponse déjà envoyée.',
+                    'reply' => $existing,
+                    'contact' => $this->contacts->find($id),
+                    'idempotent' => true,
+                ], 200);
+                return;
+            }
+            if ($existing && ($existing['status'] ?? '') === 'pending') {
+                $createdAt = $existing['createdAt'] ?? null;
+                $age = is_string($createdAt) ? (time() - strtotime($createdAt)) : 0;
+                if ($age > 120) {
+                    $this->contacts->failReply((int)($existing['id'] ?? 0));
+                    // Retry autorisé après expiration du pending orphelin
+                } else {
+                    $this->jsonError(
+                        'REPLY_IN_PROGRESS',
+                        'Une réponse est déjà en cours d\'envoi pour cette demande. Patientez quelques secondes.',
+                        409
+                    );
+                    return;
+                }
+            }
+        }
+
+        // Anti double-clic serveur (même sans clé client)
+        $rateKey = 'contact_reply_' . $id . '_' . ($sentByUserId ?? 0);
+        if (!$this->rateLimiter->isAllowed($rateKey, 1, 15)) {
+            $this->jsonError(
+                'REPLY_RATE_LIMITED',
+                'Patientez quelques secondes avant de renvoyer une réponse à ce message.',
+                429
+            );
+            return;
+        }
+
+        try {
+            $pending = $this->contacts->createPendingReply(
+                $id,
+                $body,
+                $sentByUserId,
+                $sentByName,
+                $idempotencyKey
+            );
+        } catch (\PDOException $e) {
+            // Conflit unique sur idempotency_key (course double-clic)
+            if ((int)$e->getCode() === 23000 && $idempotencyKey !== null) {
+                $existing = $this->contacts->findReplyByIdempotencyKey($idempotencyKey);
+                if ($existing && ($existing['status'] ?? '') === 'sent') {
+                    $this->json([
+                        'message' => 'Réponse déjà envoyée.',
+                        'reply' => $existing,
+                        'contact' => $this->contacts->find($id),
+                        'idempotent' => true,
+                    ], 200);
+                    return;
+                }
+            }
+            error_log('[afboxing] contact reply pending: ' . $e->getMessage());
+            $this->jsonError('REPLY_SAVE_FAILED', 'Impossible d\'enregistrer la réponse. Réessayez.', 500);
+            return;
+        }
+
+        $replyId = (int)($pending['reply']['id'] ?? 0);
+        $legacyMode = !empty($pending['legacy']);
         $emailBody = $this->buildReplyEmailBody($body, $contact, $fromName, $siteName);
 
         try {
@@ -170,12 +278,48 @@ class ContactController extends BaseController
                 $fromName
             );
         } catch (MailSendException $e) {
+            if ($replyId > 0) {
+                $this->contacts->failReply($replyId);
+            }
             $this->jsonError('MAIL_SEND_FAILED', $e->getMessage(), 502);
             return;
         }
 
-        $result = $this->contacts->addReply($id, $body, $sentByUserId, $sentByName);
+        if ($legacyMode) {
+            $result = $this->contacts->addReply($id, $body, $sentByUserId, $sentByName);
+            $this->logActivity(
+                $params,
+                'create',
+                'contact',
+                'Réponse envoyée à ' . ($contact['name'] ?? 'un contact')
+            );
+            $this->json([
+                'message' => 'Réponse envoyée.',
+                'reply' => $result['reply'],
+                'contact' => $result['contact'],
+            ], 201);
+            return;
+        }
 
+        try {
+            $result = $this->contacts->finalizeReply($replyId, $id);
+        } catch (\Throwable $e) {
+            // Email déjà parti : on logue critique ; le contact a reçu le mail
+            error_log('[afboxing] contact reply finalize after mail OK: ' . $e->getMessage());
+            $this->json([
+                'message' => 'Réponse envoyée (enregistrement partiel — vérifiez le fil).',
+                'reply' => $pending['reply'],
+                'contact' => $this->contacts->find($id),
+            ], 201);
+            return;
+        }
+
+        $this->logActivity(
+            $params,
+            'create',
+            'contact',
+            'Réponse envoyée à ' . ($contact['name'] ?? 'un contact')
+        );
         $this->json([
             'message' => 'Réponse envoyée.',
             'reply' => $result['reply'],
@@ -186,7 +330,12 @@ class ContactController extends BaseController
     public function destroy(array $params): void
     {
         $id = (int)($params['id'] ?? 0);
+        if (!$this->contacts->find($id)) {
+            $this->json(['error' => 'Message introuvable'], 404);
+            return;
+        }
         $this->contacts->delete($id);
+        $this->logActivity($params, 'delete', 'contact', 'Message déplacé en corbeille (id ' . $id . ')');
         $this->json(['message' => 'Message déplacé en corbeille (30 jours).']);
     }
 

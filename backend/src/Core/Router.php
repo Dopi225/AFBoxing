@@ -74,6 +74,13 @@ class Router
                 }
             }
 
+            // Query string (?entity=&from=…) — nécessaire pour filtres activity-log, pagination, etc.
+            foreach ($_GET as $key => $value) {
+                if (is_string($key) && $key !== '' && !array_key_exists($key, $params)) {
+                    $params[$key] = $value;
+                }
+            }
+
             if ($route['middleware'] instanceof AuthMiddlewareInterface) {
                 $user = $route['middleware']->handle();
                 if ($user === null) {

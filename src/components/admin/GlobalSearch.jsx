@@ -11,12 +11,14 @@ import PageHeader from '../ui/PageHeader';
 import { EmptyStateGuided } from './guided';
 import { adminBreadcrumbs } from '../../utils/adminBreadcrumbs';
 import { NAV_ITEMS } from '../../constants/adminCopy';
+import { formatDateFR } from '../../utils/dateFormat';
+import { textIncludes } from '../../utils/textSearch';
 import './GlobalSearch.scss';
 
 const GlobalSearch = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const { info } = useNotifications();
+  const { info, error: notifyError } = useNotifications();
   const query = searchParams.get('q') || '';
   const [searchTerm, setSearchTerm] = useState(query); 
   const [results, setResults] = useState({
@@ -29,7 +31,19 @@ const GlobalSearch = () => {
     team: []
   });
   const [loading, setLoading] = useState(false);
+  const [partialError, setPartialError] = useState('');
   const [activeTab, setActiveTab] = useState('all');
+  const [userRole, setUserRole] = useState('editor');
+
+  useEffect(() => {
+    let cancelled = false;
+    import('../../services/apiService').then(({ authApi }) => {
+      authApi.getMe().then((res) => {
+        if (!cancelled && res?.user?.role) setUserRole(res.user.role);
+      }).catch(() => {});
+    });
+    return () => { cancelled = true; };
+  }, []);
 
   useEffect(() => {
     if (query) {
@@ -54,14 +68,14 @@ const GlobalSearch = () => {
     }
 
     setLoading(true);
-    const lowerTerm = term.toLowerCase();
+    setPartialError('');
 
     try {
       const [news, palmares, gallery, contacts, schedule] = await Promise.all([
         newsApi.list().catch(() => []),
         palmaresApi.list().catch(() => []),
         galleryApi.list().catch(() => []),
-        contactsApi.list().catch(() => []),
+        userRole === 'admin' ? contactsApi.list().catch(() => { setPartialError('Messages indisponibles.'); return []; }) : Promise.resolve([]),
         scheduleApi.list().catch(() => [])
       ]);
 
@@ -69,49 +83,25 @@ const GlobalSearch = () => {
       const activities = await activitiesApi.list().catch(() => []);
       const team = await teamMembersApi.list().catch(() => []);
 
+      const match = (...fields) => fields.some((f) => textIncludes(f, term));
+
       const filteredResults = {
-        news: news.filter(item => 
-          item.title?.toLowerCase().includes(lowerTerm) ||
-          item.summary?.toLowerCase().includes(lowerTerm) ||
-          item.description?.toLowerCase().includes(lowerTerm)
-        ),
-        palmares: palmares.filter(item =>
-          item.title?.toLowerCase().includes(lowerTerm) ||
-          item.boxer?.toLowerCase().includes(lowerTerm) ||
-          item.location?.toLowerCase().includes(lowerTerm) ||
-          item.details?.toLowerCase().includes(lowerTerm)
-        ),
-        gallery: gallery.filter(item =>
-          item.title?.toLowerCase().includes(lowerTerm) ||
-          item.description?.toLowerCase().includes(lowerTerm) ||
-          item.category?.toLowerCase().includes(lowerTerm)
-        ),
-        contacts: contacts.filter(item =>
-          item.name?.toLowerCase().includes(lowerTerm) ||
-          item.email?.toLowerCase().includes(lowerTerm) ||
-          item.message?.toLowerCase().includes(lowerTerm)
-        ),
-        schedule: schedule.filter(item =>
-          item.activity?.toLowerCase().includes(lowerTerm) ||
-          item.day?.toLowerCase().includes(lowerTerm) ||
-          item.level?.toLowerCase().includes(lowerTerm)
-        ),
-        activities: activities.filter(item =>
-          item.title?.toLowerCase().includes(lowerTerm) ||
-          item.subtitle?.toLowerCase().includes(lowerTerm) ||
-          item.eyebrow?.toLowerCase().includes(lowerTerm) ||
-          (item.sections || []).some(section =>
-            section.title?.toLowerCase().includes(lowerTerm) ||
-            (section.paragraphs || []).some(p => p.toLowerCase().includes(lowerTerm)) ||
-            (section.bullets || []).some(b => b.toLowerCase().includes(lowerTerm))
+        news: news.filter((item) => match(item.title, item.summary, item.description)),
+        palmares: palmares.filter((item) => match(item.title, item.boxer, item.location, item.details)),
+        gallery: gallery.filter((item) => match(item.title, item.description, item.category)),
+        contacts: contacts.filter((item) => match(item.name, item.email, item.message)),
+        schedule: schedule.filter((item) => match(item.activity, item.day, item.level)),
+        activities: activities.filter((item) =>
+          match(item.title, item.subtitle, item.eyebrow) ||
+          (item.sections || []).some((section) =>
+            match(section.title) ||
+            (section.paragraphs || []).some((p) => textIncludes(p, term)) ||
+            (section.bullets || []).some((b) => textIncludes(b, term))
           )
         ),
-        team: team.filter(item =>
-          item.fullName?.toLowerCase().includes(lowerTerm) ||
-          item.role?.toLowerCase().includes(lowerTerm) ||
-          item.bio?.toLowerCase().includes(lowerTerm) ||
-          item.certifications?.toLowerCase().includes(lowerTerm)
-        )
+        team: team.filter((item) =>
+          match(item.fullName, item.role, item.bio, item.certifications)
+        ),
       };
 
       setResults(filteredResults);
@@ -123,6 +113,7 @@ const GlobalSearch = () => {
       }
     } catch (err) {
       if (import.meta.env.DEV) console.warn('Search error:', err);
+      notifyError('La recherche a échoué. Vérifiez votre connexion et réessayez.');
     } finally {
       setLoading(false);
     }
@@ -200,6 +191,7 @@ const GlobalSearch = () => {
         breadcrumbs={adminBreadcrumbs(NAV_ITEMS.search)}
       />
       <form onSubmit={handleSearch} className="search-form">
+        {partialError ? <p className="admin-state--error" role="status">{partialError}</p> : null}
         <div className="search-input-wrapper">
           <FontAwesomeIcon icon={faSearch} className="search-icon" />
           <input
@@ -263,7 +255,7 @@ const GlobalSearch = () => {
                     </p>
                     {result.date && (
                       <span className="result-date">
-                        {new Date(result.date).toLocaleDateString('fr-FR')}
+                        {formatDateFR(result.date)}
                       </span>
                     )}
                   </div>

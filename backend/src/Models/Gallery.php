@@ -20,6 +20,28 @@ class Gallery
         return $stmt->fetchAll();
     }
 
+    public function countAll(): int
+    {
+        $where = SoftDelete::notDeletedClause();
+        $stmt = $this->pdo->query("SELECT COUNT(*) FROM gallery WHERE {$where}");
+        return (int)$stmt->fetchColumn();
+    }
+
+    public function paginate(int $page, int $perPage): array
+    {
+        $page = max(1, $page);
+        $perPage = max(1, min(200, $perPage));
+        $offset = ($page - 1) * $perPage;
+        $where = SoftDelete::notDeletedClause();
+        $stmt = $this->pdo->prepare(
+            "SELECT * FROM gallery WHERE {$where} ORDER BY created_at DESC LIMIT :limit OFFSET :offset"
+        );
+        $stmt->bindValue(':limit', $perPage, PDO::PARAM_INT);
+        $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll();
+    }
+
     public function find(int $id): ?array
     {
         $where = SoftDelete::notDeletedClause();

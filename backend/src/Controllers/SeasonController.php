@@ -8,6 +8,8 @@ use AFBoxing\Models\Season;
 
 class SeasonController extends BaseController
 {
+    use LogsActivity;
+
     private Season $seasons;
 
     public function __construct()
@@ -66,6 +68,12 @@ class SeasonController extends BaseController
                 (string)$data['startsOn'],
                 (string)$data['endsOn'],
                 $copyFrom
+            );
+            $this->logActivity(
+                $params,
+                'create',
+                'season',
+                'Saison « ' . ($result['season']['label'] ?? '') . ' » créée (' . $result['copiedCount'] . ' tarifs copiés)'
             );
             $this->json([
                 'message' => sprintf(
@@ -128,6 +136,7 @@ class SeasonController extends BaseController
             'startsOn' => (string)$data['startsOn'],
             'endsOn' => (string)$data['endsOn'],
         ]);
+        $this->logActivity($params, 'update', 'season', 'Saison « ' . ($data['label'] ?? '') . ' » modifiée');
         $this->json($item);
     }
 
@@ -152,6 +161,12 @@ class SeasonController extends BaseController
             $result = $this->seasons->setCurrent($id);
             $prevLabel = $result['previous']['label'] ?? 'précédente';
             $newLabel = $result['season']['label'] ?? '';
+            $this->logActivity(
+                $params,
+                'update',
+                'season',
+                'Saison affichée : ' . $newLabel . ' (était ' . $prevLabel . ')'
+            );
             $this->json([
                 'message' => sprintf(
                     'Les tarifs affichés sur le site passent de la saison %s à la saison %s.',
@@ -168,6 +183,40 @@ class SeasonController extends BaseController
                 'Impossible de changer la saison affichée sur le site. Réessayez.',
                 500
             );
+        }
+    }
+
+    public function destroy(array $params): void
+    {
+        $id = (int)($params['id'] ?? 0);
+        $existing = $this->seasons->find($id);
+        if (!$existing) {
+            $this->json(['error' => 'Saison introuvable'], 404);
+            return;
+        }
+
+        try {
+            $result = $this->seasons->delete($id);
+            $this->logActivity(
+                $params,
+                'delete',
+                'season',
+                'Saison « ' . $result['label'] . ' » supprimée (' . $result['deletedPricingCount'] . ' tarif(s))'
+            );
+            $this->json([
+                'message' => sprintf(
+                    'Saison « %s » supprimée (%d tarif(s) associés).',
+                    $result['label'],
+                    $result['deletedPricingCount']
+                ),
+                'deletedId' => $result['deletedId'],
+                'deletedPricingCount' => $result['deletedPricingCount'],
+            ]);
+        } catch (\InvalidArgumentException $e) {
+            $this->jsonError('SEASON_DELETE_FORBIDDEN', $e->getMessage(), 422);
+        } catch (\Throwable $e) {
+            error_log('[afboxing] season delete: ' . $e->getMessage());
+            $this->jsonError('SEASON_DELETE_FAILED', 'Impossible de supprimer la saison. Réessayez.', 500);
         }
     }
 }

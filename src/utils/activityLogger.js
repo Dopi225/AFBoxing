@@ -1,16 +1,8 @@
-import { activityLogApi } from '../services/apiService';
-
-// Fonction utilitaire pour enregistrer une action dans l'historique
-export const logActivity = async (action, entity, description, user = 'Admin') => {
-  try {
-    await activityLogApi.create({
-      action,
-      entity,
-      description,
-      user
-    });
-  } catch (err) {
-    if (import.meta.env.DEV) console.warn('Error logging activity:', err);
-  }
+/**
+ * Journalisation des actions admin.
+ * L’historique est désormais écrit côté serveur (JWT) pour chaque CRUD.
+ * Cette fonction reste disponible pour compatibilité ; elle ne double plus les entrées.
+ */
+export const logActivity = async () => {
+  // no-op : logging backend via LogsActivity
 };
-

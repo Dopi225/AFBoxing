@@ -109,7 +109,17 @@ class Activity
 
     public function delete(string $id): bool
     {
-        return SoftDelete::softDelete($this->pdo, 'activities', 'id', $id);
+        // Libère la PK pour permettre de recréer le même slug pendant la rétention corbeille.
+        $suffix = '__trash_' . time();
+        $maxBase = max(1, 100 - strlen($suffix));
+        $trashId = substr($id, 0, $maxBase) . $suffix;
+
+        $stmt = $this->pdo->prepare(
+            'UPDATE activities SET id = :trashId, deleted_at = NOW()
+             WHERE id = :id AND deleted_at IS NULL'
+        );
+        $stmt->execute(['trashId' => $trashId, 'id' => $id]);
+        return $stmt->rowCount() > 0;
     }
 
     public function trash(): array
@@ -121,7 +131,30 @@ class Activity
 
     public function restore(string $id): bool
     {
-        return SoftDelete::restore($this->pdo, 'activities', 'id', $id);
+        $where = SoftDelete::inTrashClause();
+        $original = preg_replace('/__trash_\d+$/', '', $id) ?: $id;
+
+        // Si l'id d'origine est libre, on le récupère ; sinon on restaure sous l'id corbeille.
+        if ($original !== $id) {
+            $busy = $this->pdo->prepare(
+                'SELECT 1 FROM activities WHERE id = :id AND deleted_at IS NULL LIMIT 1'
+            );
+            $busy->execute(['id' => $original]);
+            if (!$busy->fetchColumn()) {
+                $stmt = $this->pdo->prepare(
+                    "UPDATE activities SET id = :orig, deleted_at = NULL
+                     WHERE id = :id AND {$where}"
+                );
+                $stmt->execute(['orig' => $original, 'id' => $id]);
+                return $stmt->rowCount() > 0;
+            }
+        }
+
+        $stmt = $this->pdo->prepare(
+            "UPDATE activities SET deleted_at = NULL WHERE id = :id AND {$where}"
+        );
+        $stmt->execute(['id' => $id]);
+        return $stmt->rowCount() > 0;
     }
 
     private function formatActivity(array $row): array

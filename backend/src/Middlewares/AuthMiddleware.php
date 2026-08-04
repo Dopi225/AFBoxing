@@ -42,8 +42,8 @@ class AuthMiddleware implements AuthMiddlewareInterface
         }
         $this->loadEnvIfNeeded();
         $secret = $_ENV['JWT_SECRET'] ?? getenv('JWT_SECRET') ?: null;
-        if (!$secret) {
-            JsonErrorResponse::send(500, 'JWT_MISCONFIGURED', 'JWT misconfigured (JWT_SECRET missing)');
+        if (!$secret || strlen((string) $secret) < 32) {
+            JsonErrorResponse::send(500, 'JWT_MISCONFIGURED', 'JWT misconfigured (JWT_SECRET missing or too short)');
             return null;
         }
 

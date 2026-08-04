@@ -5,6 +5,7 @@ import { faFacebookSquare, faInstagram } from '@fortawesome/free-brands-svg-icon
 import { motion } from 'framer-motion';
 import { contactsApi, scheduleApi } from '../services/apiService';
 import { toUserMessage } from '../utils/userFacingError';
+import { safeHttpUrl } from '../utils/formValidation';
 import { useNavigate } from 'react-router-dom';
 import { useSettings } from '../hooks/useSettings';
 import SectionHeader from './SectionHeader';
@@ -19,7 +20,8 @@ const Contact = () => {
     username: '',
     email: '',
     phone: '',
-    message: ''
+    message: '',
+    website: '', // honeypot anti-spam (doit rester vide)
   });
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
@@ -36,7 +38,9 @@ const Contact = () => {
       setScheduleError('');
       try {
         const data = await scheduleApi.list();
-        const list = Array.isArray(data) ? data : (data?.data || []);
+        const list = (Array.isArray(data) ? data : (data?.data || [])).filter(
+          (s) => !s?.activityId || s.activityEnabled === true
+        );
         setScheduleItems(list);
       } catch (err) {
         setScheduleError(toUserMessage(err, "Impossible d'afficher le planning pour le moment."));
@@ -50,7 +54,11 @@ const Contact = () => {
 
   const nextSessions = useMemo(() => {
     const DAY_ORDER = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
-    const items = (scheduleItems || []).slice().sort((a, b) => {
+    const visible = (scheduleItems || []).filter((item) => {
+      if (item?.activityId) return item.activityEnabled === true;
+      return true;
+    });
+    const items = visible.slice().sort((a, b) => {
       const da = DAY_ORDER.indexOf(a?.day || '');
       const db = DAY_ORDER.indexOf(b?.day || '');
       if (da !== db) return da - db;
@@ -69,6 +77,7 @@ const Contact = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (submitting) return;
     setError('');
     setSuccess('');
     const nextErrors = {};
@@ -79,6 +88,7 @@ const Contact = () => {
       nextErrors.email = 'Format email invalide.';
     }
     if (!formData.message.trim()) nextErrors.message = 'Écrivez votre message.';
+    else if (formData.message.trim().length < 10) nextErrors.message = 'Le message doit contenir au moins 10 caractères.';
     if (Object.keys(nextErrors).length) {
       setFieldErrors(nextErrors);
       return;
@@ -90,10 +100,11 @@ const Contact = () => {
       await contactsApi.submit({
         name: formData.username,
         email: formData.email,
-        message: `${formData.message}\n\nTéléphone: ${formData.phone || 'Non renseigné'}`
+        message: `${formData.message}\n\nTéléphone: ${formData.phone || 'Non renseigné'}`,
+        website: formData.website,
       });
       setSuccess('Message envoyé ! Nous vous répondrons rapidement.');
-      setFormData({ username: '', email: '', phone: '', message: '' });
+      setFormData({ username: '', email: '', phone: '', message: '', website: '' });
     } catch (err) {
       // Gestion spécifique des erreurs
       if (err.status === 429) {
@@ -259,14 +270,14 @@ const Contact = () => {
                       </p>
                     ) : (
                       <>
-                        {settings.social.facebook && (
-                          <a href={settings.social.facebook} target="_blank" rel="noopener noreferrer" className="social-link">
+                        {safeHttpUrl(settings.social.facebook) && (
+                          <a href={safeHttpUrl(settings.social.facebook)} target="_blank" rel="noopener noreferrer" className="social-link">
                             <FontAwesomeIcon icon={faFacebookSquare} />
                             <span>Facebook</span>
                           </a>
                         )}
-                        {settings.social.instagram && (
-                          <a href={settings.social.instagram} target="_blank" rel="noopener noreferrer" className="social-link">
+                        {safeHttpUrl(settings.social.instagram) && (
+                          <a href={safeHttpUrl(settings.social.instagram)} target="_blank" rel="noopener noreferrer" className="social-link">
                             <FontAwesomeIcon icon={faInstagram} />
                             <span>Instagram</span>
                           </a>
@@ -292,6 +303,22 @@ const Contact = () => {
               </div>
               
               <form className="contact-form" onSubmit={handleSubmit}>
+                {/* Honeypot anti-spam : invisible pour les humains */}
+                <div
+                  aria-hidden="true"
+                  style={{ position: 'absolute', left: '-10000px', top: 'auto', width: '1px', height: '1px', overflow: 'hidden' }}
+                >
+                  <label htmlFor="contact-website">Site web</label>
+                  <input
+                    id="contact-website"
+                    type="text"
+                    name="website"
+                    tabIndex={-1}
+                    autoComplete="off"
+                    value={formData.website}
+                    onChange={handleChange}
+                  />
+                </div>
                 {error && (
                   <motion.p 
                     className="form-error"

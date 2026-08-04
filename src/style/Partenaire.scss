@@ -79,7 +79,9 @@
 
       .partner-logo {
         position: relative;
-        height: 150px;
+        aspect-ratio: 16 / 10;
+        height: auto;
+        min-height: 120px;
         background: var(--secondary-gray);
         display: flex;
         align-items: center;
@@ -214,7 +216,7 @@
 
     .values-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr));
       gap: var(--spacing-xl);
 
       .value-item {

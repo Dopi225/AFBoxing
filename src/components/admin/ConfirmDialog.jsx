@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Modal from '../ui/Modal';
 import Button from '../ui/Button';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -18,32 +18,44 @@ const ConfirmDialog = ({
   cancelText = 'Annuler',
   danger = false
 }) => {
+  const [busy, setBusy] = useState(false);
   const icon = type === 'danger' ? faExclamationTriangle : faQuestionCircle;
 
   const bodyMessage = message || (itemLabel
     ? `Êtes-vous sûr de vouloir continuer avec « ${itemLabel} » ?`
     : 'Êtes-vous sûr de vouloir effectuer cette action ?');
 
+  const handleConfirm = async () => {
+    if (busy) return;
+    setBusy(true);
+    try {
+      await onConfirm?.();
+      onClose?.();
+    } catch {
+      /* L’appelant affiche l’erreur ; on laisse la modale ouverte. */
+    } finally {
+      setBusy(false);
+    }
+  };
+
   return (
     <Modal
       isOpen={isOpen}
-      onClose={onClose}
-      closeOnOverlay
+      onClose={busy ? undefined : onClose}
+      closeOnOverlay={!busy}
       size="sm"
       title={title || 'Confirmation requise'}
       footer={
         <>
-          <Button variant="outline" onClick={onClose}>
+          <Button variant="outline" onClick={onClose} disabled={busy}>
             {cancelText}
           </Button>
           <Button
             variant={danger ? 'danger' : 'primary'}
-            onClick={() => {
-              onConfirm();
-              onClose();
-            }}
+            onClick={handleConfirm}
+            disabled={busy}
           >
-            {confirmText}
+            {busy ? 'Patientez…' : confirmText}
           </Button>
         </>
       }

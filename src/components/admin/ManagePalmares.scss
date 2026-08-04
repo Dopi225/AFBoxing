@@ -62,6 +62,16 @@
 
 @media (max-width: 768px) {
   .manage-palmares {
+    .palmares-card .palmares-actions {
+      flex-direction: column;
+
+      .btn,
+      button {
+        width: 100%;
+        min-height: var(--touch-target-min);
+        justify-content: center;
+      }
+    }
   }
 }
 

@@ -9,6 +9,8 @@ use AFBoxing\Models\Schedule;
 
 class ScheduleController extends BaseController
 {
+    use LogsActivity;
+
     private Schedule $schedule;
 
     private Activity $activity;
@@ -92,36 +94,28 @@ class ScheduleController extends BaseController
     {
         $body = $params['_body'] ?? [];
 
-        // Mode "bulk" : on remplace tout le planning
-        if (is_array($body) && isset($body[0]) && is_array($body[0])) {
-            // Validation globale : limite le nombre d'éléments pour éviter les abus
+        // Mode "bulk" : tableau JSON (y compris vide) = remplacement atomique du planning
+        if (is_array($body) && array_is_list($body)) {
             if (count($body) > 200) {
                 $this->json(['error' => 'Trop d\'éléments (maximum 200)'], 422);
                 return;
             }
 
-            // On vide tout
-            $all = $this->schedule->all();
-            foreach ($all as $row) {
-                $this->schedule->delete((int)$row['id']);
-            }
-
-            $created = [];
             $errors = [];
+            $sanitizedRows = [];
             foreach ($body as $index => $row) {
                 $rowErrors = $this->validateRequired($row, ['day', 'time']);
                 if (!$this->rowReferencesActivity($row)) {
                     $rowErrors['activity'] = 'Sélectionnez une activité du club ou saisissez un nom de créneau.';
                 }
 
-                // Validation supplémentaire
                 if (empty($rowErrors['day']) && isset($row['day'])) {
                     $validDays = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
                     if (!in_array($row['day'], $validDays, true)) {
                         $rowErrors['day'] = 'Jour invalide.';
                     }
                 }
-                
+
                 if (empty($rowErrors['time']) && isset($row['time'])) {
                     if (!$this->validateLength($row['time'], 1, 50)) {
                         $rowErrors['time'] = 'Format d\'horaire invalide.';
@@ -133,7 +127,7 @@ class ScheduleController extends BaseController
                         $rowErrors['activity'] = 'L\'activité doit contenir entre 2 et 100 caractères.';
                     }
                 }
-                
+
                 if ($rowErrors) {
                     $errors["item_{$index}"] = $rowErrors;
                     continue;
@@ -145,23 +139,34 @@ class ScheduleController extends BaseController
                     continue;
                 }
 
-                $sanitized = [
+                $sanitizedRows[] = [
                     'day' => $this->sanitizeString($normalized['day'], 20),
                     'time' => $this->sanitizeString($normalized['time'], 50),
                     'activity' => $this->sanitizeString($normalized['activity'], 100),
                     'level' => isset($normalized['level']) ? $this->sanitizeString($normalized['level'], 100) : null,
                     'activity_id' => $normalized['activity_id'] ?? null,
                 ];
-
-                $created[] = $this->schedule->create($sanitized);
             }
 
             if (!empty($errors)) {
-                $this->json(['errors' => $errors, 'created' => $created], 207); // 207 Multi-Status
+                // Aucune écriture : le planning existant est conservé
+                $this->json(['errors' => $errors], 422);
                 return;
             }
 
-            $this->json($created, 201);
+            try {
+                $created = $this->schedule->replaceAll($sanitizedRows);
+                $this->logActivity(
+                    $params,
+                    'update',
+                    'schedule',
+                    'Planning enregistré (' . count($created) . ' créneau' . (count($created) > 1 ? 'x' : '') . ')'
+                );
+                $this->json($created, 201);
+            } catch (\Throwable $e) {
+                error_log('[afboxing] schedule bulk replace: ' . $e->getMessage());
+                $this->jsonError('SCHEDULE_SAVE_FAILED', 'Impossible d\'enregistrer le planning. Réessayez.', 500);
+            }
             return;
         }
 
@@ -212,6 +217,7 @@ class ScheduleController extends BaseController
         ];
         
         $item = $this->schedule->create($sanitized);
+        $this->logActivity($params, 'create', 'schedule', 'Créneau ajouté : ' . $sanitized['day'] . ' ' . $sanitized['time']);
         $this->json($item, 201);
     }
 
@@ -270,13 +276,20 @@ class ScheduleController extends BaseController
         ];
 
         $item = $this->schedule->update($id, $sanitized);
+        $this->logActivity($params, 'update', 'schedule', 'Créneau modifié : ' . $sanitized['day'] . ' ' . $sanitized['time']);
         $this->json($item ?? []);
     }
 
     public function destroy(array $params): void
     {
         $id = (int)($params['id'] ?? 0);
+        $existing = $this->schedule->find($id);
+        if (!$existing) {
+            $this->json(['error' => 'Créneau introuvable'], 404);
+            return;
+        }
         $this->schedule->delete($id);
+        $this->logActivity($params, 'delete', 'schedule', 'Créneau supprimé : ' . ($existing['day'] ?? '') . ' ' . ($existing['time'] ?? ''));
         $this->json(['message' => 'Créneau supprimé.']);
     }
 }

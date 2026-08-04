@@ -64,7 +64,29 @@ set_exception_handler(static function (\Throwable $e) use ($logDir, $logger): vo
 
 afboxing_apply_cors();
 
+// En-têtes de sécurité API
+header('X-Content-Type-Options: nosniff');
+header('X-Frame-Options: DENY');
+header('Referrer-Policy: no-referrer');
+header('Permissions-Policy: geolocation=(), microphone=(), camera=()');
+
+$isProduction = ($_ENV['APP_ENV'] ?? getenv('APP_ENV')) === 'production';
+if ($isProduction) {
+    @ini_set('display_errors', '0');
+    @ini_set('display_startup_errors', '0');
+}
+
 header('Content-Type: application/json; charset=utf-8');
+
+// Purge opportuniste de la corbeille (> 30 j), au plus 1×/heure
+try {
+    \AFBoxing\Core\SoftDelete::maybePurgeAllExpired(
+        afboxing_db(),
+        dirname(__DIR__) . '/storage'
+    );
+} catch (\Throwable $e) {
+    error_log('[afboxing] soft-delete opportunistic purge: ' . $e->getMessage());
+}
 
 // Cache HTTP API : pas de cache pour mutations ; GET courts (navigateur + cohérent avec cache mémoire front ~45s)
 $afboxingMethod = strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET');
@@ -229,6 +251,8 @@ $router->post('/api/seasons', [SeasonController::class, 'store'])
 $router->put('/api/seasons/{id}', [SeasonController::class, 'update'])
     ->middleware($authAdmin);
 $router->post('/api/seasons/{id}/set-current', [SeasonController::class, 'setCurrent'])
+    ->middleware($authAdmin);
+$router->delete('/api/seasons/{id}', [SeasonController::class, 'destroy'])
     ->middleware($authAdmin);
 
 // Uploads (images) — staff (éditeurs inclus)

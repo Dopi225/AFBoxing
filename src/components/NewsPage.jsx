@@ -4,18 +4,12 @@ import { faCalendarAlt, faArrowLeft, faEnvelope, faFileSignature } from '@fortaw
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { newsApi } from '../services/apiService';
+import { formatDateFR, parseLocalDate } from '../utils/dateFormat';
 import SectionHeader from './SectionHeader';
 import { EmptyState, ErrorState, InlineLoading } from './PageStates';
 import '../style/NewsPage.scss';
 
-const formatDate = (dateStr) => {
-  const date = new Date(dateStr);
-  return date.toLocaleDateString('fr-FR', {
-    year: 'numeric',
-    month: 'long',
-    day: '2-digit'
-  }).toUpperCase();
-};
+const formatDate = (dateStr) => formatDateFR(dateStr, { style: 'long' }).toUpperCase();
 
 const NewsPage = () => {
   const navigate = useNavigate();
@@ -33,7 +27,7 @@ const NewsPage = () => {
         setNews(
           list
             .slice() // copie pour ne pas muter
-            .sort((a, b) => new Date(b.date) - new Date(a.date))
+            .sort((a, b) => (parseLocalDate(b.date)?.getTime() || 0) - (parseLocalDate(a.date)?.getTime() || 0))
         );
       } catch (err) {
         setError(err.message || 'Impossible de charger les actualités.');

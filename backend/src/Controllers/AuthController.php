@@ -13,6 +13,8 @@ use PDO;
 
 class AuthController extends BaseController
 {
+    use LogsActivity;
+
     private RateLimiter $rateLimiter;
 
     public function __construct()
@@ -29,9 +31,24 @@ class AuthController extends BaseController
             return;
         }
 
-        // Rate limiting : 5 tentatives par 15 minutes par IP (+ username)
+        // Rate limiting : 5 tentatives / 15 min par IP+username, et 20 / 15 min par IP
         $ip = HttpRequest::clientIp();
         $key = 'login_' . $ip . '_' . ($data['username'] ?? '');
+        $ipKey = 'login_ip_' . $ip;
+
+        if (!$this->rateLimiter->isAllowed($ipKey, 20, 900)) {
+            $retry = $this->rateLimiter->getRetryAfterSeconds($ipKey, 20, 900);
+            if ($retry > 0) {
+                header('Retry-After: ' . $retry);
+            }
+            $this->jsonError(
+                'RATE_LIMITED',
+                'Trop de tentatives de connexion depuis cette adresse. Réessayez plus tard.',
+                429,
+                ['retry_after_seconds' => $retry]
+            );
+            return;
+        }
 
         if (!$this->rateLimiter->isAllowed($key, 5, 900)) {
             $remaining = $this->rateLimiter->getRemainingAttempts($key, 5, 900);
@@ -59,19 +76,30 @@ class AuthController extends BaseController
         $user = $stmt->fetch();
 
         if (!$user || !password_verify($data['password'], $user['password'])) {
+            // Hash factice si user absent : même coût bcrypt (mitige l'énumération temporelle)
+            if (!$user) {
+                password_verify(
+                    (string)$data['password'],
+                    '$2y$12$1/BLC.ETIkNM4Wz8.QTCXuYblQPsU.Fcf5beRYyRWCZxRoI5YZJ5C'
+                );
+            }
             // Ne pas révéler si l'utilisateur existe ou non (sécurité)
             $this->jsonError('INVALID_CREDENTIALS', 'Identifiants invalides', 401);
             return;
         }
 
-        // Succès : on réinitialise le rate limiter pour cette clé
+        // Succès : on réinitialise le rate limiter pour cette clé utilisateur
         $this->rateLimiter->reset($key);
 
         $now = time();
         $exp = $now + 60 * 60 * 3; // 3h
         $secret = $_ENV['JWT_SECRET'] ?? getenv('JWT_SECRET') ?: null;
-        if (!$secret) {
-            $this->jsonError('JWT_MISCONFIGURED', 'Configuration JWT invalide (JWT_SECRET manquant)', 500);
+        if (!$secret || strlen((string)$secret) < 32) {
+            $this->jsonError(
+                'JWT_MISCONFIGURED',
+                'Configuration JWT invalide (JWT_SECRET manquant ou trop court, min. 32 caractères)',
+                500
+            );
             return;
         }
 
@@ -86,6 +114,15 @@ class AuthController extends BaseController
         ];
 
         $token = JWT::encode($payload, $secret, 'HS256');
+
+        $this->logActivity(
+            $params,
+            'login',
+            'auth',
+            'Connexion de « ' . $user['username'] . ' »',
+            null,
+            (string)$user['username']
+        );
 
         $this->json([
             'token' => $token,
@@ -118,6 +155,7 @@ class AuthController extends BaseController
             }
         }
 
+        $this->logActivity($params, 'logout', 'auth', 'Déconnexion');
         $this->json(['message' => 'Déconnexion effectuée.']);
     }
 

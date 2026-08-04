@@ -325,3 +325,39 @@
   }
 }
 
+@media (max-width: 768px) {
+  .manage-contacts {
+    .filter-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      width: 100%;
+
+      button {
+        flex: 1 1 auto;
+        min-height: var(--touch-target-min);
+        font-size: 0.85rem;
+      }
+    }
+
+    .contacts-layout {
+      .contact-detail {
+        position: static;
+        max-height: none;
+      }
+
+      .contact-item,
+      .detail-actions button,
+      .reply-actions button {
+        min-height: var(--touch-target-min);
+      }
+    }
+
+    input,
+    textarea,
+    select {
+      font-size: 16px;
+    }
+  }
+}
+

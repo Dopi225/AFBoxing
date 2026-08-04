@@ -8,6 +8,7 @@ import posterImage from '../assets/club.jpeg';
 import logo from '../assets/logo-removeb.png';
 import { useNavigate } from 'react-router-dom';
 import { newsApi, scheduleApi } from '../services/apiService';
+import { formatDateFR, parseLocalDate } from '../utils/dateFormat';
 // import educative from '../assets/s1.png';
 // import loisir from '../assets/s2.png';
 // import amateur from '../assets/s3.png';
@@ -19,18 +20,17 @@ import '../style/Home.scss';
 import '../style/AssociationDeBoxe.scss';
 import '../style/PublicFuturistic.scss';
 
-const formatDate = (dateStr) => {
-  const date = new Date(dateStr);
-  return date.toLocaleDateString('fr-FR', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-  });
-};
+const formatDate = (dateStr) => formatDateFR(dateStr, { style: 'long' });
 
 const FRENCH_DAYS = ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'];
 
 const normalizeList = (items) => (Array.isArray(items) ? items : (items?.data || []));
+
+/** Créneau visible sur le site public (activité active ou sans lien). */
+const isScheduleSlotVisible = (slot) => {
+  if (slot?.activityId) return slot.activityEnabled === true;
+  return true;
+};
 
 const parseStartMinutes = (timeRange) => {
   // Accepte : "18h00-19h00" / "18:00-19:00" / "18h-19h"
@@ -248,7 +248,7 @@ const AssociationDeBoxe = () => {
         const list = Array.isArray(newsItems) ? newsItems : (newsItems?.data || []);
         const sorted = list
           .slice()
-          .sort((a, b) => new Date(b.date) - new Date(a.date))
+          .sort((a, b) => (parseLocalDate(b.date)?.getTime() || 0) - (parseLocalDate(a.date)?.getTime() || 0))
           .slice(0, 3);
         if (newsSettled.status === 'fulfilled') {
           setLatestNews(sorted);
@@ -261,7 +261,7 @@ const AssociationDeBoxe = () => {
         }
 
         const scheduleItems = schedSettled.status === 'fulfilled' ? schedSettled.value : [];
-        const sched = normalizeList(scheduleItems);
+        const sched = normalizeList(scheduleItems).filter(isScheduleSlotVisible);
         const now = new Date();
         const todayName = FRENCH_DAYS[now.getDay()] || '';
 

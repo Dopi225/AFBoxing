@@ -9,6 +9,7 @@ use AFBoxing\Models\News;
 class NewsController extends BaseController
 {
     use TrashActions;
+    use LogsActivity;
 
     private News $news;
 
@@ -83,16 +84,17 @@ class NewsController extends BaseController
             return;
         }
 
-        // Sanitization
+        // Sanitization (texte affiché en React échappé ; strip_tags en défense)
         $sanitized = [
-            'title' => $this->sanitizeString($data['title'], 255),
+            'title' => $this->sanitizePlainText($data['title'], 255),
             'date' => $data['date'],
-            'summary' => $this->sanitizeString($data['summary'], 500),
-            'description' => $this->sanitizeString($data['description'], 10000),
+            'summary' => $this->sanitizePlainText($data['summary'], 500),
+            'description' => $this->sanitizePlainText($data['description'], 10000),
             'image' => isset($data['image']) ? $this->sanitizeString($data['image'], 500) : null,
         ];
 
         $item = $this->news->create($sanitized);
+        $this->logActivity($params, 'create', 'news', 'Actualité « ' . $sanitized['title'] . ' » créée');
         $this->json($item, 201);
     }
 
@@ -141,14 +143,15 @@ class NewsController extends BaseController
 
         // Sanitization
         $sanitized = [
-            'title' => $this->sanitizeString($data['title'], 255),
+            'title' => $this->sanitizePlainText($data['title'], 255),
             'date' => $data['date'],
-            'summary' => $this->sanitizeString($data['summary'], 500),
-            'description' => $this->sanitizeString($data['description'], 10000),
+            'summary' => $this->sanitizePlainText($data['summary'], 500),
+            'description' => $this->sanitizePlainText($data['description'], 10000),
             'image' => isset($data['image']) ? $this->sanitizeString($data['image'], 500) : null,
         ];
 
         $item = $this->news->update($id, $sanitized);
+        $this->logActivity($params, 'update', 'news', 'Actualité « ' . $sanitized['title'] . ' » modifiée');
         $this->json($item ?? []);
     }
 
@@ -161,7 +164,9 @@ class NewsController extends BaseController
             return;
         }
 
+        $title = (string)($existing['title'] ?? '');
         $this->news->delete($id);
+        $this->logActivity($params, 'delete', 'news', 'Actualité déplacée en corbeille : ' . $title);
         $this->json(['message' => 'Actualité déplacée en corbeille (30 jours).']);
     }
 
@@ -173,7 +178,12 @@ class NewsController extends BaseController
     public function restore(array $params): void
     {
         $id = (int)($params['id'] ?? 0);
-        $this->restoreItem($this->news, $id);
+        if (!$this->news->restore($id)) {
+            $this->jsonError('NOT_FOUND', 'Élément introuvable dans la corbeille.', 404);
+            return;
+        }
+        $this->logActivity($params, 'restore', 'news', 'Actualité restaurée (id ' . $id . ')');
+        $this->json(['message' => 'Élément restauré.', 'item' => $this->news->find($id)]);
     }
 }
 

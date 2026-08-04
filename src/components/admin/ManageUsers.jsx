@@ -1,17 +1,19 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faTrash, faPen, faPlus, faTimes } from '@fortawesome/free-solid-svg-icons';
+import { faTrash, faPen, faPlus, faTimes, faUsers } from '@fortawesome/free-solid-svg-icons';
 import { motion } from 'framer-motion';
 import { authApi, usersApi } from '../../services/apiService';
 import { useAdminNotify } from '../../hooks/useAdminNotify';
 import { ROLES, NAV_ITEMS } from '../../constants/adminCopy';
 import { adminBreadcrumbs } from '../../utils/adminBreadcrumbs';
+import { formatDateFR } from '../../utils/dateFormat';
 import ConfirmDialog from './ConfirmDialog';
 import DataTable from '../ui/DataTable';
 import PageHeader from '../ui/PageHeader';
 import { LoadingState } from '../PageStates';
 import { TextInput, SelectField } from '../ui/FormField';
+import { EmptyStateGuided } from './guided';
 import './ManageUsers.scss';
 
 const emptyForm = {
@@ -25,6 +27,7 @@ const ManageUsers = () => {
   const { notifySuccess, notifyError } = useAdminNotify('users');
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [myId, setMyId] = useState(null);
   const [form, setForm] = useState(emptyForm);
@@ -77,7 +80,9 @@ const ManageUsers = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (saving) return;
     setError('');
+    setSaving(true);
     try {
       if (editingId) {
         const payload = {
@@ -101,6 +106,8 @@ const ManageUsers = () => {
       loadUsers();
     } catch (err) {
       notifyError(err, 'Impossible d\'enregistrer ce compte.');
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -124,7 +131,7 @@ const ManageUsers = () => {
     {
       key: 'created_at',
       label: 'Créé le',
-      render: (u) => (u.created_at ? new Date(u.created_at).toLocaleDateString('fr-FR') : '—')
+      render: (u) => (u.created_at ? formatDateFR(u.created_at) : '—')
     },
     {
       key: 'actions',
@@ -172,7 +179,7 @@ const ManageUsers = () => {
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
       >
-        <h3>{editingId ? 'Modifier l’utilisateur' : 'Nouvel utilisateur'}</h3>
+        <h3>{editingId ? 'Modifier l\u2019utilisateur' : 'Nouvel utilisateur'}</h3>
         <form onSubmit={handleSubmit} className="user-form">
           <TextInput
             label="Identifiant"
@@ -183,6 +190,7 @@ const ManageUsers = () => {
             required
             minLength={2}
             maxLength={50}
+            disabled={saving}
           />
           <TextInput
             label={editingId ? 'Nouveau mot de passe (optionnel)' : 'Mot de passe'}
@@ -193,6 +201,7 @@ const ManageUsers = () => {
             onChange={(ev) => setForm((f) => ({ ...f, password: ev.target.value }))}
             required={!editingId}
             minLength={editingId ? 0 : 8}
+            disabled={saving}
           />
           <SelectField
             label="Rôle"
@@ -204,14 +213,15 @@ const ManageUsers = () => {
               { value: 'editor', label: 'Éditeur de contenu' },
             ]}
             help={`Responsable : ${ROLES.admin.help}. Éditeur : ${ROLES.editor.help}.`}
+            disabled={saving}
           />
           <div className="form-actions">
-            <button type="submit" className="btn btn-primary">
+            <button type="submit" className="btn btn-primary" disabled={saving}>
               <FontAwesomeIcon icon={editingId ? faPen : faPlus} aria-hidden />
-              {editingId ? 'Enregistrer' : 'Créer'}
+              {saving ? 'Enregistrement…' : editingId ? 'Enregistrer' : 'Créer'}
             </button>
             {editingId && (
-              <button type="button" className="btn-ghost" onClick={resetForm}>
+              <button type="button" className="btn-ghost" onClick={resetForm} disabled={saving}>
                 <FontAwesomeIcon icon={faTimes} aria-hidden />
                 Annuler
               </button>
@@ -224,7 +234,11 @@ const ManageUsers = () => {
         {loading && <LoadingState label="Chargement…" />}
         {error && !loading && <div className="admin-state--error" role="alert">{error}</div>}
         {!loading && !error && users.length === 0 && (
-          <div className="empty-state">Aucun utilisateur enregistré.</div>
+          <EmptyStateGuided
+            icon={faUsers}
+            title="Aucun utilisateur"
+            message="Créez le premier compte d'accès avec le formulaire ci-dessus."
+          />
         )}
         {!loading && !error && users.length > 0 && (
           <DataTable

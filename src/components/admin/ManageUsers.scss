@@ -13,6 +13,7 @@
     display: grid;
     gap: 1rem;
     max-width: 28rem;
+    width: 100%;
 
     .form-row {
       display: flex;
@@ -32,6 +33,7 @@
         font-size: 1rem;
         background: var(--field-bg);
         color: var(--field-fg);
+        min-height: var(--touch-target-min);
       }
     }
 
@@ -118,6 +120,11 @@
   }
 
   .btn-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: var(--touch-target-min);
+    min-height: var(--touch-target-min);
     padding: 0.45rem 0.55rem;
     border: none;
     border-radius: 6px;
@@ -169,5 +176,28 @@
     clip: rect(0, 0, 0, 0);
     white-space: nowrap;
     border: 0;
+  }
+}
+
+@media (max-width: 768px) {
+  .manage-users {
+    .user-form {
+      max-width: none;
+
+      input,
+      select {
+        font-size: 16px;
+      }
+
+      .form-actions {
+        flex-direction: column;
+
+        .btn,
+        button {
+          width: 100%;
+          min-height: var(--touch-target-min);
+        }
+      }
+    }
   }
 }

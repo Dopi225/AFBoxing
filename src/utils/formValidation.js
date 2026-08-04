@@ -30,6 +30,21 @@ export function validateUrl(value) {
   return '';
 }
 
+/**
+ * Retourne une URL http(s) sûre pour un href, ou '' si protocole dangereux (javascript:, data:, …).
+ */
+export function safeHttpUrl(value) {
+  const v = String(value ?? '').trim();
+  if (!v) return '';
+  try {
+    const u = new URL(v);
+    if (u.protocol !== 'http:' && u.protocol !== 'https:') return '';
+    return u.toString();
+  } catch {
+    return '';
+  }
+}
+
 export function validateAmount(value) {
   const v = String(value ?? '').trim();
   if (!v) return 'Indiquez un montant en euros.';

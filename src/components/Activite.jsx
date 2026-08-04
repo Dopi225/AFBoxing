@@ -90,7 +90,11 @@ const Activite = () => {
 
   const nextSessions = useMemo(() => {
     const DAY_ORDER = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
-    const items = (scheduleItems || []).slice().sort((a, b) => {
+    const visible = (scheduleItems || []).filter((item) => {
+      if (item?.activityId) return item.activityEnabled === true;
+      return true;
+    });
+    const items = visible.slice().sort((a, b) => {
       const da = DAY_ORDER.indexOf(a?.day || '');
       const db = DAY_ORDER.indexOf(b?.day || '');
       if (da !== db) return da - db;

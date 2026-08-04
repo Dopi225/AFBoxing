@@ -10,6 +10,7 @@ use AFBoxing\Models\Pricing;
 class PricingController extends BaseController
 {
     use TrashActions;
+    use LogsActivity;
 
     private Pricing $pricing;
 
@@ -128,12 +129,47 @@ class PricingController extends BaseController
         $seasonId = $this->resolveSeasonId($params, $data);
 
         if (isset($data['pricings']) && is_array($data['pricings'])) {
+            if ($seasonId === null || $seasonId < 1) {
+                $this->json(['errors' => ['seasonId' => 'Choisissez une saison pour la mise à jour en masse.']], 422);
+                return;
+            }
+
             $errors = [];
-            foreach ($data['pricings'] as $pricing) {
+            $seenKeys = [];
+            $seenActivities = [];
+            foreach ($data['pricings'] as $index => $pricing) {
+                if (!is_array($pricing)) {
+                    $errors["item_{$index}"] = ['pricing' => 'Entrée invalide.'];
+                    continue;
+                }
                 $required = ['price_key', 'label', 'amount'];
                 $missing = $this->validateRequired($pricing, $required);
+                if (empty($missing['amount']) && isset($pricing['amount'])) {
+                    if (!is_numeric($pricing['amount']) || (float)$pricing['amount'] < 0) {
+                        $missing['amount'] = 'Le montant doit être un nombre positif.';
+                    }
+                }
+                $pk = isset($pricing['price_key']) ? trim((string)$pricing['price_key']) : '';
+                if ($pk !== '') {
+                    if (isset($seenKeys[$pk])) {
+                        $missing['price_key'] = 'Clé en double dans le lot.';
+                    }
+                    $seenKeys[$pk] = true;
+                }
+                $aid = $pricing['activity_id'] ?? $pricing['activityId'] ?? null;
+                $aidNorm = is_string($aid) ? trim($aid) : '';
+                if ($aidNorm !== '') {
+                    $actErr = $this->validateActivityIdForPricing($aidNorm);
+                    if ($actErr !== null) {
+                        $missing['activityId'] = $actErr;
+                    } elseif (isset($seenActivities[$aidNorm])) {
+                        $missing['activityId'] = 'Une même activité ne peut être liée qu\'à un seul tarif dans le lot.';
+                    } else {
+                        $seenActivities[$aidNorm] = true;
+                    }
+                }
                 if (!empty($missing)) {
-                    $errors[] = $missing;
+                    $errors["item_{$index}"] = $missing;
                 }
             }
 
@@ -142,10 +178,18 @@ class PricingController extends BaseController
                 return;
             }
 
-            if ($this->pricing->bulkUpdate($data['pricings'], $seasonId)) {
-                $this->json(['message' => 'Tarifs sauvegardés avec succès']);
-            } else {
-                $this->json(['error' => 'Erreur lors de la sauvegarde'], 500);
+            try {
+                if ($this->pricing->bulkUpdate($data['pricings'], $seasonId)) {
+                    $this->logActivity($params, 'update', 'pricing', 'Tarifs mis à jour en masse (' . count($data['pricings']) . ')');
+                    $this->json(['message' => 'Tarifs sauvegardés avec succès']);
+                } else {
+                    $this->json(['error' => 'Erreur lors de la sauvegarde'], 500);
+                }
+            } catch (\InvalidArgumentException $e) {
+                $this->json(['error' => $e->getMessage()], 422);
+            } catch (\Throwable $e) {
+                error_log('[afboxing] pricing bulk: ' . $e->getMessage());
+                $this->json(['error' => 'Erreur lors de la sauvegarde en masse'], 500);
             }
         } else {
             $errors = $this->validateRequired($data, ['price_key', 'label', 'amount']);
@@ -197,6 +241,7 @@ class PricingController extends BaseController
                     'activity_id' => is_string($aid) && trim($aid) !== '' ? trim($aid) : null,
                 ];
                 $item = $this->pricing->create($payload);
+                $this->logActivity($params, 'create', 'pricing', 'Tarif « ' . ($payload['label'] ?? $payload['price_key']) . ' » créé');
                 $this->json($item, 201);
             } catch (\Exception $e) {
                 error_log('[afboxing] pricing create: ' . $e->getMessage());
@@ -218,6 +263,12 @@ class PricingController extends BaseController
         }
 
         $errors = $this->validateRequired($data, ['label', 'amount']);
+
+        if (empty($errors['amount']) && isset($data['amount'])) {
+            if (!is_numeric($data['amount']) || (float)$data['amount'] < 0) {
+                $errors['amount'] = 'Le montant doit être un nombre positif.';
+            }
+        }
 
         if (!empty($errors)) {
             $this->json(['errors' => $errors], 422);
@@ -247,6 +298,7 @@ class PricingController extends BaseController
                 $payload['activity_id'] = is_string($aid) && trim($aid) !== '' ? trim($aid) : null;
             }
             $item = $this->pricing->update($key, $payload, $seasonId);
+            $this->logActivity($params, 'update', 'pricing', 'Tarif « ' . ($payload['label'] ?? $key) . ' » modifié');
             $this->json($item);
         } catch (\Exception $e) {
             error_log('[afboxing] pricing update: ' . $e->getMessage());
@@ -265,6 +317,7 @@ class PricingController extends BaseController
         }
 
         if ($this->pricing->delete($key, $seasonId)) {
+            $this->logActivity($params, 'delete', 'pricing', 'Tarif déplacé en corbeille : ' . $key);
             $this->json(['message' => 'Tarif déplacé en corbeille (30 jours).']);
         } else {
             $this->json(['error' => 'Erreur lors de la suppression'], 500);

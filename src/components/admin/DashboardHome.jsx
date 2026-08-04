@@ -21,6 +21,7 @@ import {
   authApi,
   activitiesApi,
 } from '../../services/apiService';
+import { parseLocalDate } from '../../utils/dateFormat';
 import { useAdminNotify } from '../../hooks/useAdminNotify';
 import TaskCard from './guided/TaskCard';
 import './DashboardHome.scss';
@@ -63,16 +64,34 @@ const DashboardHome = () => {
     const loadStats = async () => {
       setLoading(true);
       try {
-        const [news, contacts, schedule, activities] = await Promise.all([
-          newsApi.list().catch(() => []),
-          contactsApi.list().catch(() => []),
-          scheduleApi.list().catch(() => []),
-          activitiesApi.list().catch(() => []),
+        const settled = await Promise.allSettled([
+          newsApi.list(),
+          userRole === 'admin' ? contactsApi.list() : Promise.resolve([]),
+          scheduleApi.list(),
+          activitiesApi.list(),
         ]);
+
+        const unwrap = (i, fallback = []) =>
+          settled[i].status === 'fulfilled' && Array.isArray(settled[i].value)
+            ? settled[i].value
+            : fallback;
+
+        const news = unwrap(0);
+        const contacts = unwrap(1);
+        const schedule = unwrap(2);
+        const activities = unwrap(3);
+
+        const criticalFailed = [0, 2, 3].some((i) => settled[i].status === 'rejected');
+        if (userRole === 'admin' && settled[1].status === 'rejected') {
+          // contacts admin en échec → health dégradé
+        }
 
         const now = new Date();
         const lastMonth = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-        const recentNews = news.filter((n) => new Date(n.date || n.created_at) >= lastMonth).length;
+        const recentNews = news.filter((n) => {
+          const d = parseLocalDate(n.date || n.created_at);
+          return d && d >= lastMonth;
+        }).length;
 
         setStats({
           news: news.length,
@@ -81,7 +100,10 @@ const DashboardHome = () => {
           schedule: schedule.length,
           activities: activities.filter((a) => a.enabled !== false).length,
         });
-        setHealthOk(true);
+        setHealthOk(!criticalFailed && !(userRole === 'admin' && settled[1].status === 'rejected'));
+        if (criticalFailed) {
+          notifyError(null, 'Certaines données du tableau de bord sont indisponibles.');
+        }
       } catch {
         notifyError(null, 'Impossible de charger les informations du tableau de bord.');
         setHealthOk(false);
@@ -93,7 +115,7 @@ const DashboardHome = () => {
     loadStats();
     const interval = setInterval(loadStats, 5 * 60 * 1000);
     return () => clearInterval(interval);
-  }, [notifyError]);
+  }, [notifyError, userRole]);
 
   const submitDashboardSearch = (e) => {
     e.preventDefault();

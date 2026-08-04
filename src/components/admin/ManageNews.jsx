@@ -8,6 +8,7 @@ import { useFormDraft } from '../../hooks/useFormDraft';
 import { useEntityTrash } from '../../hooks/useEntityTrash';
 import { todayISO } from '../../utils/adminAutoFill';
 import { validateRequired } from '../../utils/formValidation';
+import { toPersistableMediaUrl, isEphemeralMediaUrl } from '../../utils/mediaUrl';
 import ConfirmDialog from './ConfirmDialog';
 import TrashPanel, { TrashTabs } from './TrashPanel';
 import { LoadingState, ErrorState } from '../PageStates';
@@ -15,6 +16,10 @@ import PageHeader from '../ui/PageHeader';
 import { TextInput, TextArea } from '../ui/FormField';
 import { WizardModal, ImageUploadField, EmptyStateGuided, HighlightableCard } from './guided';
 import HelpTip from './guided/HelpTip';
+import LoadMoreButton from '../ui/LoadMoreButton';
+import { formatDateFR, parseLocalDate } from '../../utils/dateFormat';
+import { textIncludes } from '../../utils/textSearch';
+import { toUserMessage } from '../../utils/userFacingError';
 import { adminBreadcrumbs } from '../../utils/adminBreadcrumbs';
 import { NAV_ITEMS } from '../../constants/adminCopy';
 import './ManageNews.scss';
@@ -25,11 +30,16 @@ const ManageNews = () => {
   const { notifySuccess, notifyError } = useAdminNotify('news');
   const [searchParams, setSearchParams] = useSearchParams();
   const [news, setNews] = useState([]);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [editingNews, setEditingNews] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [uploading, setUploading] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [file, setFile] = useState(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState(null);
@@ -44,7 +54,7 @@ const ManageNews = () => {
   });
 
   const restoreDraft = useCallback((data) => {
-    setFormData((prev) => ({ ...prev, ...data }));
+    setFormData((prev) => ({ ...prev, ...data, image: isEphemeralMediaUrl(data.image) ? '' : (data.image || '') }));
   }, []);
 
   const { clearDraft } = useFormDraft(DRAFT_KEY, formData, {
@@ -52,16 +62,25 @@ const ManageNews = () => {
     onRestore: restoreDraft,
   });
 
-  const loadNews = useCallback(async () => {
-    setLoading(true);
+  const loadNews = useCallback(async (opts = {}) => {
+    const nextPage = opts.page ?? 1;
+    const append = Boolean(opts.append);
+    if (append) setLoadingMore(true);
+    else setLoading(true);
     setError('');
     try {
-      const items = await newsApi.list();
-      setNews(items);
+      const raw = await newsApi.list({ page: nextPage, per_page: 50, withMeta: true });
+      const items = Array.isArray(raw?.data) ? raw.data : (Array.isArray(raw) ? raw : []);
+      const meta = raw?.meta || {};
+      setNews((prev) => (append ? [...prev, ...items] : items));
+      setPage(meta.page || nextPage);
+      setTotalPages(meta.total_pages || 1);
+      setTotalItems(meta.total ?? items.length);
     } catch (err) {
-      setError(err.message || 'Impossible de charger les actualités.');
+      setError(toUserMessage(err, 'Impossible de charger les actualités.'));
     } finally {
       setLoading(false);
+      setLoadingMore(false);
     }
   }, []);
 
@@ -74,27 +93,26 @@ const ManageNews = () => {
     restoreItem,
     loadTrash,
   } = useEntityTrash(newsApi, {
-    onReload: loadNews,
+    onReload: () => loadNews({ page: 1 }),
     notifySuccess,
     notifyError,
     entityLabel: 'Actualité',
   });
 
   useEffect(() => {
-    loadNews();
+    loadNews({ page: 1 });
     loadTrash();
   }, [loadNews, loadTrash]);
 
   const filteredNews = useMemo(() => {
     let filtered = [...news].sort(
-      (a, b) => new Date(b.date || b.created_at) - new Date(a.date || a.created_at)
+      (a, b) =>
+        (parseLocalDate(b.date || b.created_at)?.getTime() || 0) -
+        (parseLocalDate(a.date || a.created_at)?.getTime() || 0)
     );
     if (search.trim()) {
-      const q = search.toLowerCase();
       filtered = filtered.filter(
-        (item) =>
-          item.title?.toLowerCase().includes(q) ||
-          item.summary?.toLowerCase().includes(q)
+        (item) => textIncludes(item.title, search) || textIncludes(item.summary, search)
       );
     }
     return filtered;
@@ -120,8 +138,13 @@ const ManageNews = () => {
   });
 
   const handleSubmit = async () => {
+    if (saving || uploading) return;
     try {
-      const payload = { ...formData };
+      setSaving(true);
+      const payload = {
+        ...formData,
+        image: toPersistableMediaUrl(formData.image) || null,
+      };
       if (file) {
         setUploading(true);
         const result = await uploadApi.uploadImage('news', file);
@@ -135,13 +158,14 @@ const ManageNews = () => {
         await newsApi.create(payload);
         notifySuccess(`Actualité « ${payload.title} » publiée.`);
       }
-      await loadNews();
+      await loadNews({ page: 1 });
       clearDraft();
       handleCloseModal();
     } catch (err) {
       notifyError(err, 'Impossible d\'enregistrer l\'actualité. Vérifiez les champs et réessayez.');
     } finally {
       setUploading(false);
+      setSaving(false);
     }
   };
 
@@ -168,7 +192,7 @@ const ManageNews = () => {
     try {
       await newsApi.remove(deleteTarget.id);
       notifySuccess('Actualité déplacée en corbeille (conservation 30 jours).');
-      await loadNews();
+      await loadNews({ page: 1 });
       loadTrash();
     } catch (err) {
       notifyError(err, 'Impossible de supprimer cette actualité.');
@@ -343,7 +367,7 @@ const ManageNews = () => {
           getItemLabel={(item) => item.title}
           getItemMeta={(item) =>
             item.date
-              ? new Date(item.date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
+              ? formatDateFR(item.date, { style: 'long' })
               : null
           }
           onRestore={restoreItem}
@@ -353,7 +377,7 @@ const ManageNews = () => {
       <div className="news-list">
         {loading && <LoadingState label="Chargement des actualités…" />}
         {error && !loading && (
-          <ErrorState title="Actualités indisponibles" message={error} onRetry={loadNews} />
+          <ErrorState title="Actualités indisponibles" message={error} onRetry={() => loadNews({ page: 1 })} />
         )}
         {!loading && !error && filteredNews.length === 0 ? (
           <EmptyStateGuided
@@ -381,11 +405,7 @@ const ManageNews = () => {
               <h3>{item.title}</h3>
               <div className="news-meta">
                 <FontAwesomeIcon icon={faCalendarAlt} aria-hidden />
-                {new Date(item.date).toLocaleDateString('fr-FR', {
-                  day: 'numeric',
-                  month: 'long',
-                  year: 'numeric',
-                })}
+                {formatDateFR(item.date, { style: 'long' })}
               </div>
               <p className="summary">{item.summary}</p>
               <div className="news-actions">
@@ -401,6 +421,15 @@ const ManageNews = () => {
             </div>
           </HighlightableCard>
         ))}
+        {!loading && !error && view !== 'trash' ? (
+          <LoadMoreButton
+            hasMore={page < totalPages}
+            loading={loadingMore}
+            loadedCount={news.length}
+            total={totalItems}
+            onClick={() => loadNews({ page: page + 1, append: true })}
+          />
+        ) : null}
       </div>
       )}
 
@@ -414,7 +443,7 @@ const ManageNews = () => {
         canProceed={canProceed}
         getBlockedMessage={getBlockedMessage}
         isDirty={isFormDirty}
-        completing={uploading}
+        completing={saving || uploading}
       />
 
       <ConfirmDialog

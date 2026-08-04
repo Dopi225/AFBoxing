@@ -137,6 +137,10 @@ class Pricing
 
             $keyParts = explode('.', $item['price_key']);
             $finalKey = end($keyParts);
+            // Évite les collisions (ex. boxing.a.senior vs boxing.b.senior)
+            if ($finalKey === false || $finalKey === '' || isset($grouped[$category][$finalKey])) {
+                $finalKey = $item['price_key'];
+            }
 
             $grouped[$category][$finalKey] = [
                 'label' => $item['label'],
@@ -160,6 +164,14 @@ class Pricing
         }
 
         $activityId = $this->normalizeActivityId($data['activity_id'] ?? $data['activityId'] ?? null);
+
+        if ($activityId !== null) {
+            $clear = $this->pdo->prepare(
+                'UPDATE pricing SET activity_id = NULL
+                 WHERE season_id = :sid AND activity_id = :aid AND deleted_at IS NULL'
+            );
+            $clear->execute(['sid' => $seasonId, 'aid' => $activityId]);
+        }
 
         $stmt = $this->pdo->prepare(
             'INSERT INTO pricing
@@ -204,6 +216,16 @@ class Pricing
             ? $this->normalizeActivityId($data['activity_id'] ?? $data['activityId'] ?? null)
             : $this->normalizeActivityId($existing['activity_id'] ?? null);
 
+        // Libère uq_pricing_season_activity avant l'UPDATE (sinon 23000)
+        if ($activityId !== null) {
+            $clear = $this->pdo->prepare(
+                'UPDATE pricing SET activity_id = NULL
+                 WHERE season_id = :sid AND activity_id = :aid AND price_key != :pk
+                   AND deleted_at IS NULL'
+            );
+            $clear->execute(['sid' => $seasonId, 'aid' => $activityId, 'pk' => $key]);
+        }
+
         $stmt = $this->pdo->prepare(
             'UPDATE pricing SET
                 label = :label,
@@ -240,6 +262,8 @@ class Pricing
                 $un->execute(['id' => $oldActivityId, 'pk' => $key]);
             }
             $this->afterPricingLinkChange($seasonId, $key, $activityId);
+        } elseif ($activityId) {
+            // Saison archivée : seulement désambiguïser les liens (déjà fait ci-dessus)
         }
 
         return $this->findByKey($key, $seasonId);
@@ -257,11 +281,18 @@ class Pricing
             $this->clearActivityMetaForPriceKey($key);
         }
 
+        // Libère uq_pricing_season_key / uq_pricing_season_activity pendant la rétention corbeille.
+        $suffix = '__trash_' . time();
+        $maxBase = max(1, 100 - strlen($suffix));
+        $trashKey = substr($key, 0, $maxBase) . $suffix;
+
         $stmt = $this->pdo->prepare(
-            'UPDATE pricing SET deleted_at = NOW()
+            'UPDATE pricing
+             SET price_key = :trashKey, activity_id = NULL, deleted_at = NOW()
              WHERE season_id = :sid AND price_key = :key AND deleted_at IS NULL'
         );
-        return $stmt->execute(['sid' => $seasonId, 'key' => $key]);
+        $stmt->execute(['trashKey' => $trashKey, 'sid' => $seasonId, 'key' => $key]);
+        return $stmt->rowCount() > 0;
     }
 
     public function trash(?int $seasonId = null): array
@@ -291,17 +322,46 @@ class Pricing
             "UPDATE pricing SET deleted_at = NULL
              WHERE season_id = :sid AND price_key = :key AND {$where}"
         );
-        return $stmt->execute(['sid' => $seasonId, 'key' => $key]);
+        $stmt->execute(['sid' => $seasonId, 'key' => $key]);
+        return $stmt->rowCount() > 0;
     }
 
     /** Compatibilité TrashActions::restoreItem — restore par id numérique. */
     public function restoreById(int $id): bool
     {
         $where = SoftDelete::inTrashClause();
+        $find = $this->pdo->prepare("SELECT * FROM pricing WHERE id = :id AND {$where}");
+        $find->execute(['id' => $id]);
+        $row = $find->fetch(PDO::FETCH_ASSOC);
+        if (!$row) {
+            return false;
+        }
+
+        $trashKey = (string)$row['price_key'];
+        $original = preg_replace('/__trash_\d+$/', '', $trashKey) ?: $trashKey;
+        $seasonId = (int)$row['season_id'];
+
+        if ($original !== $trashKey) {
+            $busy = $this->pdo->prepare(
+                'SELECT 1 FROM pricing
+                 WHERE season_id = :sid AND price_key = :key AND deleted_at IS NULL LIMIT 1'
+            );
+            $busy->execute(['sid' => $seasonId, 'key' => $original]);
+            if (!$busy->fetchColumn()) {
+                $stmt = $this->pdo->prepare(
+                    "UPDATE pricing SET price_key = :orig, deleted_at = NULL
+                     WHERE id = :id AND {$where}"
+                );
+                $stmt->execute(['orig' => $original, 'id' => $id]);
+                return $stmt->rowCount() > 0;
+            }
+        }
+
         $stmt = $this->pdo->prepare(
             "UPDATE pricing SET deleted_at = NULL WHERE id = :id AND {$where}"
         );
-        return $stmt->execute(['id' => $id]);
+        $stmt->execute(['id' => $id]);
+        return $stmt->rowCount() > 0;
     }
 
     public function findById(int $id): ?array
@@ -323,40 +383,118 @@ class Pricing
         $this->pdo->beginTransaction();
 
         try {
-            $stmt = $this->pdo->prepare(
+            $insert = $this->pdo->prepare(
                 'INSERT INTO pricing
-                 (season_id, price_key, label, amount, period, note, category, enabled, activity_id)
+                 (season_id, price_key, label, amount, period, note, category, enabled, activity_id, deleted_at)
                  VALUES
-                 (:season_id, :price_key, :label, :amount, :period, :note, :category, :enabled, :activity_id)
-                 ON DUPLICATE KEY UPDATE
-                 label = VALUES(label),
-                 amount = VALUES(amount),
-                 period = VALUES(period),
-                 note = VALUES(note),
-                 category = VALUES(category),
-                 enabled = VALUES(enabled),
-                 activity_id = VALUES(activity_id),
-                 updated_at = CURRENT_TIMESTAMP'
+                 (:season_id, :price_key, :label, :amount, :period, :note, :category, :enabled, :activity_id, NULL)'
+            );
+            $update = $this->pdo->prepare(
+                'UPDATE pricing SET
+                    label = :label,
+                    amount = :amount,
+                    period = :period,
+                    note = :note,
+                    category = :category,
+                    enabled = :enabled,
+                    activity_id = :activity_id,
+                    deleted_at = NULL,
+                    updated_at = CURRENT_TIMESTAMP
+                 WHERE season_id = :season_id AND price_key = :price_key'
+            );
+            // Ligne soft-supprimée legacy (même clé) encore présente
+            $resurrect = $this->pdo->prepare(
+                'UPDATE pricing SET
+                    label = :label,
+                    amount = :amount,
+                    period = :period,
+                    note = :note,
+                    category = :category,
+                    enabled = :enabled,
+                    activity_id = :activity_id,
+                    deleted_at = NULL,
+                    updated_at = CURRENT_TIMESTAMP
+                 WHERE season_id = :season_id AND price_key = :price_key AND deleted_at IS NOT NULL'
             );
 
+            $currentId = $this->currentSeasonId();
+            $isCurrentSeason = $currentId !== null && (int)$seasonId === (int)$currentId;
+
             foreach ($pricings as $pricing) {
-                $stmt->execute([
+                $activityId = $this->normalizeActivityId($pricing['activity_id'] ?? $pricing['activityId'] ?? null);
+                $priceKey = trim((string)$pricing['price_key']);
+                if ($priceKey === '') {
+                    throw new \InvalidArgumentException('Clé tarif manquante dans le lot.');
+                }
+
+                $payload = [
                     'season_id' => $seasonId,
-                    'price_key' => $pricing['price_key'],
+                    'price_key' => $priceKey,
                     'label' => $pricing['label'],
                     'amount' => $pricing['amount'],
                     'period' => $pricing['period'] ?? 'an',
                     'note' => $pricing['note'] ?? null,
                     'category' => $pricing['category'] ?? 'boxing',
                     'enabled' => isset($pricing['enabled']) ? (int)$pricing['enabled'] : 1,
-                    'activity_id' => $this->normalizeActivityId($pricing['activity_id'] ?? $pricing['activityId'] ?? null),
-                ]);
+                    'activity_id' => $activityId,
+                ];
+
+                // Libère uq_pricing_season_activity avant écriture (évite upsert sur la mauvaise ligne)
+                if ($activityId !== null) {
+                    $clear = $this->pdo->prepare(
+                        'UPDATE pricing SET activity_id = NULL
+                         WHERE season_id = :sid AND activity_id = :aid AND price_key != :pk
+                           AND deleted_at IS NULL'
+                    );
+                    $clear->execute(['sid' => $seasonId, 'aid' => $activityId, 'pk' => $priceKey]);
+                }
+
+                $existing = $this->findByKey($priceKey, $seasonId);
+                $oldActivityId = $existing
+                    ? $this->normalizeActivityId($existing['activity_id'] ?? null)
+                    : null;
+
+                if ($existing) {
+                    $update->execute($payload);
+                } else {
+                    try {
+                        $insert->execute($payload);
+                    } catch (\PDOException $e) {
+                        if ((int)$e->getCode() !== 23000) {
+                            throw $e;
+                        }
+                        // Conflit : souvent une ligne soft-deleted legacy avec la même clé
+                        $resurrect->execute($payload);
+                        if ($resurrect->rowCount() < 1) {
+                            throw $e;
+                        }
+                    }
+                }
+
+                if ($isCurrentSeason) {
+                    if ($oldActivityId && (
+                        $activityId === null
+                        || (string)$oldActivityId !== (string)$activityId
+                    )) {
+                        $un = $this->pdo->prepare(
+                            'UPDATE activities SET meta_price_key = NULL WHERE id = :id AND meta_price_key = :pk'
+                        );
+                        $un->execute(['id' => $oldActivityId, 'pk' => $priceKey]);
+                    }
+                    $this->afterPricingLinkChange($seasonId, $priceKey, $activityId);
+                }
             }
 
             $this->pdo->commit();
             return true;
-        } catch (\Exception $e) {
-            $this->pdo->rollBack();
+        } catch (\Throwable $e) {
+            if ($this->pdo->inTransaction()) {
+                $this->pdo->rollBack();
+            }
+            if ($e instanceof \InvalidArgumentException) {
+                throw $e;
+            }
+            error_log('[afboxing] pricing bulkUpdate: ' . $e->getMessage());
             return false;
         }
     }
@@ -398,5 +536,22 @@ class Pricing
             'UPDATE activities SET meta_price_key = NULL WHERE meta_price_key = :pk'
         );
         $stmt->execute(['pk' => $priceKey]);
+    }
+
+    /** Détache tous les tarifs liés à une activité (soft-delete activité). */
+    public function clearActivityId(string $activityId): int
+    {
+        $stmt = $this->pdo->prepare(
+            'UPDATE pricing SET activity_id = NULL WHERE activity_id = :aid AND deleted_at IS NULL'
+        );
+        $stmt->execute(['aid' => $activityId]);
+        $count = $stmt->rowCount();
+
+        $meta = $this->pdo->prepare(
+            'UPDATE activities SET meta_price_key = NULL WHERE id = :aid'
+        );
+        $meta->execute(['aid' => $activityId]);
+
+        return $count;
     }
 }

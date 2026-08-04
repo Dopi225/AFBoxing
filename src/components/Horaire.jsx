@@ -99,6 +99,11 @@ const Horaire = () => {
             day: day.day,
             activities: list
               .filter(item => item.day === day.day)
+              .filter((item) => {
+                // Activité liée : n’afficher que si encore active
+                if (item.activityId) return item.activityEnabled === true;
+                return true;
+              })
               .map(item => ({
                 time: item.time,
                 activity: item.activity,

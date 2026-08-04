@@ -156,6 +156,57 @@ class Season
         ];
     }
 
+    /**
+     * Supprime une saison et ses tarifs.
+     * Interdit si saison courante (affichée sur le site) ou dernière saison restante.
+     *
+     * @return array{deletedId: int, deletedPricingCount: int, label: string}
+     */
+    public function delete(int $id): array
+    {
+        $season = $this->find($id);
+        if (!$season) {
+            throw new \InvalidArgumentException('Saison introuvable.');
+        }
+        if (!empty($season['isCurrent'])) {
+            throw new \InvalidArgumentException(
+                'Impossible de supprimer la saison affichée sur le site. Définissez d\'abord une autre saison comme courante.'
+            );
+        }
+
+        $countStmt = $this->pdo->query('SELECT COUNT(*) FROM seasons');
+        $total = (int)$countStmt->fetchColumn();
+        if ($total <= 1) {
+            throw new \InvalidArgumentException('Impossible de supprimer la dernière saison.');
+        }
+
+        $this->pdo->beginTransaction();
+        try {
+            $delPricing = $this->pdo->prepare('DELETE FROM pricing WHERE season_id = :sid');
+            $delPricing->execute(['sid' => $id]);
+            $pricingCount = $delPricing->rowCount();
+
+            $delSeason = $this->pdo->prepare('DELETE FROM seasons WHERE id = :id AND is_current = 0');
+            $delSeason->execute(['id' => $id]);
+            if ($delSeason->rowCount() < 1) {
+                throw new \RuntimeException('Suppression de la saison annulée.');
+            }
+
+            $this->pdo->commit();
+        } catch (\Throwable $e) {
+            if ($this->pdo->inTransaction()) {
+                $this->pdo->rollBack();
+            }
+            throw $e;
+        }
+
+        return [
+            'deletedId' => $id,
+            'deletedPricingCount' => $pricingCount,
+            'label' => (string)$season['label'],
+        ];
+    }
+
     private function formatSeason(array $row): array
     {
         return [

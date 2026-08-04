@@ -7,6 +7,8 @@ import {
   faTimes,
   faStar,
   faCopy,
+  faTrash,
+  faMoneyBillWave,
 } from '@fortawesome/free-solid-svg-icons';
 import { authApi, activitiesApi, pricingApi, seasonsApi } from '../../services/apiService';
 import { useAdminNotify } from '../../hooks/useAdminNotify';
@@ -23,6 +25,7 @@ import PageHeader from '../ui/PageHeader';
 import Modal from '../ui/Modal';
 import { TextInput, TextArea, SelectField, CheckboxField } from '../ui/FormField';
 import HelpTip from './guided/HelpTip';
+import { EmptyStateGuided } from './guided';
 import './ManagePricing.scss';
 
 const emptyForm = () => ({
@@ -75,8 +78,11 @@ const ManagePricing = () => {
   const [editingKey, setEditingKey] = useState(null);
   const [deleteRow, setDeleteRow] = useState(null);
   const [fieldErrors, setFieldErrors] = useState({});
+  const [saving, setSaving] = useState(false);
   const [showCreateSeason, setShowCreateSeason] = useState(false);
+  const [showEditSeason, setShowEditSeason] = useState(false);
   const [creatingSeason, setCreatingSeason] = useState(false);
+  const [savingSeason, setSavingSeason] = useState(false);
   const [seasonForm, setSeasonForm] = useState({
     label: '',
     startsOn: '',
@@ -85,6 +91,8 @@ const ManagePricing = () => {
   });
   const [seasonFieldErrors, setSeasonFieldErrors] = useState({});
   const [showSetCurrentConfirm, setShowSetCurrentConfirm] = useState(false);
+  const [showDeleteSeasonConfirm, setShowDeleteSeasonConfirm] = useState(false);
+  const [deletingSeason, setDeletingSeason] = useState(false);
   const [settingCurrent, setSettingCurrent] = useState(false);
 
   const enabledActivities = useMemo(
@@ -247,6 +255,7 @@ const ManagePricing = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (saving) return;
     if (selectedSeasonId == null) return;
     const amountError = validateAmount(form.amount);
     if (amountError) {
@@ -263,6 +272,7 @@ const ManagePricing = () => {
       !!editingKey
     );
     try {
+      setSaving(true);
       if (editingKey) {
         await pricingApi.updateOne(editingKey, {
           label: prepared.label,
@@ -303,6 +313,8 @@ const ManagePricing = () => {
       load(selectedSeasonId);
     } catch (err) {
       notifyError(err, 'Impossible d\'enregistrer ce tarif.');
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -337,6 +349,18 @@ const ManagePricing = () => {
     });
     setSeasonFieldErrors({});
     setShowCreateSeason(true);
+  };
+
+  const openEditSeason = () => {
+    if (!selectedSeason) return;
+    setSeasonForm({
+      label: selectedSeason.label || '',
+      startsOn: selectedSeason.startsOn || '',
+      endsOn: selectedSeason.endsOn || '',
+      copyFromSeasonId: '',
+    });
+    setSeasonFieldErrors({});
+    setShowEditSeason(true);
   };
 
   const handleCreateSeason = async () => {
@@ -385,6 +409,40 @@ const ManagePricing = () => {
     }
   };
 
+  const handleEditSeason = async () => {
+    if (!selectedSeason?.id) return;
+    const errors = {
+      label: validateRequired(seasonForm.label, 'Le libellé'),
+      startsOn: validateRequired(seasonForm.startsOn, 'La date de début'),
+      endsOn: validateRequired(seasonForm.endsOn, 'La date de fin'),
+    };
+    if (seasonForm.startsOn && seasonForm.endsOn && seasonForm.endsOn < seasonForm.startsOn) {
+      errors.endsOn = 'La date de fin doit être après la date de début.';
+    }
+    if (seasonForm.label.trim().length > 0 && seasonForm.label.trim().length < 4) {
+      errors.label = 'Le libellé doit contenir au moins 4 caractères.';
+    }
+    setSeasonFieldErrors(errors);
+    if (Object.values(errors).some(Boolean)) return;
+
+    setSavingSeason(true);
+    try {
+      const updated = await seasonsApi.update(selectedSeason.id, {
+        label: seasonForm.label.trim(),
+        startsOn: seasonForm.startsOn,
+        endsOn: seasonForm.endsOn,
+      });
+      logActivity('update', 'season', `Saison « ${updated?.label || seasonForm.label} » modifiée`);
+      notifySuccess(`Saison « ${updated?.label || seasonForm.label} » enregistrée.`);
+      setShowEditSeason(false);
+      await loadSeasons();
+    } catch (err) {
+      notifyError(err, 'Impossible de modifier la saison. Vérifiez les dates et réessayez.');
+    } finally {
+      setSavingSeason(false);
+    }
+  };
+
   const confirmSetCurrent = async () => {
     if (!selectedSeason) return;
     setSettingCurrent(true);
@@ -405,6 +463,35 @@ const ManagePricing = () => {
       notifyError(err, 'Impossible de changer la saison affichée sur le site.');
     } finally {
       setSettingCurrent(false);
+    }
+  };
+
+  const confirmDeleteSeason = async () => {
+    if (!selectedSeason?.id || selectedSeason.isCurrent) return;
+    setDeletingSeason(true);
+    try {
+      const result = await seasonsApi.remove(selectedSeason.id);
+      const n = result?.deletedPricingCount ?? 0;
+      logActivity(
+        'delete',
+        'season',
+        `Saison « ${selectedSeason.label} » supprimée (${n} tarif${n > 1 ? 's' : ''})`
+      );
+      notifySuccess(
+        `Saison « ${selectedSeason.label} » supprimée${n ? ` (${n} tarif${n > 1 ? 's' : ''})` : ''}.`
+      );
+      setShowDeleteSeasonConfirm(false);
+      resetForm();
+      const list = await loadSeasons();
+      const next =
+        list.find((s) => s.isCurrent) ||
+        list[0] ||
+        null;
+      setSelectedSeasonId(next?.id ?? null);
+    } catch (err) {
+      notifyError(err, 'Impossible de supprimer cette saison.');
+    } finally {
+      setDeletingSeason(false);
     }
   };
 
@@ -446,7 +533,35 @@ const ManagePricing = () => {
             </button>
           ))}
         </div>
+        {selectedSeason ? (
+          <div className="season-bar__actions">
+            <button
+              type="button"
+              className="btn btn-secondary season-bar__edit"
+              onClick={openEditSeason}
+            >
+              <FontAwesomeIcon icon={faPen} aria-hidden />
+              Modifier la saison
+            </button>
+            {!selectedSeason.isCurrent && seasons.length > 1 ? (
+              <button
+                type="button"
+                className="btn btn-danger season-bar__delete"
+                onClick={() => setShowDeleteSeasonConfirm(true)}
+              >
+                <FontAwesomeIcon icon={faTrash} aria-hidden />
+                Supprimer la saison
+              </button>
+            ) : null}
+          </div>
+        ) : null}
       </div>
+
+      {selectedSeason?.startsOn && selectedSeason?.endsOn ? (
+        <p className="season-dates-hint">
+          {seasonDisplayName(selectedSeason)} : du {selectedSeason.startsOn} au {selectedSeason.endsOn}
+        </p>
+      ) : null}
 
       {isArchivedSeason ? (
         <div className="season-archive-banner" role="status">
@@ -531,9 +646,9 @@ const ManagePricing = () => {
               onChange={(ev) => setForm((f) => ({ ...f, enabled: ev.target.checked }))}
             />
             <div className="form-actions">
-              <button type="submit" className="btn btn-primary">
+              <button type="submit" className="btn btn-primary" disabled={saving}>
                 <FontAwesomeIcon icon={editingKey ? faPen : faPlus} aria-hidden />
-                {editingKey ? 'Enregistrer' : 'Ajouter'}
+                {saving ? 'Enregistrement…' : (editingKey ? 'Enregistrer' : 'Ajouter')}
               </button>
               {editingKey ? (
                 <button type="button" className="btn-ghost" onClick={resetForm}>
@@ -565,12 +680,31 @@ const ManagePricing = () => {
               {error}
             </div>
           ) : null}
-          {!loading && !error ? (
+          {!loading && !error && rows.length === 0 ? (
+            <EmptyStateGuided
+              icon={faMoneyBillWave}
+              title="Aucun tarif pour cette saison"
+              message={
+                isArchivedSeason
+                  ? 'Cette saison archivée ne contient aucun tarif enregistré.'
+                  : 'Ajoutez les formules et montants affichés sur la page Tarifs du site.'
+              }
+              actionLabel={!isArchivedSeason ? 'Ajouter un tarif' : undefined}
+              onAction={
+                !isArchivedSeason
+                  ? () => {
+                      resetForm();
+                      document.querySelector('.pricing-form-card')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }
+                  : undefined
+              }
+            />
+          ) : null}
+          {!loading && !error && rows.length > 0 ? (
             <DataTable
               columns={pricingColumns}
               data={rows}
               rowKey="priceKey"
-              emptyMessage="Aucun tarif pour cette saison."
               className="pricing-table"
             />
           ) : null}
@@ -617,6 +751,21 @@ const ManagePricing = () => {
           'Les visiteurs verront immédiatement les nouveaux montants.',
         ]}
         confirmText={settingCurrent ? 'Changement…' : 'Définir comme saison courante'}
+      />
+
+      <ConfirmDialog
+        isOpen={showDeleteSeasonConfirm}
+        onClose={() => !deletingSeason && setShowDeleteSeasonConfirm(false)}
+        onConfirm={confirmDeleteSeason}
+        title="Supprimer cette saison ?"
+        itemLabel={seasonDisplayName(selectedSeason)}
+        consequences={[
+          'Tous les tarifs de cette saison seront définitivement supprimés (pas de corbeille).',
+          'La saison affichée sur le site (courante) ne peut pas être supprimée.',
+        ]}
+        type="danger"
+        danger
+        confirmText={deletingSeason ? 'Suppression…' : 'Supprimer la saison'}
       />
 
       <Modal
@@ -693,6 +842,67 @@ const ManagePricing = () => {
               className="btn btn-secondary"
               onClick={() => setShowCreateSeason(false)}
               disabled={creatingSeason}
+            >
+              Annuler
+            </button>
+          </div>
+        </div>
+      </Modal>
+
+      <Modal
+        isOpen={showEditSeason}
+        onClose={() => !savingSeason && setShowEditSeason(false)}
+        title={`Modifier ${seasonDisplayName(selectedSeason)}`}
+        size="md"
+      >
+        <div className="create-season-form">
+          <p className="create-season-form__help">
+            Modifiez le libellé ou les dates de la saison. Les tarifs déjà saisis ne sont pas
+            affectés.
+          </p>
+          <TextInput
+            label="Libellé de la saison"
+            name="edit-season-label"
+            value={seasonForm.label}
+            onChange={(e) => setSeasonForm((f) => ({ ...f, label: e.target.value }))}
+            error={seasonFieldErrors.label}
+            required
+            example="2026-2027"
+          />
+          <div className="form-row form-row--inline">
+            <TextInput
+              label="Date de début"
+              name="edit-season-start"
+              type="date"
+              value={seasonForm.startsOn}
+              onChange={(e) => setSeasonForm((f) => ({ ...f, startsOn: e.target.value }))}
+              error={seasonFieldErrors.startsOn}
+              required
+            />
+            <TextInput
+              label="Date de fin"
+              name="edit-season-end"
+              type="date"
+              value={seasonForm.endsOn}
+              onChange={(e) => setSeasonForm((f) => ({ ...f, endsOn: e.target.value }))}
+              error={seasonFieldErrors.endsOn}
+              required
+            />
+          </div>
+          <div className="form-actions">
+            <button
+              type="button"
+              className="btn btn-primary"
+              onClick={handleEditSeason}
+              disabled={savingSeason}
+            >
+              {savingSeason ? 'Enregistrement…' : 'Enregistrer la saison'}
+            </button>
+            <button
+              type="button"
+              className="btn btn-secondary"
+              onClick={() => setShowEditSeason(false)}
+              disabled={savingSeason}
             >
               Annuler
             </button>

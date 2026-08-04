@@ -9,6 +9,7 @@ use AFBoxing\Models\Gallery;
 class GalleryController extends BaseController
 {
     use TrashActions;
+    use LogsActivity;
 
     private Gallery $gallery;
 
@@ -19,13 +20,28 @@ class GalleryController extends BaseController
 
     public function index(array $params): void
     {
-        $items = $this->gallery->all();
-        $this->json($items);
+        $page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
+        $perPage = isset($_GET['per_page']) ? min(200, max(1, (int)$_GET['per_page'])) : 48;
+        $total = $this->gallery->countAll();
+        $items = $this->gallery->paginate($page, $perPage);
+        $this->json([
+            'data' => $items,
+            'meta' => [
+                'total' => $total,
+                'page' => $page,
+                'per_page' => $perPage,
+                'total_pages' => $perPage > 0 ? (int)ceil($total / $perPage) : 0,
+            ],
+        ]);
     }
 
     public function store(array $params): void
     {
         $data = $params['_body'] ?? [];
+        // Accepte image ou src (alias frontend)
+        if (empty($data['image']) && !empty($data['src'])) {
+            $data['image'] = $data['src'];
+        }
         $errors = $this->validateRequired($data, ['title', 'image']);
         
         // Validation longueurs
@@ -62,6 +78,7 @@ class GalleryController extends BaseController
         ];
 
         $item = $this->gallery->create($sanitized);
+        $this->logActivity($params, 'create', 'gallery', 'Photo « ' . $sanitized['title'] . ' » ajoutée à la galerie');
         $this->json($item, 201);
     }
 
@@ -111,6 +128,7 @@ class GalleryController extends BaseController
 
         $item = $this->gallery->update($id, $sanitized);
         if ($item) {
+            $this->logActivity($params, 'update', 'gallery', 'Photo « ' . $sanitized['title'] . ' » modifiée');
             $this->json($item);
         } else {
             $this->json(['error' => 'Erreur lors de la modification'], 500);
@@ -120,13 +138,14 @@ class GalleryController extends BaseController
     public function destroy(array $params): void
     {
         $id = (int)($params['id'] ?? 0);
-        
-        if (!$this->gallery->find($id)) {
+        $existing = $this->gallery->find($id);
+        if (!$existing) {
             $this->json(['error' => 'Image introuvable'], 404);
             return;
         }
         
         if ($this->gallery->delete($id)) {
+            $this->logActivity($params, 'delete', 'gallery', 'Photo déplacée en corbeille : ' . ($existing['title'] ?? ''));
             $this->json(['message' => 'Photo déplacée en corbeille (30 jours).']);
         } else {
             $this->json(['error' => 'Erreur lors de la suppression'], 500);
@@ -141,7 +160,12 @@ class GalleryController extends BaseController
     public function restore(array $params): void
     {
         $id = (int)($params['id'] ?? 0);
-        $this->restoreItem($this->gallery, $id);
+        if (!$this->gallery->restore($id)) {
+            $this->jsonError('NOT_FOUND', 'Élément introuvable dans la corbeille.', 404);
+            return;
+        }
+        $this->logActivity($params, 'restore', 'gallery', 'Photo restaurée (id ' . $id . ')');
+        $this->json(['message' => 'Élément restauré.', 'item' => $this->gallery->find($id)]);
     }
 }
 

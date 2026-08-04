@@ -1,5 +1,7 @@
 /** Libellés métier pour le panel d'administration — jamais de jargon technique */
 
+import { parseLocalDate, formatDateFR } from '../utils/dateFormat';
+
 export const APP_TITLE = 'Gestion AF Boxing';
 
 export const ROLES = {
@@ -175,15 +177,17 @@ Sportivement,`,
 
 export function formatRelativeDate(dateStr) {
   if (!dateStr) return '';
-  const date = new Date(dateStr);
+  const date = parseLocalDate(dateStr);
+  if (!date) return '';
   const now = new Date();
-  const diffMs = now - date;
-  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+  const startToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const startDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  const diffDays = Math.floor((startToday - startDate) / (1000 * 60 * 60 * 24));
   if (diffDays === 0) return "Aujourd'hui";
   if (diffDays === 1) return 'Hier';
   if (diffDays < 7) return `Il y a ${diffDays} jours`;
   if (diffDays < 30) return `Il y a ${Math.floor(diffDays / 7)} semaine${Math.floor(diffDays / 7) > 1 ? 's' : ''}`;
-  return date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
+  return formatDateFR(date, { style: 'long' });
 }
 
 export function humanizeEntity(entity) {

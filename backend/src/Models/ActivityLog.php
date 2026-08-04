@@ -26,6 +26,54 @@ class ActivityLog
         return $stmt->fetchAll();
     }
 
+    /**
+     * Recherche combinée (entity, action, user, plage de dates).
+     *
+     * @param array{entity?:?string,user?:?string,action?:?string,from?:?string,to?:?string,limit?:int,offset?:int} $filters
+     * @return list<array<string,mixed>>
+     */
+    public function search(array $filters): array
+    {
+        $where = ['1=1'];
+        $bind = [];
+
+        if (!empty($filters['entity'])) {
+            $where[] = 'entity = :entity';
+            $bind['entity'] = $filters['entity'];
+        }
+        if (!empty($filters['user'])) {
+            $where[] = 'user = :user';
+            $bind['user'] = $filters['user'];
+        }
+        if (!empty($filters['action'])) {
+            $where[] = 'action = :action';
+            $bind['action'] = $filters['action'];
+        }
+        if (!empty($filters['from'])) {
+            $where[] = 'created_at >= :from';
+            $bind['from'] = $filters['from'] . (strlen($filters['from']) === 10 ? ' 00:00:00' : '');
+        }
+        if (!empty($filters['to'])) {
+            $where[] = 'created_at <= :to';
+            $bind['to'] = $filters['to'] . (strlen($filters['to']) === 10 ? ' 23:59:59' : '');
+        }
+
+        $limit = isset($filters['limit']) ? (int)$filters['limit'] : 1000;
+        $offset = isset($filters['offset']) ? (int)$filters['offset'] : 0;
+
+        $sql = 'SELECT * FROM activity_log WHERE ' . implode(' AND ', $where)
+            . ' ORDER BY created_at DESC LIMIT :limit OFFSET :offset';
+        $stmt = $this->pdo->prepare($sql);
+        foreach ($bind as $k => $v) {
+            $stmt->bindValue(':' . $k, $v);
+        }
+        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+        $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+        $stmt->execute();
+
+        return $stmt->fetchAll();
+    }
+
     public function findByEntity(string $entity, int $limit = 100): array
     {
         $stmt = $this->pdo->prepare(

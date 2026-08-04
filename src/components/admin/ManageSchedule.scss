@@ -79,7 +79,15 @@
       gap: var(--spacing-sm);
 
       .activity-item__delete {
-        justify-self: end;
+        justify-self: stretch;
+        width: 100%;
+        min-height: var(--touch-target-min);
+      }
+
+      input,
+      select {
+        font-size: 16px;
+        min-height: var(--touch-target-min);
       }
     }
   }

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useRequireAdmin } from '../../hooks/useRequireAdmin';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
@@ -19,11 +19,26 @@ import ConfirmDialog from './ConfirmDialog';
 import AdvancedFilters from './AdvancedFilters';
 import PageHeader from '../ui/PageHeader';
 import { EmptyStateGuided } from './guided';
+import LoadMoreButton from '../ui/LoadMoreButton';
 import { activityLogApi } from '../../services/apiService';
+import { parseLocalDate, startOfLocalDay, endOfLocalDay } from '../../utils/dateFormat';
+import { textIncludes } from '../../utils/textSearch';
 import { LoadingState } from '../PageStates';
 import './ActivityLog.scss';
 
-const getActionIcon = (action) => { 
+const PAGE_SIZE = 50;
+
+const DEFAULT_FILTERS = {
+  search: '',
+  entity: '',
+  action: '',
+  dateFrom: '',
+  dateTo: '',
+  sortBy: 'date',
+  sortOrder: 'desc',
+};
+
+const getActionIcon = (action) => {
   const icons = {
     create: faPlus,
     update: faEdit,
@@ -38,27 +53,29 @@ const getActionIcon = (action) => {
 const getActionLabel = (action) => humanizeAction(action) || action;
 const getEntityLabel = (entity) => humanizeEntity(entity) || entity;
 
+const formatLogTimestamp = (value) => {
+  const dt = parseLocalDate(value);
+  return dt ? dt.toLocaleString('fr-FR') : '';
+};
+
 const ActivityLog = () => {
   const adminOk = useRequireAdmin();
   const { notifySuccess, notifyError } = useAdminNotify('activity-log');
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [filters, setFilters] = useState({
-    search: '',
-    entity: '',
-    action: '',
-    dateFrom: '',
-    dateTo: '',
-    sortBy: 'date',
-    sortOrder: 'desc'
-  });
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+  const [filters, setFilters] = useState({ ...DEFAULT_FILTERS });
 
   useEffect(() => {
     if (!adminOk) return;
     loadLogs();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [adminOk, filters]);
+  }, [adminOk, filters.entity, filters.action, filters.dateFrom, filters.dateTo]);
+
+  useEffect(() => {
+    setVisibleCount(PAGE_SIZE);
+  }, [filters]);
 
   const loadLogs = async () => {
     setLoading(true);
@@ -68,8 +85,8 @@ const ActivityLog = () => {
       if (filters.action) params.action = filters.action;
       if (filters.dateFrom) params.from = filters.dateFrom;
       if (filters.dateTo) params.to = filters.dateTo;
-      if (filters.search) params.limit = 1000; // Plus de résultats si recherche
-      
+      if (filters.search) params.limit = 1000;
+
       const items = await activityLogApi.list(params);
       setLogs(items);
     } catch (err) {
@@ -80,15 +97,14 @@ const ActivityLog = () => {
     }
   };
 
-  const filteredLogs = React.useMemo(() => {
+  const filteredLogs = useMemo(() => {
     let filtered = [...logs];
 
     if (filters.search) {
-      const searchLower = filters.search.toLowerCase();
-      filtered = filtered.filter(log =>
-        log.user?.toLowerCase().includes(searchLower) ||
-        log.entity?.toLowerCase().includes(searchLower) ||
-        log.description?.toLowerCase().includes(searchLower)
+      filtered = filtered.filter((log) =>
+        textIncludes(log.user, filters.search) ||
+        textIncludes(log.entity, filters.search) ||
+        textIncludes(log.description, filters.search)
       );
     }
 
@@ -101,31 +117,40 @@ const ActivityLog = () => {
     }
 
     if (filters.dateFrom) {
-      filtered = filtered.filter(log => {
-        const logDate = new Date(log.timestamp);
-        return logDate >= new Date(filters.dateFrom);
-      });
+      const from = startOfLocalDay(filters.dateFrom);
+      if (from) {
+        filtered = filtered.filter((log) => {
+          const logDate = parseLocalDate(log.timestamp);
+          return logDate && logDate >= from;
+        });
+      }
     }
 
     if (filters.dateTo) {
-      filtered = filtered.filter(log => {
-        const logDate = new Date(log.timestamp);
-        const toDate = new Date(filters.dateTo);
-        toDate.setHours(23, 59, 59);
-        return logDate <= toDate;
-      });
+      const to = endOfLocalDay(filters.dateTo);
+      if (to) {
+        filtered = filtered.filter((log) => {
+          const logDate = parseLocalDate(log.timestamp);
+          return logDate && logDate <= to;
+        });
+      }
     }
 
     filtered.sort((a, b) => {
-      const aDate = new Date(a.timestamp);
-      const bDate = new Date(b.timestamp);
-      return filters.sortOrder === 'asc' 
-        ? aDate - bDate 
-        : bDate - aDate;
+      const aDate = parseLocalDate(a.timestamp)?.getTime() ?? 0;
+      const bDate = parseLocalDate(b.timestamp)?.getTime() ?? 0;
+      return filters.sortOrder === 'asc' ? aDate - bDate : bDate - aDate;
     });
 
     return filtered;
   }, [logs, filters]);
+
+  const displayedLogs = filteredLogs.slice(0, visibleCount);
+  const hasMore = visibleCount < filteredLogs.length;
+
+  const resetFilters = () => {
+    setFilters({ ...DEFAULT_FILTERS });
+  };
 
   const clearLogs = async () => {
     try {
@@ -148,6 +173,9 @@ const ActivityLog = () => {
   }
 
   const entities = [...new Set(logs.map(log => log.entity))];
+  const hasActiveFilters = Boolean(
+    filters.search || filters.entity || filters.action || filters.dateFrom || filters.dateTo
+  );
 
   if (loading) {
     return (
@@ -191,37 +219,48 @@ const ActivityLog = () => {
               ? 'Les actions effectuées sur le site apparaîtront ici au fil du temps.'
               : 'Essayez d\'élargir vos filtres pour retrouver des entrées.'
           }
+          actionLabel={logs.length > 0 && hasActiveFilters ? 'Réinitialiser les filtres' : undefined}
+          onAction={logs.length > 0 && hasActiveFilters ? resetFilters : undefined}
         />
       ) : (
-        <div className="logs-list">
-          {filteredLogs.map((log, index) => (
-            <div
-              key={log.id || index}
-              className="log-item"
-            >
-              <div className="log-icon">
-                <FontAwesomeIcon icon={getActionIcon(log.action)} />
-              </div>
-              <div className="log-content">
-                <div className="log-header">
-                  <span className="log-action">{getActionLabel(log.action)}</span>
-                  <span className="log-entity">{getEntityLabel(log.entity)}</span>
+        <>
+          <div className="logs-list">
+            {displayedLogs.map((log, index) => (
+              <div
+                key={log.id || index}
+                className="log-item"
+              >
+                <div className="log-icon">
+                  <FontAwesomeIcon icon={getActionIcon(log.action)} />
                 </div>
-                <p className="log-description">{log.description || 'Action effectuée'}</p>
-                <div className="log-meta">
-                  <span className="log-user">
-                    <FontAwesomeIcon icon={faUser} />
-                    {log.user || 'Admin'}
-                  </span>
-                  <span className="log-time">
-                    <FontAwesomeIcon icon={faClock} />
-                    {new Date(log.timestamp).toLocaleString('fr-FR')}
-                  </span>
+                <div className="log-content">
+                  <div className="log-header">
+                    <span className="log-action">{getActionLabel(log.action)}</span>
+                    <span className="log-entity">{getEntityLabel(log.entity)}</span>
+                  </div>
+                  <p className="log-description">{log.description || 'Action effectuée'}</p>
+                  <div className="log-meta">
+                    <span className="log-user">
+                      <FontAwesomeIcon icon={faUser} />
+                      {log.user || 'Admin'}
+                    </span>
+                    <span className="log-time">
+                      <FontAwesomeIcon icon={faClock} />
+                      {formatLogTimestamp(log.timestamp)}
+                    </span>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+          <LoadMoreButton
+            hasMore={hasMore}
+            loading={false}
+            onClick={() => setVisibleCount((n) => n + PAGE_SIZE)}
+            loadedCount={displayedLogs.length}
+            total={filteredLogs.length}
+          />
+        </>
       )}
 
       <ConfirmDialog
@@ -239,4 +278,3 @@ const ActivityLog = () => {
 
 
 export default ActivityLog;
-

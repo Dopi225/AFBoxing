@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { settingsApi } from '../services/apiService';
 
 const CACHE_KEY = 'afboxing_settings_v1';
-const CACHE_TTL_MS = 5 * 60 * 1000;
+const CACHE_TTL_MS = 60 * 1000; // 1 min — évite un footer périmé trop longtemps après un save admin
 
 const readCache = () => {
   try {
@@ -20,6 +20,15 @@ const readCache = () => {
 const writeCache = (data) => {
   try {
     sessionStorage.setItem(CACHE_KEY, JSON.stringify({ t: Date.now(), data }));
+  } catch {
+    /* ignore */
+  }
+};
+
+/** Invalide le cache public (à appeler après sauvegarde admin des paramètres). */
+export const invalidateSettingsCache = () => {
+  try {
+    sessionStorage.removeItem(CACHE_KEY);
   } catch {
     /* ignore */
   }
@@ -86,4 +95,3 @@ export const useSettings = () => {
 
   return { settings, loading };
 };
-

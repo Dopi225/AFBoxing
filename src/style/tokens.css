@@ -163,9 +163,9 @@
 
   /* Hauteurs UI */
   --navbar-height: 70px;
-  --btn-height-sm: 36px;
-  --btn-height-md: 44px;
-  --btn-height-lg: 52px;
+  --btn-height-sm: 44px;
+  --btn-height-md: 48px;
+  --btn-height-lg: 56px;
   --input-height: 44px;
   --touch-target-min: 44px;
 

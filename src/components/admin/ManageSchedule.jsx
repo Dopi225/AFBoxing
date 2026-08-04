@@ -210,7 +210,7 @@ const ManageSchedule = () => {
               type="button"
               className="btn btn-primary"
               onClick={() => setShowSaveConfirm(true)}
-              disabled={saving || !enabledActivities.length}
+              disabled={saving || !hasChanges}
             >
               <FontAwesomeIcon icon={faSave} aria-hidden />
               {saving ? 'Enregistrement…' : 'Enregistrer le planning'}
@@ -313,7 +313,7 @@ const ManageSchedule = () => {
         onClose={() => setShowSaveConfirm(false)}
         onConfirm={saveSchedule}
         title="Enregistrer le planning ?"
-        message="Le planning affiché sur la page Horaires du site sera mis à jour."
+        message="Le planning affiché sur la page Horaires du site sera remplacé entièrement. Si un autre administrateur a modifié le planning entre-temps, ses changements seront écrasés."
         consequences={['Les visiteurs verront les nouveaux créneaux immédiatement.']}
         confirmText="Enregistrer"
       />

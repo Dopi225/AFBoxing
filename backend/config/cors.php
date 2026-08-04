@@ -29,30 +29,47 @@ if (!function_exists('afboxing_apply_cors')) {
                 // 'http://localhost:3000',
                 // 'http://127.0.0.1',
                 // 'http://127.0.0.1:5173',
-                'https://afboxing86.com',
+                'https://afboxingclub86.com',
             ];
         }
 
-        // En production, on refuse les requêtes sans origine valide
+        // En production, on refuse les requêtes sans origine valide (jamais de wildcard *)
         $isProduction = ($_ENV['APP_ENV'] ?? getenv('APP_ENV')) === 'production';
-        $corsStrict = ($_ENV['CORS_STRICT'] ?? getenv('CORS_STRICT')) === '1';
+        $corsStrict = ($_ENV['CORS_STRICT'] ?? getenv('CORS_STRICT')) === '1' || $isProduction;
+
+        // Refuse explicitement un wildcard configuré par erreur en production
+        if ($isProduction) {
+            $allowedOrigins = array_values(array_filter(
+                $allowedOrigins,
+                static fn (string $o): bool => $o !== '*' && $o !== ''
+            ));
+            if ($allowedOrigins === []) {
+                http_response_code(500);
+                header('Content-Type: application/json; charset=utf-8');
+                echo json_encode(['error' => 'CORS misconfigured'], JSON_UNESCAPED_UNICODE);
+                exit;
+            }
+        }
 
         if ($origin && in_array($origin, $allowedOrigins, true)) {
             header("Access-Control-Allow-Origin: {$origin}");
             header('Access-Control-Allow-Credentials: true');
-        } elseif (!$isProduction && !$corsStrict && $origin) {
-            // En développement (sans CORS_STRICT), on accepte l'origine si elle est fournie (mais pas *)
+            header('Vary: Origin');
+        } elseif (!$corsStrict && $origin) {
+            // Développement uniquement : accepte l'origine fournie (jamais *)
             header("Access-Control-Allow-Origin: {$origin}");
             header('Access-Control-Allow-Credentials: true');
-        } elseif (!$isProduction && !$corsStrict) {
-            // En développement uniquement, fallback sur * si pas d'origine
-            header('Access-Control-Allow-Origin: *');
-        } else {
-            // En production, on refuse si l'origine n'est pas autorisée
+            header('Vary: Origin');
+        } elseif (!$origin) {
+            // Same-origin / curl / healthchecks : pas d'Origin → pas de blocage
+            // (le navigateur n'envoie Origin que pour les requêtes cross-origin)
+        } elseif ($corsStrict) {
             http_response_code(403);
             header('Content-Type: application/json; charset=utf-8');
             echo json_encode(['error' => 'Origin not allowed'], JSON_UNESCAPED_UNICODE);
             exit;
+        } else {
+            header('Access-Control-Allow-Origin: *');
         }
 
         header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');

@@ -8,6 +8,8 @@ use AFBoxing\Models\User;
 
 class UserController extends BaseController
 {
+    use LogsActivity;
+
     private const ALLOWED_ROLES = ['admin', 'editor'];
 
     private User $users;
@@ -54,9 +56,10 @@ class UserController extends BaseController
             return;
         }
 
-        $hash = password_hash($password, PASSWORD_DEFAULT);
+        $hash = password_hash($password, PASSWORD_BCRYPT, ['cost' => 12]);
         $id = $this->users->create($username, $hash, $role);
         $row = $this->users->findByIdSafe($id);
+        $this->logActivity($params, 'create', 'user', 'Compte « ' . $username . ' » créé (' . $role . ')');
         $this->json($row, 201);
     }
 
@@ -114,10 +117,11 @@ class UserController extends BaseController
                 $this->json(['errors' => ['password' => 'Le mot de passe doit contenir au moins 8 caractères.']], 422);
                 return;
             }
-            $newPasswordHash = password_hash($pwd, PASSWORD_DEFAULT);
+            $newPasswordHash = password_hash($pwd, PASSWORD_BCRYPT, ['cost' => 12]);
         }
 
         $this->users->update($id, $newUsername, $newRole, $newPasswordHash);
+        $this->logActivity($params, 'update', 'user', 'Compte « ' . $newUsername . ' » modifié');
         $this->json($this->users->findByIdSafe($id));
     }
 
@@ -147,6 +151,7 @@ class UserController extends BaseController
         }
 
         $this->users->delete($id);
+        $this->logActivity($params, 'delete', 'user', 'Compte « ' . ($target['username'] ?? $id) . ' » supprimé');
         http_response_code(204);
     }
 

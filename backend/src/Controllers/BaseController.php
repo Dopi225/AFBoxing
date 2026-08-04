@@ -75,6 +75,16 @@ abstract class BaseController
     }
 
     /**
+     * Texte brut (contact, titres, etc.) : retire les balises HTML.
+     */
+    protected function sanitizePlainText(string $value, int $maxLength = 10000): string
+    {
+        $value = strip_tags($value);
+        $value = html_entity_decode($value, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        return $this->sanitizeString($value, $maxLength);
+    }
+
+    /**
      * Valide la longueur d'une chaîne.
      */
     protected function validateLength(string $value, int $min = 1, int $max = 10000): bool

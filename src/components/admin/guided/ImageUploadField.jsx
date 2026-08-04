@@ -1,10 +1,13 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faImage, faSpinner } from '@fortawesome/free-solid-svg-icons';
 import FormField from '../../ui/FormField';
 import HelpTip from './HelpTip';
 import { uploadApi } from '../../../services/apiService';
 import { useAdminNotify } from '../../../hooks/useAdminNotify';
+
+const ALLOWED_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif']);
+const MAX_BYTES = 5 * 1024 * 1024;
 
 export default function ImageUploadField({
   label = 'Photo',
@@ -19,20 +22,38 @@ export default function ImageUploadField({
   autoUpload = false,
 }) {
   const inputRef = useRef(null);
+  const objectUrlRef = useRef(null);
   const [uploading, setUploading] = useState(false);
   const { notifyError } = useAdminNotify('upload');
+
+  useEffect(() => () => {
+    if (objectUrlRef.current) {
+      URL.revokeObjectURL(objectUrlRef.current);
+      objectUrlRef.current = null;
+    }
+  }, []);
 
   const handleFile = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    if (!ALLOWED_TYPES.has(file.type)) {
+      notifyError('Format non accepté. Utilisez JPG, PNG, WebP ou GIF.');
+      e.target.value = '';
+      return;
+    }
+    if (file.size > MAX_BYTES) {
+      notifyError('Fichier trop volumineux (maximum 5 Mo).');
+      e.target.value = '';
+      return;
+    }
+
     onFileSelect?.(file);
 
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      onChange?.({ preview: ev.target.result, url: value });
-    };
-    reader.readAsDataURL(file);
+    if (objectUrlRef.current) {
+      URL.revokeObjectURL(objectUrlRef.current);
+      objectUrlRef.current = null;
+    }
 
     if (autoUpload) {
       setUploading(true);
@@ -45,7 +66,10 @@ export default function ImageUploadField({
         setUploading(false);
       }
     } else {
-      onChange?.({ preview: URL.createObjectURL(file), url: value, file });
+      const preview = URL.createObjectURL(file);
+      objectUrlRef.current = preview;
+      // Garder l’URL serveur existante dans `url` ; le preview blob ne doit pas devenir la valeur persistée.
+      onChange?.({ preview, url: value, file });
     }
   };
 
@@ -79,7 +103,7 @@ export default function ImageUploadField({
           onChange={handleFile}
         />
         <HelpTip
-          text={help || 'Formats acceptés : JPG, PNG. Taille conseillée : moins de 2 Mo.'}
+          text={help || 'Formats acceptés : JPG, PNG, WebP, GIF. Taille max. : 5 Mo.'}
           example={example}
         />
         {preview ? (

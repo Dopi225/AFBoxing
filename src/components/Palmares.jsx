@@ -4,6 +4,7 @@ import { faTrophy, faMedal, faCalendarAlt, faMapMarkerAlt, faUsers, faEnvelope, 
 import { OptimizedMotion, CardMotion } from './OptimizedMotion';
 import { useNavigate } from 'react-router-dom';
 import { palmaresApi } from '../services/apiService';
+import { formatDateFR, parseLocalDate } from '../utils/dateFormat';
 import SectionHeader from './SectionHeader';
 import { EmptyState, ErrorState, InlineLoading } from './PageStates';
 import '../style/Palmares.scss';
@@ -32,7 +33,7 @@ const Palmares = () => {
         setAchievements(
           list
             .slice()
-            .sort((a, b) => new Date(b.date) - new Date(a.date))
+            .sort((a, b) => (parseLocalDate(b.date)?.getTime() || 0) - (parseLocalDate(a.date)?.getTime() || 0))
         );
       } catch (err) {
         setError(err.message || 'Impossible de charger les palmarès.');
@@ -117,7 +118,7 @@ const Palmares = () => {
                   <div className="achievement-info">
                     <div className="info-item">
                       <FontAwesomeIcon icon={faCalendarAlt} />
-                      <span>{new Date(achievement.date).toLocaleDateString('fr-FR')}</span>
+                      <span>{formatDateFR(achievement.date)}</span>
                     </div>
                     <div className="info-item">
                       <FontAwesomeIcon icon={faMapMarkerAlt} />

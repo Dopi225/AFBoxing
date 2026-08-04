@@ -110,6 +110,24 @@ class UploadController extends BaseController
             return;
         }
 
+        // Cohérence MIME réel (finfo) ↔ type détecté par getimagesize
+        $imageType = $dims[2] ?? null;
+        $expectedTypes = [
+            'image/jpeg' => [IMAGETYPE_JPEG],
+            'image/png' => [IMAGETYPE_PNG],
+            'image/webp' => [IMAGETYPE_WEBP],
+            'image/gif' => [IMAGETYPE_GIF],
+        ];
+        $okTypes = $expectedTypes[$mime] ?? [];
+        if ($okTypes === [] || !in_array($imageType, $okTypes, true)) {
+            @unlink($destination);
+            $this->jsonError('UPLOAD_MIME_MISMATCH', 'Le contenu du fichier ne correspond pas à une image autorisée', 422);
+            return;
+        }
+
+        // Permissions fichier : lecture seule pour le serveur web (pas d'exécution)
+        @chmod($destination, 0644);
+
         $scriptDir = rtrim(dirname($_SERVER['SCRIPT_NAME'] ?? ''), '/');
         $folder = basename($folder);
         $urlPath = $scriptDir . '/uploads/' . $folder . '/' . $filename;

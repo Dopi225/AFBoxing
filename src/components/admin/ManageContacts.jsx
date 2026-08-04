@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useRequireAdmin } from '../../hooks/useRequireAdmin';
 import { useEntityTrash } from '../../hooks/useEntityTrash';
@@ -19,13 +19,21 @@ import { contactsApi } from '../../services/apiService';
 import { useAdminNotify } from '../../hooks/useAdminNotify';
 import { formatRelativeDate, CONTACT_REPLY_TEMPLATES, NAV_ITEMS } from '../../constants/adminCopy';
 import { logActivity } from '../../utils/activityLogger';
+import { parseLocalDate } from '../../utils/dateFormat';
+import { toUserMessage } from '../../utils/userFacingError';
 import ConfirmDialog from './ConfirmDialog';
 import TrashPanel, { TrashTabs } from './TrashPanel';
 import PageHeader from '../ui/PageHeader';
 import { TextArea } from '../ui/FormField';
+import LoadMoreButton from '../ui/LoadMoreButton';
 import { EmptyStateGuided, HighlightableCard } from './guided';
 import { adminBreadcrumbs } from '../../utils/adminBreadcrumbs';
 import './ManageContacts.scss';
+
+const formatDateTimeFR = (value) => {
+  const dt = parseLocalDate(value);
+  return dt ? dt.toLocaleString('fr-FR') : '';
+};
 
 const mapContact = (c) => ({
   ...c,
@@ -41,6 +49,10 @@ const ManageContacts = () => {
   const [searchParams] = useSearchParams();
   const { notifySuccess, notifyError } = useAdminNotify('contacts');
   const [contacts, setContacts] = useState([]);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [selectedContact, setSelectedContact] = useState(null);
   const initialFilter =
     searchParams.get('filter') === 'unread'
@@ -59,6 +71,7 @@ const ManageContacts = () => {
   const [replyBody, setReplyBody] = useState('');
   const [replyError, setReplyError] = useState('');
   const [sendingReply, setSendingReply] = useState(false);
+  const replyIdempotencyRef = useRef(null);
 
   const draftKey = selectedContact
     ? `afboxing_draft_contact_reply_${selectedContact.id}`
@@ -75,29 +88,42 @@ const ManageContacts = () => {
     }
   );
 
-  const loadContacts = useCallback(async () => {
-    setLoading(true);
+  const sortContacts = (items) =>
+    [...items].sort(
+      (a, b) =>
+        (parseLocalDate(b.date)?.getTime() ?? 0) - (parseLocalDate(a.date)?.getTime() ?? 0)
+    );
+
+  const loadContacts = useCallback(async (opts = {}) => {
+    const nextPage = opts.page ?? 1;
+    const append = Boolean(opts.append);
+    if (append) setLoadingMore(true);
+    else setLoading(true);
     setError('');
     try {
-      const data = await contactsApi.list();
-      const mapped = (Array.isArray(data) ? data : [])
-        .map(mapContact)
-        .sort((a, b) => new Date(b.date) - new Date(a.date));
-      setContacts(mapped);
+      const raw = await contactsApi.list({ page: nextPage, per_page: 50, withMeta: true });
+      const items = (Array.isArray(raw?.data) ? raw.data : (Array.isArray(raw) ? raw : []))
+        .map(mapContact);
+      const meta = raw?.meta || {};
+      setContacts((prev) => sortContacts(append ? [...prev, ...items] : items));
+      setPage(meta.page || nextPage);
+      setTotalPages(meta.total_pages || 1);
+      setTotalItems(meta.total ?? items.length);
       setSelectedContact((prev) => {
         if (!prev) return prev;
-        const refreshed = mapped.find((c) => c.id === prev.id);
+        const refreshed = items.find((c) => c.id === prev.id);
         return refreshed || prev;
       });
     } catch (err) {
-      setError(err.message || 'Impossible de charger les messages.');
+      setError(toUserMessage(err, 'Impossible de charger les messages.'));
     } finally {
       setLoading(false);
+      setLoadingMore(false);
     }
   }, []);
 
   const trash = useEntityTrash(contactsApi, {
-    onReload: loadContacts,
+    onReload: () => loadContacts({ page: 1 }),
     notifySuccess,
     notifyError,
     entityLabel: 'Message',
@@ -105,7 +131,7 @@ const ManageContacts = () => {
 
   useEffect(() => {
     if (!adminOk) return;
-    loadContacts();
+    loadContacts({ page: 1 });
   }, [adminOk, loadContacts]);
 
   useEffect(() => {
@@ -131,7 +157,7 @@ const ManageContacts = () => {
   const handleSelectContact = (contact) => {
     setSelectedContact(contact);
     if (!contact.read) {
-      contactsApi.markAsRead(contact.id).then(() => loadContacts()).catch(() => {});
+      contactsApi.markAsRead(contact.id).then(() => loadContacts({ page: 1 })).catch(() => {});
     }
   };
 
@@ -139,7 +165,7 @@ const ManageContacts = () => {
     try {
       await contactsApi.markAsRead(id);
       notifySuccess('Message marqué comme lu.');
-      loadContacts();
+      loadContacts({ page: 1 });
     } catch (err) {
       notifyError(err, 'Impossible de marquer le message comme lu.');
     }
@@ -155,7 +181,7 @@ const ManageContacts = () => {
     try {
       await contactsApi.remove(deleteTarget.id);
       notifySuccess('Message déplacé en corbeille.');
-      loadContacts();
+      loadContacts({ page: 1 });
       if (selectedContact?.id === deleteTarget.id) {
         setSelectedContact(null);
       }
@@ -173,7 +199,7 @@ const ManageContacts = () => {
   };
 
   const handleSendReply = async () => {
-    if (!selectedContact) return;
+    if (!selectedContact || sendingReply) return;
     const trimmed = replyBody.trim();
     if (trimmed.length < 10) {
       setReplyError('Écrivez au moins quelques mots avant d\'envoyer (10 caractères minimum).');
@@ -181,8 +207,17 @@ const ManageContacts = () => {
     }
     setReplyError('');
     setSendingReply(true);
+    if (!replyIdempotencyRef.current) {
+      replyIdempotencyRef.current =
+        typeof crypto !== 'undefined' && crypto.randomUUID
+          ? crypto.randomUUID()
+          : `reply-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+    }
     try {
-      const result = await contactsApi.reply(selectedContact.id, { body: trimmed });
+      const result = await contactsApi.reply(selectedContact.id, {
+        body: trimmed,
+        idempotencyKey: replyIdempotencyRef.current,
+      });
       const updated = result?.contact ? mapContact(result.contact) : null;
       logActivity(
         'create',
@@ -195,9 +230,14 @@ const ManageContacts = () => {
       clearDraft();
       setReplyBody('');
       setShowReplyForm(false);
-      await loadContacts();
+      replyIdempotencyRef.current = null;
+      await loadContacts({ page: 1 });
       if (updated) setSelectedContact(updated);
     } catch (err) {
+      // Nouvelle clé seulement si l'échec n'est pas un doublon / en cours
+      if (err.status !== 409 && err.status !== 429) {
+        replyIdempotencyRef.current = null;
+      }
       notifyError(
         err,
         'L\'email n\'a pas pu être envoyé. Vérifiez l\'adresse du contact ou réessayez plus tard.'
@@ -294,23 +334,26 @@ const ManageContacts = () => {
             )}
             {error && !loading && (
               <div className="admin-state--error" role="alert">
-                {error}
+                <p>{error}</p>
+                <button type="button" className="btn btn-secondary" onClick={() => loadContacts({ page: 1 })}>
+                  Réessayer
+                </button>
               </div>
             )}
             {!loading && !error && (
               <>
                 {filteredContacts.length === 0 ? (
-                  contacts.length === 0 ? (
-                    <EmptyStateGuided
-                      icon={faEnvelope}
-                      title="Aucun message"
-                      message="Les visiteurs du site peuvent vous écrire via le formulaire de contact. Les messages apparaîtront ici."
-                    />
-                  ) : (
-                    <div className="admin-state--empty">
-                      <p>Aucun message dans cette catégorie.</p>
-                    </div>
-                  )
+                  <EmptyStateGuided
+                    icon={faEnvelope}
+                    title={contacts.length === 0 ? 'Aucun message' : 'Aucun message dans cette catégorie'}
+                    message={contacts.length === 0
+                      ? 'Les visiteurs du site peuvent vous écrire via le formulaire de contact. Les messages apparaîtront ici.'
+                      : 'Aucun message ne correspond à ce filtre parmi les éléments chargés.'}
+                    actionLabel={contacts.length === 0 ? 'Voir le formulaire de contact' : undefined}
+                    onAction={contacts.length === 0
+                      ? () => window.open('/contact', '_blank', 'noopener,noreferrer')
+                      : undefined}
+                  />
                 ) : (
                   filteredContacts.map((contact) => {
                     const badge = statusBadge(contact);
@@ -336,6 +379,13 @@ const ManageContacts = () => {
                     );
                   })
                 )}
+                <LoadMoreButton
+                  hasMore={page < totalPages}
+                  loading={loadingMore}
+                  loadedCount={contacts.length}
+                  total={totalItems}
+                  onClick={() => loadContacts({ page: page + 1, append: true })}
+                />
               </>
             )}
           </div>
@@ -401,7 +451,7 @@ const ManageContacts = () => {
                   <FontAwesomeIcon icon={faCalendarAlt} />
                   <div>
                     <label>Date</label>
-                    <p>{new Date(selectedContact.date).toLocaleString('fr-FR')}</p>
+                    <p>{formatDateTimeFR(selectedContact.date)}</p>
                   </div>
                 </div>
 
@@ -410,7 +460,7 @@ const ManageContacts = () => {
                     <header>
                       <strong>Message reçu</strong>
                       <time dateTime={selectedContact.date}>
-                        {new Date(selectedContact.date).toLocaleString('fr-FR')}
+                        {formatDateTimeFR(selectedContact.date)}
                       </time>
                     </header>
                     <p>{selectedContact.message}</p>
@@ -421,9 +471,7 @@ const ManageContacts = () => {
                       <header>
                         <strong>Réponse envoyée</strong>
                         <time dateTime={reply.createdAt}>
-                          {reply.createdAt
-                            ? new Date(reply.createdAt).toLocaleString('fr-FR')
-                            : ''}
+                          {reply.createdAt ? formatDateTimeFR(reply.createdAt) : ''}
                         </time>
                       </header>
                       <p className="thread-meta">

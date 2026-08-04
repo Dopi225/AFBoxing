@@ -17,44 +17,36 @@ class ActivityLogController extends BaseController
 
     public function index(array $params): void
     {
-        $limit = isset($params['limit']) ? (int)$params['limit'] : 1000;
-        $offset = isset($params['offset']) ? (int)$params['offset'] : 0;
-        $entity = $params['entity'] ?? null;
-        $user = $params['user'] ?? null;
-        $from = $params['from'] ?? null;
-        $to = $params['to'] ?? null;
-        
-        if ($entity) {
-            $items = $this->log->findByEntity($entity, $limit);
-        } elseif ($user) {
-            $items = $this->log->findByUser($user, $limit);
-        } elseif ($from && $to) {
-            $items = $this->log->findByDateRange($from, $to, $limit);
-        } else {
-            $items = $this->log->all($limit, $offset);
-        }
-        
-        $this->json($items);
+        $limit = isset($params['limit']) ? min(2000, max(1, (int)$params['limit'])) : 1000;
+        $offset = isset($params['offset']) ? max(0, (int)$params['offset']) : 0;
+        $entity = isset($params['entity']) && $params['entity'] !== '' ? (string)$params['entity'] : null;
+        $user = isset($params['user']) && $params['user'] !== '' ? (string)$params['user'] : null;
+        $action = isset($params['action']) && $params['action'] !== '' ? (string)$params['action'] : null;
+        $from = isset($params['from']) && $params['from'] !== '' ? (string)$params['from'] : null;
+        $to = isset($params['to']) && $params['to'] !== '' ? (string)$params['to'] : null;
+
+        $items = $this->log->search([
+            'entity' => $entity,
+            'user' => $user,
+            'action' => $action,
+            'from' => $from,
+            'to' => $to,
+            'limit' => $limit,
+            'offset' => $offset,
+        ]);
+
+        $this->json(array_map([$this, 'formatLog'], $items));
     }
 
     public function store(array $params): void
     {
-        $data = $params['_body'] ?? [];
-        
-        $required = ['action', 'entity', 'user'];
-        $errors = $this->validateRequired($data, $required);
-        
-        if (!empty($errors)) {
-            $this->json(['errors' => $errors], 422);
-            return;
-        }
-
-        try {
-            $item = $this->log->create($data);
-            $this->json($item, 201);
-        } catch (\Exception $e) {
-            $this->json(['error' => 'Erreur lors de l\'enregistrement'], 500);
-        }
+        // Les logs métier sont écrits uniquement côté serveur (LogsActivity).
+        // On refuse les POST clients pour éviter des entrées falsifiées.
+        $this->jsonError(
+            'METHOD_NOT_ALLOWED',
+            'L\'historique est écrit automatiquement par le serveur. Cet endpoint n\'accepte plus d\'écriture client.',
+            405
+        );
     }
 
     public function clear(array $params): void
@@ -71,5 +63,20 @@ class ActivityLogController extends BaseController
         $count = $this->log->count();
         $this->json(['count' => $count]);
     }
-}
 
+    /**
+     * @param array<string,mixed> $row
+     * @return array<string,mixed>
+     */
+    private function formatLog(array $row): array
+    {
+        if (isset($row['metadata']) && is_string($row['metadata'])) {
+            $row['metadata'] = json_decode($row['metadata'], true);
+        }
+        // Alias attendu par le frontend
+        if (!isset($row['timestamp']) && isset($row['created_at'])) {
+            $row['timestamp'] = $row['created_at'];
+        }
+        return $row;
+    }
+}

@@ -1,5 +1,7 @@
 /** Automatisation côté front — valeurs déduites avant envoi API */
 
+export { todayISO } from './dateFormat';
+
 export function slugify(text) {
   if (!text || typeof text !== 'string') return '';
   return text
@@ -10,10 +12,6 @@ export function slugify(text) {
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '')
     .slice(0, 60);
-}
-
-export function todayISO() {
-  return new Date().toISOString().split('T')[0];
 }
 
 export function generateActivityId(title, existingIds = []) {

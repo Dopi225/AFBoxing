@@ -11,6 +11,7 @@ const envApiBaseUrl = (import.meta.env.VITE_API_BASE_URL || '').trim().replace(/
 const API_BASE_URL = (import.meta.env.PROD && envApiBaseUrl ? envApiBaseUrl : DEFAULT_BASE_URL).replace(/\/$/, '');
 
 const TOKEN_STORAGE_KEY = 'afboxing_token';
+const TOKEN_EXPIRES_KEY = 'afboxing_token_expires_at';
 
 const getToken = () => {
   const raw = localStorage.getItem(TOKEN_STORAGE_KEY);
@@ -26,16 +27,47 @@ const getToken = () => {
   return token;
 };
 
-const setToken = (token) => {
+const setToken = (token, expiresAt = null) => {
     // On ne stocke jamais des valeurs "vides" : on supprime la clé.
     if (!token || token === 'null' || token === 'undefined') {
       localStorage.removeItem(TOKEN_STORAGE_KEY);
+      localStorage.removeItem(TOKEN_EXPIRES_KEY);
       return;
     }
     localStorage.setItem(TOKEN_STORAGE_KEY, String(token));
+    if (expiresAt != null) {
+      const ms = typeof expiresAt === 'number'
+        ? (expiresAt < 1e12 ? expiresAt * 1000 : expiresAt)
+        : Date.parse(expiresAt);
+      if (!Number.isNaN(ms)) {
+        localStorage.setItem(TOKEN_EXPIRES_KEY, String(ms));
+      }
+    }
 };
 const removeToken = () => {
   localStorage.removeItem(TOKEN_STORAGE_KEY);
+  localStorage.removeItem(TOKEN_EXPIRES_KEY);
+};
+
+export const getTokenExpiresAt = () => {
+  const raw = localStorage.getItem(TOKEN_EXPIRES_KEY);
+  if (!raw) return null;
+  const n = Number(raw);
+  return Number.isFinite(n) ? n : null;
+};
+
+export const clearSession = () => {
+  removeToken();
+};
+
+export { getToken };
+
+const emitAuthExpired = (reason = 'unauthorized') => {
+  try {
+    window.dispatchEvent(new CustomEvent('afboxing:auth-expired', { detail: { reason } }));
+  } catch {
+    /* ignore */
+  }
 };
 
 const buildHeaders = (isJson = true, withAuth = true) => {
@@ -61,7 +93,11 @@ const handleResponse = async (response) => {
     // pas de corps JSON
   }
 
-  if (!response.ok) {
+  // 207 Multi-Status : succès partiel (ex. ancien bulk planning) — traité comme erreur si errors présents
+  const isPartialFailure =
+    response.status === 207 && data && typeof data === 'object' && data.errors;
+
+  if (!response.ok || isPartialFailure) {
     // Gestion spécifique des codes d'erreur (chaîne legacy ou objet { code, message })
     let message = 'Une erreur est survenue';
     if (data?.error != null) {
@@ -78,17 +114,23 @@ const handleResponse = async (response) => {
       // Déconnexion automatique en cas d'erreur 401
       removeToken();
       message = 'Session expirée. Veuillez vous reconnecter.';
+      emitAuthExpired('unauthorized');
     } else if (response.status === 429) {
       if (message === 'Une erreur est survenue') {
         message = 'Trop de tentatives. Veuillez réessayer dans quelques instants.';
       }
-    } else if (response.status === 422) {
-      // Erreurs de validation
+    } else if (response.status === 422 || response.status === 207) {
+      // Erreurs de validation (ou multi-status partiel)
       if (data?.errors) {
         const errorMessages = Object.entries(data.errors)
-          .map(([field, msg]) => `${field}: ${msg}`)
+          .map(([field, msg]) => {
+            if (msg && typeof msg === 'object') {
+              return `${field}: ${Object.values(msg).join(', ')}`;
+            }
+            return `${field}: ${msg}`;
+          })
           .join('\n');
-        message = errorMessages;
+        message = errorMessages || message;
       }
     } else if (response.status >= 500) {
       message = 'Erreur serveur. Veuillez réessayer plus tard.';
@@ -166,7 +208,7 @@ export const authApi = {
 
     // Évite l'erreur "can't access property 'token', r is null"
     if (data && data.token) {
-      setToken(data.token);
+      setToken(data.token, data.expires_at ?? data.expiresAt ?? null);
     }
 
     return data;
@@ -204,7 +246,7 @@ export const newsApi = {
   /** @param {{ page?: number, per_page?: number, withMeta?: boolean }} [opts] */
   list: async (opts = {}) => {
     const page = opts.page ?? 1;
-    const perPage = opts.per_page ?? 500;
+    const perPage = opts.per_page ?? (opts.withMeta ? 50 : 500);
     const q = new URLSearchParams({ page: String(page), per_page: String(perPage) });
     const cacheKey = `news|${q.toString()}|m${opts.withMeta ? '1' : '0'}`;
     return takeCachedPublicList(cacheKey, async () => {
@@ -341,11 +383,24 @@ export const scheduleApi = {
 };
 
 export const galleryApi = {
-  list: async () =>
-    takeCachedPublicList('gallery', async () => {
-      const res = await fetch(`${API_BASE_URL}/api/gallery`);
-      return handleResponse(res);
-    }),
+  /** @param {{ page?: number, per_page?: number, withMeta?: boolean }} [opts] */
+  list: async (opts = {}) => {
+    const page = opts.page ?? 1;
+    const perPage = opts.per_page ?? (opts.withMeta ? 48 : 200);
+    const q = new URLSearchParams({ page: String(page), per_page: String(perPage) });
+    const cacheKey = `gallery|${q.toString()}|m${opts.withMeta ? '1' : '0'}`;
+    return takeCachedPublicList(cacheKey, async () => {
+      const res = await fetch(`${API_BASE_URL}/api/gallery?${q}`);
+      const raw = await handleResponse(res);
+      if (opts.withMeta && raw && typeof raw === 'object' && Array.isArray(raw.data)) {
+        return raw;
+      }
+      if (raw && typeof raw === 'object' && Array.isArray(raw.data)) {
+        return raw.data;
+      }
+      return Array.isArray(raw) ? raw : [];
+    });
+  },
   create: async (payload) => {
     const res = await fetch(`${API_BASE_URL}/api/gallery`, {
       method: 'POST',
@@ -391,11 +446,21 @@ export const contactsApi = {
     });
     return handleResponse(res);
   },
-  list: async () => {
-    const res = await fetch(`${API_BASE_URL}/api/contacts`, {
+  list: async (opts = {}) => {
+    const page = opts.page ?? 1;
+    const perPage = opts.per_page ?? 50;
+    const q = new URLSearchParams({ page: String(page), per_page: String(perPage) });
+    const res = await fetch(`${API_BASE_URL}/api/contacts?${q}`, {
       headers: buildHeaders()
     });
-    return handleResponse(res);
+    const raw = await handleResponse(res);
+    if (opts.withMeta && raw && typeof raw === 'object' && Array.isArray(raw.data)) {
+      return raw;
+    }
+    if (raw && typeof raw === 'object' && Array.isArray(raw.data)) {
+      return raw.data;
+    }
+    return Array.isArray(raw) ? raw : [];
   },
   markAsRead: async (id) => {
     const res = await fetch(`${API_BASE_URL}/api/contacts/${id}/read`, {
@@ -682,11 +747,13 @@ export const pricingApi = {
     });
     return handleResponse(res);
   },
-  update: async (pricings) => {
+  update: async (pricings, seasonId = null) => {
+    const body = { pricings };
+    if (seasonId != null) body.seasonId = seasonId;
     const res = await fetch(`${API_BASE_URL}/api/pricing`, {
       method: 'POST',
       headers: buildHeaders(),
-      body: JSON.stringify({ pricings })
+      body: JSON.stringify(body)
     });
     return handleResponse(res);
   },
@@ -750,6 +817,13 @@ export const seasonsApi = {
   setCurrent: async (id) => {
     const res = await fetch(`${API_BASE_URL}/api/seasons/${id}/set-current`, {
       method: 'POST',
+      headers: buildHeaders()
+    });
+    return handleResponse(res);
+  },
+  remove: async (id) => {
+    const res = await fetch(`${API_BASE_URL}/api/seasons/${id}`, {
+      method: 'DELETE',
       headers: buildHeaders()
     });
     return handleResponse(res);

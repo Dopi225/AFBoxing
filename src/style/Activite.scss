@@ -60,7 +60,7 @@
 
   .activities-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 350px), 1fr));
     gap: var(--spacing-xl);
 
     @media (max-width: 768px) {
@@ -176,7 +176,7 @@
 
     .schedule-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr));
       gap: var(--spacing-lg);
       margin-bottom: var(--spacing-xl);
 
@@ -221,7 +221,7 @@
 
   .cta-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
     gap: var(--spacing-xl);
 
     .cta-card {

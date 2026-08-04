@@ -14,6 +14,7 @@ import '../style/Footer.scss';
 import { prefetchPublicRoute } from '../utils/routePrefetch';
 import { PARTNERS } from '../data/partners';
 import AdminStaffShortcut from './AdminStaffShortcut';
+import { safeHttpUrl } from '../utils/formValidation';
 
 const Footer = () => {
   const { settings } = useSettings();
@@ -21,6 +22,8 @@ const Footer = () => {
   const [showNav, setShowNav] = useState(false);
   const [showContact, setShowContact] = useState(false);
   const [showPartners, setShowPartners] = useState(false);
+  const facebookUrl = safeHttpUrl(settings.social.facebook);
+  const instagramUrl = safeHttpUrl(settings.social.instagram);
 
   const isMobile = typeof window !== "undefined" && window.innerWidth < 778;
 
@@ -141,9 +144,9 @@ const Footer = () => {
         >
           <p className="footer-col-heading">Suivez-nous</p>
           <div className="social-icons">
-            {settings.social.facebook && (
+            {facebookUrl && (
               <a
-                href={settings.social.facebook}
+                href={facebookUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="Facebook — AF Boxing Club 86"
@@ -151,9 +154,9 @@ const Footer = () => {
                 <FontAwesomeIcon icon={faFacebookF} aria-hidden />
               </a>
             )}
-            {settings.social.instagram && (
+            {instagramUrl && (
               <a
-                href={settings.social.instagram}
+                href={instagramUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="Instagram — AF Boxing Club 86"

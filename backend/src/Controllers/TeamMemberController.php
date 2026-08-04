@@ -9,6 +9,7 @@ use AFBoxing\Models\TeamMember;
 class TeamMemberController extends BaseController
 {
     use TrashActions;
+    use LogsActivity;
 
     private const ALLOWED_CATEGORIES = ['coaches', 'board', 'volunteers'];
 
@@ -45,6 +46,7 @@ class TeamMemberController extends BaseController
         }
 
         $item = $this->teamMembers->create($this->sanitizeTeamMember($data));
+        $this->logActivity($params, 'create', 'team_member', 'Membre « ' . ($item['fullName'] ?? '') . ' » ajouté à l\'équipe');
         $this->json($item, 201);
     }
 
@@ -69,6 +71,9 @@ class TeamMemberController extends BaseController
                 'enabled' => (bool)$data['enabled'],
             ]);
             $item = $this->teamMembers->update($id, $merged);
+            $label = $existing['fullName'] ?? '';
+            $state = !empty($data['enabled']) ? 'affiché' : 'masqué';
+            $this->logActivity($params, 'update', 'team_member', 'Membre « ' . $label . ' » ' . $state);
             $this->json($item ?? []);
             return;
         }
@@ -79,18 +84,22 @@ class TeamMemberController extends BaseController
             return;
         }
 
-        $item = $this->teamMembers->update($id, $this->sanitizeTeamMember($data, $existing));
+        $sanitized = $this->sanitizeTeamMember($data, $existing);
+        $item = $this->teamMembers->update($id, $sanitized);
+        $this->logActivity($params, 'update', 'team_member', 'Membre « ' . ($sanitized['fullName'] ?? '') . ' » modifié');
         $this->json($item ?? []);
     }
 
     public function destroy(array $params): void
     {
         $id = (int)($params['id'] ?? 0);
-        if (!$this->teamMembers->find($id)) {
+        $existing = $this->teamMembers->find($id);
+        if (!$existing) {
             $this->json(['error' => 'Membre introuvable'], 404);
             return;
         }
         $this->teamMembers->delete($id);
+        $this->logActivity($params, 'delete', 'team_member', 'Membre déplacé en corbeille : ' . ($existing['fullName'] ?? ''));
         $this->json(['message' => 'Membre déplacé en corbeille (30 jours).']);
     }
 
@@ -102,7 +111,12 @@ class TeamMemberController extends BaseController
     public function restore(array $params): void
     {
         $id = (int)($params['id'] ?? 0);
-        $this->restoreItem($this->teamMembers, $id);
+        if (!$this->teamMembers->restore($id)) {
+            $this->jsonError('NOT_FOUND', 'Élément introuvable dans la corbeille.', 404);
+            return;
+        }
+        $this->logActivity($params, 'restore', 'team_member', 'Membre restauré (id ' . $id . ')');
+        $this->json(['message' => 'Élément restauré.', 'item' => $this->teamMembers->find($id)]);
     }
 
     public function move(array $params): void
@@ -134,6 +148,7 @@ class TeamMemberController extends BaseController
             return;
         }
 
+        $this->logActivity($params, 'update', 'team_member', 'Ordre d\'affichage mis à jour');
         $this->json([
             'message' => 'Ordre d\'affichage mis à jour.',
             'item' => $result['moved'],
@@ -162,9 +177,7 @@ class TeamMemberController extends BaseController
         if (empty($errors['category']) && isset($data['category'])) {
             $category = (string)$data['category'];
             if (!in_array($category, self::ALLOWED_CATEGORIES, true)) {
-                if (!$this->validateLength($category, 2, 100)) {
-                    $errors['category'] = 'La catégorie doit contenir entre 2 et 100 caractères.';
-                }
+                $errors['category'] = 'Catégorie invalide. Valeurs autorisées : coaches, board, volunteers.';
             }
         }
 
@@ -185,17 +198,17 @@ class TeamMemberController extends BaseController
     private function sanitizeTeamMember(array $data, ?array $existing = null): array
     {
         return [
-            'fullName' => $this->sanitizeString((string)$data['fullName'], 255),
-            'role' => $this->sanitizeString((string)$data['role'], 255),
-            'category' => $this->sanitizeString((string)$data['category'], 100),
+            'fullName' => $this->sanitizePlainText((string)$data['fullName'], 255),
+            'role' => $this->sanitizePlainText((string)$data['role'], 255),
+            'category' => $this->sanitizePlainText((string)$data['category'], 100),
             'bio' => isset($data['bio']) && $data['bio'] !== ''
-                ? $this->sanitizeString((string)$data['bio'], 2000)
+                ? $this->sanitizePlainText((string)$data['bio'], 2000)
                 : null,
             'photo' => isset($data['photo']) && $data['photo'] !== ''
                 ? $this->sanitizeString((string)$data['photo'], 500)
                 : null,
             'certifications' => isset($data['certifications']) && $data['certifications'] !== ''
-                ? $this->sanitizeString((string)$data['certifications'], 2000)
+                ? $this->sanitizePlainText((string)$data['certifications'], 2000)
                 : null,
             'displayOrder' => isset($data['displayOrder'])
                 ? (int)$data['displayOrder']

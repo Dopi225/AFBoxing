@@ -251,6 +251,11 @@
 
 @media (max-width: 768px) {
   .manage-team {
+    .team-card__identity {
+      min-width: 0;
+      width: 100%;
+    }
+
     .team-card__actions {
       width: 100%;
       justify-content: stretch;
@@ -260,6 +265,7 @@
       .btn-delete {
         flex: 1 1 auto;
         justify-content: center;
+        min-height: var(--touch-target-min);
       }
     }
 
@@ -270,7 +276,12 @@
 
       .btn-order {
         flex: 1;
+        min-height: var(--touch-target-min);
       }
+    }
+
+    .category-filter {
+      min-height: var(--touch-target-min);
     }
   }
 }

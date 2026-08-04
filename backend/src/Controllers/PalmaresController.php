@@ -9,6 +9,7 @@ use AFBoxing\Models\Palmares;
 class PalmaresController extends BaseController
 {
     use TrashActions;
+    use LogsActivity;
 
     private Palmares $palmares;
 
@@ -68,6 +69,7 @@ class PalmaresController extends BaseController
         ];
 
         $item = $this->palmares->create($sanitized);
+        $this->logActivity($params, 'create', 'palmares', 'Palmarès « ' . $sanitized['title'] . ' » créé');
         $this->json($item, 201);
     }
 
@@ -123,13 +125,20 @@ class PalmaresController extends BaseController
         ];
 
         $item = $this->palmares->update($id, $sanitized);
+        $this->logActivity($params, 'update', 'palmares', 'Palmarès « ' . $sanitized['title'] . ' » modifié');
         $this->json($item ?? []);
     }
 
     public function destroy(array $params): void
     {
         $id = (int)($params['id'] ?? 0);
+        $existing = $this->palmares->find($id);
+        if (!$existing) {
+            $this->json(['error' => 'Palmarès introuvable'], 404);
+            return;
+        }
         $this->palmares->delete($id);
+        $this->logActivity($params, 'delete', 'palmares', 'Palmarès déplacé en corbeille : ' . ($existing['title'] ?? ''));
         $this->json(['message' => 'Palmarès déplacé en corbeille (30 jours).']);
     }
 
@@ -141,7 +150,12 @@ class PalmaresController extends BaseController
     public function restore(array $params): void
     {
         $id = (int)($params['id'] ?? 0);
-        $this->restoreItem($this->palmares, $id);
+        if (!$this->palmares->restore($id)) {
+            $this->jsonError('NOT_FOUND', 'Élément introuvable dans la corbeille.', 404);
+            return;
+        }
+        $this->logActivity($params, 'restore', 'palmares', 'Palmarès restauré (id ' . $id . ')');
+        $this->json(['message' => 'Élément restauré.', 'item' => $this->palmares->find($id)]);
     }
 }
 

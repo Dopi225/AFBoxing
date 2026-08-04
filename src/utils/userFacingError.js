@@ -5,9 +5,15 @@ const TECHNICAL_PATTERNS = [
   /json attendu/i,
   /\/api\//i,
   /unexpected token/i,
-  /failed to fetch/i,
-  /networkerror/i,
 ];
+
+function isNetworkFailure(err, raw) {
+  if (typeof navigator !== 'undefined' && navigator.onLine === false) return true;
+  if (err?.name === 'TypeError' && /fetch|network|load failed/i.test(raw)) return true;
+  return /failed to fetch|networkerror|load failed|network request failed|err_internet|err_connection/i.test(
+    raw
+  );
+}
 
 /**
  * Convertit une erreur API/réseau en message compréhensible pour le grand public.
@@ -18,6 +24,10 @@ export function toUserMessage(err, fallback = 'Une erreur est survenue. Réessay
 
   const status = err.status ?? err.response?.status;
   const raw = typeof err === 'string' ? err : err.message || '';
+
+  if (isNetworkFailure(err, raw)) {
+    return 'Connexion interrompue. Vérifiez votre réseau puis réessayez — vos saisies sont conservées.';
+  }
 
   if (status === 401) {
     return 'Session expirée. Veuillez vous reconnecter.';

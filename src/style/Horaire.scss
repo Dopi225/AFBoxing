@@ -407,7 +407,8 @@
     background: var(--surface-elevated);
     border-radius: 18px;
     box-shadow: var(--shadow-md);
-    overflow: hidden;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
     border: 1px solid rgba(0, 0, 0, 0.06);
     margin-bottom: var(--spacing-xl);
   }
@@ -494,7 +495,7 @@
 
     .info-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
       gap: var(--spacing-xl);
 
       .info-card {
