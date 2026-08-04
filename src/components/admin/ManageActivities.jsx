@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faPlus,
@@ -9,12 +9,16 @@ import {
   faGraduationCap,
 } from '@fortawesome/free-solid-svg-icons';
 import { useAdminNotify } from '../../hooks/useAdminNotify';
+import { useFormDraft } from '../../hooks/useFormDraft';
+import { useEntityTrash } from '../../hooks/useEntityTrash';
+import { validateRequired } from '../../utils/formValidation';
 import { prepareActivityPayload } from '../../utils/adminAutoFill';
 import { ACTIVITY_KIND_LABELS, NAV_ITEMS } from '../../constants/adminCopy';
 import { adminBreadcrumbs } from '../../utils/adminBreadcrumbs';
 import { activitiesApi, pricingApi } from '../../services/apiService';
 import { logActivity } from '../../utils/activityLogger';
 import ConfirmDialog from './ConfirmDialog';
+import TrashPanel, { TrashTabs } from './TrashPanel';
 import Modal from '../ui/Modal';
 import PageHeader from '../ui/PageHeader';
 import { TextInput, TextArea, SelectField } from '../ui/FormField';
@@ -28,6 +32,8 @@ import {
 } from './guided';
 import HelpTip from './guided/HelpTip';
 import './ManageActivities.scss';
+
+const DRAFT_KEY = 'afboxing_draft_activities';
 
 const CATEGORIES = {
   boxing: { label: ACTIVITY_KIND_LABELS.boxing, icon: faFistRaised },
@@ -66,18 +72,17 @@ const ManageActivities = () => {
   const [previewActivity, setPreviewActivity] = useState(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState(null);
+  const [showToggleConfirm, setShowToggleConfirm] = useState(false);
+  const [toggleTarget, setToggleTarget] = useState(null);
+  const [fieldErrors, setFieldErrors] = useState({});
+  const formBaselineRef = useRef(emptyForm());
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [pricingCatalog, setPricingCatalog] = useState([]);
   const [filterKind, setFilterKind] = useState('all');
   const [formData, setFormData] = useState(emptyForm());
 
-  useEffect(() => {
-    loadActivities();
-    pricingApi.catalog().then((rows) => setPricingCatalog(Array.isArray(rows) ? rows : [])).catch(() => {});
-  }, []);
-
-  const loadActivities = async () => {
+  const loadActivities = useCallback(async () => {
     setLoading(true);
     try {
       setActivities(await activitiesApi.list());
@@ -86,6 +91,39 @@ const ManageActivities = () => {
     } finally {
       setLoading(false);
     }
+  }, [notifyError]);
+
+  const trash = useEntityTrash(activitiesApi, {
+    onReload: loadActivities,
+    notifySuccess,
+    notifyError,
+    entityLabel: 'Activité',
+  });
+
+  useEffect(() => {
+    loadActivities();
+    pricingApi.catalog().then((rows) => setPricingCatalog(Array.isArray(rows) ? rows : [])).catch(() => {});
+  }, [loadActivities]);
+
+  const isDirty = showModal && JSON.stringify(formData) !== JSON.stringify(formBaselineRef.current);
+
+  const { clearDraft } = useFormDraft(DRAFT_KEY, formData, {
+    enabled: showModal && !editingActivity && isDirty,
+    onRestore: (data) => {
+      setFormData({ ...emptyForm(), ...data, meta: { ...emptyForm().meta, ...(data.meta || {}) } });
+    },
+  });
+
+  const validateField = (name, value, label) => {
+    const err = validateRequired(value, label);
+    setFieldErrors((prev) => ({ ...prev, [name]: err }));
+    return err;
+  };
+
+  const getBlockedMessage = (step) => {
+    if (step === 1 && !formData.title?.trim()) return 'Remplissez le nom de l\'activité pour continuer.';
+    if (step === 2 && !formData.subtitle?.trim()) return 'Remplissez la description courte pour continuer.';
+    return '';
   };
 
   const pricingOptions = useMemo(
@@ -105,19 +143,31 @@ const ManageActivities = () => {
 
   const handleAddNew = () => {
     setEditingActivity(null);
-    setFormData(emptyForm());
+    const empty = emptyForm();
+    setFormData(empty);
+    formBaselineRef.current = empty;
+    setFieldErrors({});
     setShowModal(true);
   };
 
   const handleEdit = (activity) => {
     setEditingActivity(activity);
-    setFormData({
+    const normalized = {
       ...emptyForm(),
       ...activity,
       meta: { ...emptyForm().meta, ...activity.meta },
       sections: normalizeSectionsForEditor(activity.sections),
-    });
+    };
+    setFormData(normalized);
+    formBaselineRef.current = normalized;
+    setFieldErrors({});
     setShowModal(true);
+  };
+
+  const handleCloseModal = () => {
+    setShowModal(false);
+    setEditingActivity(null);
+    setFieldErrors({});
   };
 
   const handleSubmit = async () => {
@@ -150,8 +200,8 @@ const ManageActivities = () => {
         notifySuccess(`Activité « ${payload.title} » créée.`);
       }
       await loadActivities();
-      setShowModal(false);
-      setEditingActivity(null);
+      clearDraft();
+      handleCloseModal();
       setFormData(emptyForm());
     } catch (err) {
       notifyError(err, 'Impossible d\'enregistrer cette activité.');
@@ -160,14 +210,22 @@ const ManageActivities = () => {
     }
   };
 
-  const toggleActivity = async (activity) => {
+  const handleToggleClick = (activity) => {
+    setToggleTarget(activity);
+    setShowToggleConfirm(true);
+  };
+
+  const confirmToggle = async () => {
+    if (!toggleTarget) return;
     try {
-      const updated = { ...activity, enabled: !activity.enabled };
-      await activitiesApi.update(activity.id, updated);
+      const updated = { ...toggleTarget, enabled: !toggleTarget.enabled };
+      await activitiesApi.update(toggleTarget.id, updated);
       notifySuccess(updated.enabled ? 'Activité visible sur le site.' : 'Activité masquée du site.');
       await loadActivities();
     } catch (err) {
       notifyError(err, 'Impossible de modifier la visibilité.');
+    } finally {
+      setToggleTarget(null);
     }
   };
 
@@ -175,8 +233,8 @@ const ManageActivities = () => {
     if (!deleteTarget) return;
     try {
       await activitiesApi.remove(deleteTarget.id);
-      logActivity('delete', 'activity', `Activité supprimée : ${deleteTarget.title}`);
-      notifySuccess('Activité supprimée.');
+      logActivity('delete', 'activity', `Activité déplacée en corbeille : ${deleteTarget.title}`);
+      notifySuccess('Activité déplacée en corbeille.');
       await loadActivities();
     } catch (err) {
       notifyError(err, 'Impossible de supprimer cette activité.');
@@ -210,6 +268,8 @@ const ManageActivities = () => {
             name="act-title"
             value={formData.title}
             onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+            onBlur={() => validateField('title', formData.title, 'Le nom de l\'activité')}
+            error={fieldErrors.title}
             required
             example="Boxe éducative"
           />
@@ -222,11 +282,10 @@ const ManageActivities = () => {
       content: (
         <>
           <TextInput
-            label="Accroche"
+            label="Phrase sous le titre (facultatif)"
             name="act-eyebrow"
             value={formData.eyebrow}
             onChange={(e) => setFormData({ ...formData, eyebrow: e.target.value })}
-            optionalLabel="(facultatif)"
             help="Courte phrase sous le titre."
             example="8–17 ans • Technique • Valeurs"
           />
@@ -235,6 +294,8 @@ const ManageActivities = () => {
             name="act-subtitle"
             value={formData.subtitle}
             onChange={(e) => setFormData({ ...formData, subtitle: e.target.value })}
+            onBlur={() => validateField('subtitle', formData.subtitle, 'La description courte')}
+            error={fieldErrors.subtitle}
             rows={3}
             required
             help="Résumé visible sur la liste des activités."
@@ -318,6 +379,15 @@ const ManageActivities = () => {
 
       <HelpTip text="Avant de remplir le planning, créez d'abord vos activités ici." />
 
+      <TrashTabs
+        view={trash.view}
+        onViewChange={trash.setView}
+        activeCount={activities.length}
+        trashCount={trash.trashItems.length}
+      />
+
+      {trash.view === 'active' ? (
+        <>
       <div className="category-filters">
         <button type="button" className={`category-filter ${filterKind === 'all' ? 'active' : ''}`} onClick={() => setFilterKind('all')}>
           Toutes ({activities.length})
@@ -367,7 +437,7 @@ const ManageActivities = () => {
                     <button type="button" className="btn-edit" onClick={() => handleEdit(activity)}>
                       <FontAwesomeIcon icon={faEdit} aria-hidden /> Modifier
                     </button>
-                    <button type="button" className="btn-edit" onClick={() => toggleActivity(activity)}>
+                    <button type="button" className="btn-edit" onClick={() => handleToggleClick(activity)}>
                       {activity.enabled !== false ? 'Masquer' : 'Afficher'}
                     </button>
                     <button type="button" className="btn-delete" onClick={() => { setDeleteTarget(activity); setShowDeleteConfirm(true); }}>
@@ -380,15 +450,28 @@ const ManageActivities = () => {
           })
         )}
       </div>
+        </>
+      ) : (
+        <TrashPanel
+          items={trash.trashItems}
+          loading={trash.trashLoading}
+          emptyMessage="Aucune activité en corbeille."
+          getItemLabel={(item) => item.title || `#${item.id}`}
+          onRestore={trash.restoreItem}
+          restoringId={trash.restoringId}
+        />
+      )}
 
       <WizardModal
         isOpen={showModal}
-        onClose={() => { setShowModal(false); setEditingActivity(null); }}
+        onClose={handleCloseModal}
         title={editingActivity ? 'Modifier l\'activité' : 'Ajouter une activité'}
         steps={wizardSteps}
         onComplete={handleSubmit}
         isEdit={!!editingActivity}
         canProceed={canProceed}
+        getBlockedMessage={getBlockedMessage}
+        isDirty={isDirty}
         completing={saving}
         size="xl"
       />
@@ -417,14 +500,32 @@ const ManageActivities = () => {
       </Modal>
 
       <ConfirmDialog
+        isOpen={showToggleConfirm}
+        onClose={() => { setShowToggleConfirm(false); setToggleTarget(null); }}
+        onConfirm={confirmToggle}
+        title={toggleTarget?.enabled !== false ? 'Masquer cette activité ?' : 'Afficher cette activité ?'}
+        itemLabel={toggleTarget?.title}
+        consequences={
+          toggleTarget?.enabled !== false
+            ? [
+                'L\'activité ne sera plus visible sur le site public.',
+                'Elle reste modifiable et pourra être réaffichée.',
+              ]
+            : ['L\'activité sera de nouveau visible sur le site public.']
+        }
+        confirmText={toggleTarget?.enabled !== false ? 'Masquer' : 'Afficher'}
+      />
+
+      <ConfirmDialog
         isOpen={showDeleteConfirm}
         onClose={() => { setShowDeleteConfirm(false); setDeleteTarget(null); }}
         onConfirm={confirmDelete}
         title="Supprimer cette activité ?"
         itemLabel={deleteTarget?.title}
         consequences={[
-          'L\'activité disparaîtra du site et du planning.',
-          'Les créneaux horaires liés devront être mis à jour.',
+          'L\'activité sera déplacée en corbeille pendant 30 jours.',
+          'Elle disparaîtra du site et du planning pendant ce délai.',
+          'Vous pourrez la restaurer depuis la corbeille.',
         ]}
         type="danger"
         confirmText="Supprimer"

@@ -5,15 +5,19 @@ import { faFacebookF, faInstagram } from '@fortawesome/free-brands-svg-icons';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useSettings } from '../hooks/useSettings';
-import image2 from '../assets/logo-removeb.png';
+import logoLight from '../assets/logo-removeb.png';
+import logoDark from '../assets/logo-dark.png';
+import { useTheme } from '../context/ThemeContext';
 import ThemeToggle from './ThemeToggle';
 import './ThemeToggle.scss';
 import '../style/Footer.scss';
 import { prefetchPublicRoute } from '../utils/routePrefetch';
 import { PARTNERS } from '../data/partners';
+import AdminStaffShortcut from './AdminStaffShortcut';
 
 const Footer = () => {
   const { settings } = useSettings();
+  const { dark } = useTheme();
   const [showNav, setShowNav] = useState(false);
   const [showContact, setShowContact] = useState(false);
   const [showPartners, setShowPartners] = useState(false);
@@ -31,7 +35,7 @@ const Footer = () => {
           viewport={{ once: true }}
         >
           <Link to="/" className="logo footer-logo-link" aria-label="Retour à l’accueil">
-            <img src={image2} alt="" width={500} height={500} loading="lazy" decoding="async" />
+            <img src={dark ? logoDark : logoLight} alt="" width={500} height={500} loading="lazy" decoding="async" />
           </Link>
           <p>Boxer pour mieux vivre ensemble à Poitiers.</p>
           <ThemeToggle />
@@ -162,7 +166,9 @@ const Footer = () => {
       </div>
 
       <div className="footer-bottom">
-        <p>© {new Date().getFullYear()} AF Boxing Club 86 – Tous droits réservés</p>
+        <p>
+          © {new Date().getFullYear()} AF Boxing Club 86 – <AdminStaffShortcut />
+        </p>
       </div>
     </footer>
   );

@@ -3,6 +3,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlus, faTrash, faListUl, faAlignLeft } from '@fortawesome/free-solid-svg-icons';
 import { TextInput, TextArea } from '../../ui/FormField';
 import HelpTip from './HelpTip';
+import { useBlockDeleteConfirm } from '../TrashPanel';
 
 const emptyBlock = () => ({
   title: '',
@@ -12,6 +13,7 @@ const emptyBlock = () => ({
 });
 
 export default function ContentBlockEditor({ sections = [], onChange }) {
+  const { requestDelete, dialog } = useBlockDeleteConfirm();
   const updateSection = (index, patch) => {
     const next = sections.map((s, i) => (i === index ? { ...s, ...patch } : s));
     onChange(next);
@@ -22,7 +24,10 @@ export default function ContentBlockEditor({ sections = [], onChange }) {
   };
 
   const removeSection = (index) => {
-    onChange(sections.filter((_, i) => i !== index));
+    const title = sections[index]?.title?.trim() || `Bloc ${index + 1}`;
+    requestDelete(title, () => {
+      onChange(sections.filter((_, i) => i !== index));
+    });
   };
 
   const updateParagraph = (sIdx, pIdx, value) => {
@@ -138,6 +143,7 @@ export default function ContentBlockEditor({ sections = [], onChange }) {
       <button type="button" className="content-block-editor__add" onClick={addSection}>
         <FontAwesomeIcon icon={faPlus} /> Ajouter un bloc de contenu
       </button>
+      {dialog}
     </div>
   );
 }

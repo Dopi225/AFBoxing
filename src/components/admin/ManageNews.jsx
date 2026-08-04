@@ -1,11 +1,15 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlus, faEdit, faTrash, faCalendarAlt, faImage, faNewspaper } from '@fortawesome/free-solid-svg-icons';
 import { newsApi, uploadApi } from '../../services/apiService';
 import { useAdminNotify } from '../../hooks/useAdminNotify';
+import { useFormDraft } from '../../hooks/useFormDraft';
+import { useEntityTrash } from '../../hooks/useEntityTrash';
 import { todayISO } from '../../utils/adminAutoFill';
+import { validateRequired } from '../../utils/formValidation';
 import ConfirmDialog from './ConfirmDialog';
+import TrashPanel, { TrashTabs } from './TrashPanel';
 import { LoadingState, ErrorState } from '../PageStates';
 import PageHeader from '../ui/PageHeader';
 import { TextInput, TextArea } from '../ui/FormField';
@@ -14,6 +18,8 @@ import HelpTip from './guided/HelpTip';
 import { adminBreadcrumbs } from '../../utils/adminBreadcrumbs';
 import { NAV_ITEMS } from '../../constants/adminCopy';
 import './ManageNews.scss';
+
+const DRAFT_KEY = 'afboxing_draft_news';
 
 const ManageNews = () => {
   const { notifySuccess, notifyError } = useAdminNotify('news');
@@ -28,6 +34,7 @@ const ManageNews = () => {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [search, setSearch] = useState('');
+  const [fieldErrors, setFieldErrors] = useState({});
   const [formData, setFormData] = useState({
     title: '',
     date: todayISO(),
@@ -36,18 +43,16 @@ const ManageNews = () => {
     image: '',
   });
 
-  useEffect(() => {
-    loadNews();
+  const restoreDraft = useCallback((data) => {
+    setFormData((prev) => ({ ...prev, ...data }));
   }, []);
 
-  useEffect(() => {
-    if (searchParams.get('action') === 'add') {
-      handleAddNew();
-      setSearchParams({}, { replace: true });
-    }
-  }, [searchParams]);
+  const { clearDraft } = useFormDraft(DRAFT_KEY, formData, {
+    enabled: showModal && !editingNews,
+    onRestore: restoreDraft,
+  });
 
-  const loadNews = async () => {
+  const loadNews = useCallback(async () => {
     setLoading(true);
     setError('');
     try {
@@ -58,7 +63,27 @@ const ManageNews = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  const {
+    view,
+    setView,
+    trashItems,
+    trashLoading,
+    restoringId,
+    restoreItem,
+    loadTrash,
+  } = useEntityTrash(newsApi, {
+    onReload: loadNews,
+    notifySuccess,
+    notifyError,
+    entityLabel: 'Actualité',
+  });
+
+  useEffect(() => {
+    loadNews();
+    loadTrash();
+  }, [loadNews, loadTrash]);
 
   const filteredNews = useMemo(() => {
     let filtered = [...news].sort(
@@ -74,6 +99,17 @@ const ManageNews = () => {
     }
     return filtered;
   }, [news, search]);
+
+  useEffect(() => {
+    if (searchParams.get('action') === 'add') {
+      handleAddNew();
+      setSearchParams({}, { replace: true });
+    }
+  }, [searchParams]);
+
+  const blurField = (field, label) => (e) => {
+    setFieldErrors((prev) => ({ ...prev, [field]: validateRequired(e.target.value, label) }));
+  };
 
   const resetForm = () => ({
     title: '',
@@ -100,6 +136,7 @@ const ManageNews = () => {
         notifySuccess(`Actualité « ${payload.title} » publiée.`);
       }
       await loadNews();
+      clearDraft();
       handleCloseModal();
     } catch (err) {
       notifyError(err, 'Impossible d\'enregistrer l\'actualité. Vérifiez les champs et réessayez.');
@@ -130,8 +167,9 @@ const ManageNews = () => {
     if (!deleteTarget?.id) return;
     try {
       await newsApi.remove(deleteTarget.id);
-      notifySuccess('Actualité supprimée.');
+      notifySuccess('Actualité déplacée en corbeille (conservation 30 jours).');
       await loadNews();
+      loadTrash();
     } catch (err) {
       notifyError(err, 'Impossible de supprimer cette actualité.');
     } finally {
@@ -144,14 +182,36 @@ const ManageNews = () => {
     setEditingNews(null);
     setFormData(resetForm());
     setFile(null);
+    setFieldErrors({});
   };
 
   const handleAddNew = () => {
     setEditingNews(null);
     setFormData(resetForm());
     setFile(null);
+    setFieldErrors({});
     setShowModal(true);
   };
+
+  const getBlockedMessage = (step) => {
+    if (step === 1) {
+      if (!formData.title.trim()) return 'Indiquez le titre pour continuer.';
+      if (!formData.date) return 'Indiquez la date pour continuer.';
+    }
+    if (step === 2) {
+      if (!formData.summary.trim()) return 'Indiquez le résumé pour continuer.';
+      if (!formData.description.trim()) return 'Indiquez le texte complet pour continuer.';
+    }
+    return '';
+  };
+
+  const isFormDirty = Boolean(
+    formData.title.trim() ||
+    formData.summary.trim() ||
+    formData.description.trim() ||
+    formData.image ||
+    file
+  );
 
   const canProceed = (step) => {
     if (step === 1) return formData.title.trim() && formData.date;
@@ -170,6 +230,8 @@ const ManageNews = () => {
             name="news-title"
             value={formData.title}
             onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+            onBlur={blurField('title', 'Le titre')}
+            error={fieldErrors.title}
             required
             help="Ce titre apparaîtra en grand sur le site."
             example="Tournoi interclubs du 15 mars"
@@ -180,6 +242,8 @@ const ManageNews = () => {
             type="date"
             value={formData.date}
             onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+            onBlur={blurField('date', 'La date')}
+            error={fieldErrors.date}
             required
             help="La date de l'événement ou de la publication."
           />
@@ -196,6 +260,8 @@ const ManageNews = () => {
             name="news-summary"
             value={formData.summary}
             onChange={(e) => setFormData({ ...formData, summary: e.target.value })}
+            onBlur={blurField('summary', 'Le résumé')}
+            error={fieldErrors.summary}
             rows={2}
             required
             help="Une ou deux phrases visibles dans la liste des actualités."
@@ -206,6 +272,8 @@ const ManageNews = () => {
             name="news-description"
             value={formData.description}
             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+            onBlur={blurField('description', 'Le texte complet')}
+            error={fieldErrors.description}
             rows={5}
             required
             help="Le détail de l'actualité, visible quand on clique dessus."
@@ -245,6 +313,14 @@ const ManageNews = () => {
         }
       />
 
+      <TrashTabs
+        view={view}
+        onViewChange={setView}
+        activeCount={news.length}
+        trashCount={trashItems.length}
+      />
+
+      {view === 'active' ? (
       <div className="simple-filters">
         <label htmlFor="news-search" className="visually-hidden">Rechercher</label>
         <input
@@ -257,7 +333,23 @@ const ManageNews = () => {
         />
         <HelpTip text="Les actualités les plus récentes s'affichent en premier." />
       </div>
+      ) : null}
 
+      {view === 'trash' ? (
+        <TrashPanel
+          items={trashItems}
+          loading={trashLoading}
+          emptyMessage="Aucune actualité en corbeille."
+          getItemLabel={(item) => item.title}
+          getItemMeta={(item) =>
+            item.date
+              ? new Date(item.date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
+              : null
+          }
+          onRestore={restoreItem}
+          restoringId={restoringId}
+        />
+      ) : (
       <div className="news-list">
         {loading && <LoadingState label="Chargement des actualités…" />}
         {error && !loading && (
@@ -310,6 +402,7 @@ const ManageNews = () => {
           </HighlightableCard>
         ))}
       </div>
+      )}
 
       <WizardModal
         isOpen={showModal}
@@ -319,6 +412,8 @@ const ManageNews = () => {
         onComplete={handleSubmit}
         isEdit={!!editingNews}
         canProceed={canProceed}
+        getBlockedMessage={getBlockedMessage}
+        isDirty={isFormDirty}
         completing={uploading}
       />
 
@@ -333,7 +428,7 @@ const ManageNews = () => {
         itemLabel={deleteTarget?.title}
         consequences={[
           'L\'actualité disparaîtra du site public.',
-          'Cette action ne peut pas être annulée.',
+          'Elle restera en corbeille 30 jours et pourra être restaurée.',
         ]}
         type="danger"
         confirmText="Supprimer"

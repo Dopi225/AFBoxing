@@ -1,12 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useRequireAdmin } from '../../hooks/useRequireAdmin';
+import { useEntityTrash } from '../../hooks/useEntityTrash';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEnvelope, faTrash, faCheck, faUser, faPhone, faCalendarAlt } from '@fortawesome/free-solid-svg-icons';
 import { contactsApi } from '../../services/apiService';
 import { useAdminNotify } from '../../hooks/useAdminNotify';
 import { formatRelativeDate } from '../../constants/adminCopy';
 import ConfirmDialog from './ConfirmDialog';
+import TrashPanel, { TrashTabs } from './TrashPanel';
 import PageHeader from '../ui/PageHeader';
 import { EmptyStateGuided, HighlightableCard } from './guided';
 import { adminBreadcrumbs } from '../../utils/adminBreadcrumbs';
@@ -25,19 +27,7 @@ const ManageContacts = () => {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState(null);
 
-  useEffect(() => {
-    if (!adminOk) return;
-    loadContacts();
-  }, [adminOk]);
-
-  useEffect(() => {
-    const highlightId = searchParams.get('highlight');
-    if (!highlightId || !contacts.length) return;
-    const found = contacts.find((c) => String(c.id) === String(highlightId));
-    if (found) setSelectedContact(found);
-  }, [contacts, searchParams]);
-
-  const loadContacts = async () => {
+  const loadContacts = useCallback(async () => {
     setLoading(true);
     setError('');
     try {
@@ -57,6 +47,32 @@ const ManageContacts = () => {
     } finally {
       setLoading(false);
     }
+  }, []);
+
+  const trash = useEntityTrash(contactsApi, {
+    onReload: loadContacts,
+    notifySuccess,
+    notifyError,
+    entityLabel: 'Message',
+  });
+
+  useEffect(() => {
+    if (!adminOk) return;
+    loadContacts();
+  }, [adminOk, loadContacts]);
+
+  useEffect(() => {
+    const highlightId = searchParams.get('highlight');
+    if (!highlightId || !contacts.length) return;
+    const found = contacts.find((c) => String(c.id) === String(highlightId));
+    if (found) setSelectedContact(found);
+  }, [contacts, searchParams]);
+
+  const getContactLabel = (contact) => {
+    if (!contact) return undefined;
+    const name = contact.name || contact.username;
+    if (name && contact.email) return `${name} — ${contact.email}`;
+    return contact.message?.substring(0, 80);
   };
 
   const handleMarkAsRead = async (id) => {
@@ -69,18 +85,18 @@ const ManageContacts = () => {
     }
   };
 
-  const handleDelete = (id) => {
-    setDeleteTarget(id);
+  const handleDelete = (contact) => {
+    setDeleteTarget(contact);
     setShowDeleteConfirm(true);
   };
 
   const confirmDelete = async () => {
-    if (!deleteTarget) return;
+    if (!deleteTarget?.id) return;
     try {
-      await contactsApi.remove(deleteTarget);
-      notifySuccess('Message supprimé.');
+      await contactsApi.remove(deleteTarget.id);
+      notifySuccess('Message déplacé en corbeille.');
       loadContacts();
-      if (selectedContact?.id === deleteTarget) {
+      if (selectedContact?.id === deleteTarget.id) {
         setSelectedContact(null);
       }
     } catch (err) {
@@ -116,6 +132,7 @@ const ManageContacts = () => {
         subtitle="Messages envoyés via le formulaire de contact du site."
         breadcrumbs={adminBreadcrumbs(NAV_ITEMS.contacts)}
         actions={
+          trash.view === 'active' ? (
           <div className="filter-buttons">
             <button type="button" className={filter === 'all' ? 'active' : ''} onClick={() => setFilter('all')}>
               Tous ({contacts.length})
@@ -127,9 +144,28 @@ const ManageContacts = () => {
               Déjà lus ({contacts.length - unreadCount})
             </button>
           </div>
+          ) : null
         }
       />
 
+      <TrashTabs
+        view={trash.view}
+        onViewChange={trash.setView}
+        activeCount={contacts.length}
+        trashCount={trash.trashItems.length}
+      />
+
+      {trash.view === 'trash' ? (
+        <TrashPanel
+          items={trash.trashItems}
+          loading={trash.trashLoading}
+          emptyMessage="Aucun message en corbeille."
+          getItemLabel={getContactLabel}
+          getItemMeta={(item) => formatRelativeDate(item.created_at || item.date)}
+          onRestore={trash.restoreItem}
+          restoringId={trash.restoringId}
+        />
+      ) : (
       <div className="contacts-layout">
         <div className="contacts-list">
           {loading && (
@@ -199,7 +235,7 @@ const ManageContacts = () => {
                 )}
                 <button
                   className="btn-delete"
-                  onClick={() => handleDelete(selectedContact.id)}
+                  onClick={() => handleDelete(selectedContact)}
                 >
                   <FontAwesomeIcon icon={faTrash} />
                   Supprimer
@@ -252,6 +288,7 @@ const ManageContacts = () => {
           <p className="contact-detail-placeholder">Sélectionnez un message dans la liste pour le lire.</p>
         )}
       </div>
+      )}
 
       <ConfirmDialog
         isOpen={showDeleteConfirm}
@@ -261,9 +298,10 @@ const ManageContacts = () => {
         }}
         onConfirm={confirmDelete}
         title="Supprimer ce message ?"
+        itemLabel={getContactLabel(deleteTarget)}
         consequences={[
-          'Le message sera définitivement effacé.',
-          'Vous ne pourrez plus le consulter.',
+          'Le message sera déplacé en corbeille pendant 30 jours.',
+          'Vous pourrez le restaurer depuis la corbeille pendant ce délai.',
         ]}
         type="danger"
         confirmText="Supprimer"

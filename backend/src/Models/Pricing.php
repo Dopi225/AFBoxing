@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AFBoxing\Models;
 
+use AFBoxing\Core\SoftDelete;
 use PDO;
 
 class Pricing
@@ -14,8 +15,9 @@ class Pricing
 
     public function all(): array
     {
+        $nd = SoftDelete::notDeletedClause('p');
         $stmt = $this->pdo->query(
-            'SELECT * FROM pricing WHERE enabled = 1 ORDER BY category, price_key'
+            "SELECT p.* FROM pricing p WHERE p.enabled = 1 AND {$nd} ORDER BY p.category, p.price_key"
         );
         return $stmt->fetchAll();
     }
@@ -23,11 +25,13 @@ class Pricing
     /** Liste détaillée admin (jointure activité). */
     public function listDetailedForAdmin(): array
     {
+        $nd = SoftDelete::notDeletedClause('p');
         $stmt = $this->pdo->query(
-            'SELECT p.*, a.title AS activity_title
+            "SELECT p.*, a.title AS activity_title
              FROM pricing p
-             LEFT JOIN activities a ON a.id = p.activity_id
-             ORDER BY p.category, p.price_key'
+             LEFT JOIN activities a ON a.id = p.activity_id AND a.deleted_at IS NULL
+             WHERE {$nd}
+             ORDER BY p.category, p.price_key"
         );
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
@@ -35,17 +39,19 @@ class Pricing
     /** Liste plate pour les listes déroulantes admin (tous statuts). */
     public function catalogForAdmin(): array
     {
+        $nd = SoftDelete::notDeletedClause();
         $stmt = $this->pdo->query(
-            'SELECT price_key, label, category, amount, period, note, enabled, activity_id
-             FROM pricing ORDER BY category, price_key'
+            "SELECT price_key, label, category, amount, period, note, enabled, activity_id
+             FROM pricing WHERE {$nd} ORDER BY category, price_key"
         );
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
     public function findByCategory(string $category): array
     {
+        $nd = SoftDelete::notDeletedClause();
         $stmt = $this->pdo->prepare(
-            'SELECT * FROM pricing WHERE category = :category AND enabled = 1 ORDER BY price_key'
+            "SELECT * FROM pricing WHERE category = :category AND enabled = 1 AND {$nd} ORDER BY price_key"
         );
         $stmt->execute(['category' => $category]);
         return $stmt->fetchAll();
@@ -53,7 +59,8 @@ class Pricing
 
     public function findByKey(string $key): ?array
     {
-        $stmt = $this->pdo->prepare('SELECT * FROM pricing WHERE price_key = :key');
+        $nd = SoftDelete::notDeletedClause();
+        $stmt = $this->pdo->prepare("SELECT * FROM pricing WHERE price_key = :key AND {$nd}");
         $stmt->execute(['key' => $key]);
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
         return $row ?: null;
@@ -62,8 +69,9 @@ class Pricing
     /** Tarif exposé sur l’API publique GET /api/pricing/{key} (uniquement si activé). */
     public function findByKeyPublic(string $key): ?array
     {
+        $nd = SoftDelete::notDeletedClause();
         $stmt = $this->pdo->prepare(
-            'SELECT * FROM pricing WHERE price_key = :key AND enabled = 1'
+            "SELECT * FROM pricing WHERE price_key = :key AND enabled = 1 AND {$nd}"
         );
         $stmt->execute(['key' => $key]);
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -175,9 +183,19 @@ class Pricing
     public function delete(string $key): bool
     {
         $this->clearActivityMetaForPriceKey($key);
+        return SoftDelete::softDelete($this->pdo, 'pricing', 'price_key', $key);
+    }
 
-        $stmt = $this->pdo->prepare('DELETE FROM pricing WHERE price_key = :key');
-        return $stmt->execute(['key' => $key]);
+    public function trash(): array
+    {
+        $where = SoftDelete::inTrashClause();
+        $stmt = $this->pdo->query("SELECT * FROM pricing WHERE {$where} ORDER BY deleted_at DESC");
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function restore(string $key): bool
+    {
+        return SoftDelete::restore($this->pdo, 'pricing', 'price_key', $key);
     }
 
     public function bulkUpdate(array $pricings): bool

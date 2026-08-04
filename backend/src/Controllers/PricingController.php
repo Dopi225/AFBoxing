@@ -10,6 +10,8 @@ use Respect\Validation\Validator as v;
 
 class PricingController extends BaseController
 {
+    use TrashActions;
+
     private Pricing $pricing;
 
     private Activity $activity;
@@ -242,10 +244,21 @@ class PricingController extends BaseController
         }
 
         if ($this->pricing->delete($key)) {
-            $this->json(['message' => 'Tarif supprimé avec succès']);
+            $this->json(['message' => 'Tarif déplacé en corbeille (30 jours).']);
         } else {
             $this->json(['error' => 'Erreur lors de la suppression'], 500);
         }
+    }
+
+    public function trash(array $params): void
+    {
+        $this->trashList($this->pricing);
+    }
+
+    public function restore(array $params): void
+    {
+        $key = $params['key'] ?? '';
+        $this->restoreItem($this->pricing, $key, 'price_key');
     }
 }
 

@@ -8,6 +8,8 @@ use AFBoxing\Models\Palmares;
 
 class PalmaresController extends BaseController
 {
+    use TrashActions;
+
     private Palmares $palmares;
 
     public function __construct()
@@ -128,7 +130,18 @@ class PalmaresController extends BaseController
     {
         $id = (int)($params['id'] ?? 0);
         $this->palmares->delete($id);
-        $this->json(['message' => 'Palmarès supprimé.']);
+        $this->json(['message' => 'Palmarès déplacé en corbeille (30 jours).']);
+    }
+
+    public function trash(array $params): void
+    {
+        $this->trashList($this->palmares);
+    }
+
+    public function restore(array $params): void
+    {
+        $id = (int)($params['id'] ?? 0);
+        $this->restoreItem($this->palmares, $id);
     }
 }
 

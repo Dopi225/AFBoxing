@@ -14,7 +14,7 @@
         .search-icon {
           position: absolute;
           left: 1rem;
-          color: var(--text-muted, #888);
+          color: var(--text-muted);
           font-size: 1.1rem;
           z-index: 2;
         }
@@ -36,8 +36,8 @@
 
           &:focus {
             outline: none;
-            border-color: var(--primary-red, #e60000);
-            box-shadow: 0 0 0 3px rgba(230, 0, 0, 0.1);
+            border-color: var(--primary-red);
+            box-shadow: var(--focus-ring-shadow);
           }
         }
       }
@@ -54,7 +54,7 @@
 
         &:hover:not(:disabled) {
           transform: translateY(-2px);
-          box-shadow: 0 6px 18px rgba(230, 0, 0, 0.3);
+          box-shadow: var(--shadow-brand);
         }
 
         &:disabled {
@@ -69,7 +69,7 @@
     gap: 0.5rem;
     margin-bottom: 2rem;
     flex-wrap: wrap;
-    border-bottom: 2px solid var(--secondary-gray, #f3f3f3);
+    border-bottom: 2px solid var(--secondary-gray);
     padding-bottom: 0.5rem;
 
     .search-tab {
@@ -80,7 +80,7 @@
       cursor: pointer;
       font-size: 0.95rem;
       font-weight: 500;
-      color: var(--text-light, #555);
+      color: var(--text-light);
       transition: all var(--transition-normal, 0.2s ease);
       display: flex;
       align-items: center;
@@ -88,8 +88,8 @@
       position: relative;
 
       .tab-count {
-        background: var(--secondary-gray, #f3f3f3);
-        color: var(--text-dark, #111);
+        background: var(--secondary-gray);
+        color: var(--text-dark);
         padding: 0.2rem 0.5rem;
         border-radius: 12px;
         font-size: 0.8rem;
@@ -97,16 +97,16 @@
       }
 
       &:hover {
-        background: var(--secondary-gray, #f3f3f3);
-        color: var(--text-dark, #111);
+        background: var(--secondary-gray);
+        color: var(--text-dark);
       }
 
       &.active {
-        background: var(--primary-red, #e60000);
+        background: var(--primary-red);
         color: var(--text-on-dark);
 
         .tab-count {
-          background: rgba(255, 255, 255, 0.2);
+          background: color-mix(in srgb, var(--text-on-dark) 20%, transparent);
           color: var(--text-on-dark);
         }
       }
@@ -127,23 +127,23 @@
       cursor: pointer;
       transition: all var(--transition-normal, 0.2s ease);
       border: 2px solid transparent;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+      box-shadow: var(--shadow-1);
 
       &:hover {
-        border-color: var(--primary-red, #e60000);
+        border-color: var(--primary-red);
         transform: translateX(4px);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        box-shadow: var(--shadow-2);
       }
 
       .result-icon {
         width: 48px;
         height: 48px;
         border-radius: var(--border-radius-md, 12px);
-        background: var(--secondary-gray, #f3f3f3);
+        background: var(--secondary-gray);
         display: flex;
         align-items: center;
         justify-content: center;
-        color: var(--primary-red, #e60000);
+        color: var(--primary-red);
         font-size: 1.25rem;
         flex-shrink: 0;
       }
@@ -162,9 +162,9 @@
             font-size: 0.75rem;
             font-weight: 600;
             text-transform: uppercase;
-            color: var(--text-muted, #888);
+            color: var(--text-muted);
             padding: 0.25rem 0.5rem;
-            background: var(--secondary-gray, #f3f3f3);
+            background: var(--secondary-gray);
             border-radius: 6px;
           }
 
@@ -177,7 +177,7 @@
         }
 
         .result-preview {
-          color: var(--text-light, #555);
+          color: var(--text-light);
           font-size: 0.95rem;
           line-height: 1.5;
           margin: 0.5rem 0;
@@ -189,7 +189,7 @@
 
         .result-date {
           font-size: 0.85rem;
-          color: var(--text-muted, #888);
+          color: var(--text-muted);
         }
       }
     }
@@ -200,7 +200,7 @@
     padding: 3rem;
     background: var(--surface-elevated);
     border-radius: var(--border-radius-lg, 16px);
-    color: var(--text-light, #555);
+    color: var(--text-light);
 
     p {
       margin: 0;

@@ -461,7 +461,7 @@ transition: transform 0.5s ease-in-out;
 
   .left-btn,
   .right-btn {
-    color: white;
+    color: var(--text-on-dark);
     width: max-content;
     min-width: 15em;
     min-height: 4.5em;
@@ -479,17 +479,17 @@ transition: transform 0.5s ease-in-out;
   }
 
   .left-btn {
-    background: red;
+    background: var(--primary-red);
 
     &:hover {
-      color: black !important;
+      color: var(--text-on-light);
     }
   }
 
   .right-btn {
-    background: #111;
+    background: var(--surface-overlay);
     &:hover {
-      color: black !important;
+      color: var(--text-on-light);
     }
   }
 }

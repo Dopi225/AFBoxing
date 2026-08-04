@@ -1,11 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlus, faEdit, faTrash, faImage, faImages } from '@fortawesome/free-solid-svg-icons';
 import { galleryApi, uploadApi } from '../../services/apiService';
 import { useAdminNotify } from '../../hooks/useAdminNotify';
+import { useFormDraft } from '../../hooks/useFormDraft';
+import { useEntityTrash } from '../../hooks/useEntityTrash';
 import { GALLERY_CATEGORIES } from '../../constants/adminCopy';
+import { validateRequired } from '../../utils/formValidation';
 import ConfirmDialog from './ConfirmDialog';
+import TrashPanel, { TrashTabs } from './TrashPanel';
 import PageHeader from '../ui/PageHeader';
 import { TextInput, TextArea, SelectField } from '../ui/FormField';
 import { LoadingState, ErrorState } from '../PageStates';
@@ -14,6 +18,8 @@ import HelpTip from './guided/HelpTip';
 import { adminBreadcrumbs } from '../../utils/adminBreadcrumbs';
 import { NAV_ITEMS } from '../../constants/adminCopy';
 import './ManageGallery.scss';
+
+const DRAFT_KEY = 'afboxing_draft_gallery';
 
 const CATEGORIES = [
   ...GALLERY_CATEGORIES,
@@ -43,19 +49,18 @@ const ManageGallery = () => {
   const [error, setError] = useState('');
   const [uploading, setUploading] = useState(false);
   const [file, setFile] = useState(null);
+  const [fieldErrors, setFieldErrors] = useState({});
 
-  useEffect(() => {
-    loadGallery();
+  const restoreDraft = useCallback((data) => {
+    setFormData((prev) => ({ ...prev, ...data }));
   }, []);
 
-  useEffect(() => {
-    if (searchParams.get('action') === 'add') {
-      setShowModal(true);
-      setSearchParams({}, { replace: true });
-    }
-  }, [searchParams]);
+  const { clearDraft } = useFormDraft(DRAFT_KEY, formData, {
+    enabled: showModal && !editingItem,
+    onRestore: restoreDraft,
+  });
 
-  const loadGallery = async () => {
+  const loadGallery = useCallback(async () => {
     setLoading(true);
     setError('');
     try {
@@ -66,6 +71,37 @@ const ManageGallery = () => {
     } finally {
       setLoading(false);
     }
+  }, []);
+
+  const {
+    view,
+    setView,
+    trashItems,
+    trashLoading,
+    restoringId,
+    restoreItem,
+    loadTrash,
+  } = useEntityTrash(galleryApi, {
+    onReload: loadGallery,
+    notifySuccess,
+    notifyError,
+    entityLabel: 'Photo',
+  });
+
+  useEffect(() => {
+    loadGallery();
+    loadTrash();
+  }, [loadGallery, loadTrash]);
+
+  useEffect(() => {
+    if (searchParams.get('action') === 'add') {
+      setShowModal(true);
+      setSearchParams({}, { replace: true });
+    }
+  }, [searchParams]);
+
+  const blurField = (field, label) => (e) => {
+    setFieldErrors((prev) => ({ ...prev, [field]: validateRequired(e.target.value, label) }));
   };
 
   const handleSubmit = async () => {
@@ -93,6 +129,7 @@ const ManageGallery = () => {
         notifySuccess(`Photo « ${payload.title} » ajoutée à la galerie.`);
       }
       await loadGallery();
+      clearDraft();
       handleCloseModal();
     } catch (err) {
       notifyError(err, 'Impossible d\'enregistrer la photo.');
@@ -122,8 +159,9 @@ const ManageGallery = () => {
     if (!deleteTarget?.id) return;
     try {
       await galleryApi.remove(deleteTarget.id);
-      notifySuccess('Photo supprimée.');
+      notifySuccess('Photo déplacée en corbeille (conservation 30 jours).');
       await loadGallery();
+      loadTrash();
     } catch (err) {
       notifyError(err, 'Impossible de supprimer cette photo.');
     } finally {
@@ -136,9 +174,28 @@ const ManageGallery = () => {
     setEditingItem(null);
     setFormData({ title: '', category: 'Infrastructure', description: '', src: '' });
     setFile(null);
+    setFieldErrors({});
   };
 
   const selectedCategoryHelp = CATEGORIES.find((c) => c.value === formData.category)?.help;
+
+  const getBlockedMessage = (step) => {
+    if (step === 1 && !file && !formData.src && !editingItem) {
+      return 'Choisissez une photo pour continuer.';
+    }
+    if (step === 2) {
+      if (!formData.title.trim()) return 'Indiquez le titre pour continuer.';
+      if (!formData.category) return 'Choisissez une rubrique pour continuer.';
+    }
+    return '';
+  };
+
+  const isFormDirty = Boolean(
+    formData.title.trim() ||
+    formData.description.trim() ||
+    formData.src ||
+    file
+  );
 
   const canProceed = (step) => {
     if (step === 1) return (file || formData.src) || editingItem;
@@ -174,6 +231,8 @@ const ManageGallery = () => {
             name="gallery-title"
             value={formData.title}
             onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+            onBlur={blurField('title', 'Le titre')}
+            error={fieldErrors.title}
             required
             example="Salle d'entraînement rénovée"
           />
@@ -182,6 +241,8 @@ const ManageGallery = () => {
             name="gallery-category"
             value={formData.category}
             onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+            onBlur={blurField('category', 'La rubrique')}
+            error={fieldErrors.category}
             required
             options={CATEGORIES.map((c) => ({ value: c.value, label: c.label }))}
           />
@@ -213,6 +274,24 @@ const ManageGallery = () => {
         }
       />
 
+      <TrashTabs
+        view={view}
+        onViewChange={setView}
+        activeCount={gallery.length}
+        trashCount={trashItems.length}
+      />
+
+      {view === 'trash' ? (
+        <TrashPanel
+          items={trashItems}
+          loading={trashLoading}
+          emptyMessage="Aucune photo en corbeille."
+          getItemLabel={(item) => item.title}
+          getItemMeta={(item) => item.category}
+          onRestore={restoreItem}
+          restoringId={restoringId}
+        />
+      ) : (
       <div className="gallery-grid">
         {loading && <LoadingState label="Chargement de la galerie…" />}
         {error && !loading && (
@@ -247,6 +326,7 @@ const ManageGallery = () => {
           </HighlightableCard>
         ))}
       </div>
+      )}
 
       <WizardModal
         isOpen={showModal}
@@ -256,6 +336,8 @@ const ManageGallery = () => {
         onComplete={handleSubmit}
         isEdit={!!editingItem}
         canProceed={canProceed}
+        getBlockedMessage={getBlockedMessage}
+        isDirty={isFormDirty}
         completing={uploading}
       />
 
@@ -265,7 +347,10 @@ const ManageGallery = () => {
         onConfirm={confirmDelete}
         title="Supprimer cette photo ?"
         itemLabel={deleteTarget?.title}
-        consequences={['La photo disparaîtra de la galerie du site.', 'Cette action ne peut pas être annulée.']}
+        consequences={[
+          'La photo disparaîtra de la galerie du site.',
+          'Elle restera en corbeille 30 jours et pourra être restaurée.',
+        ]}
         type="danger"
         confirmText="Supprimer"
         danger

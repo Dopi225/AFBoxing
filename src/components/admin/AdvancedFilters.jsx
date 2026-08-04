@@ -139,7 +139,7 @@ const AdvancedFilters = ({
                     options={[
                       { value: 'date', label: 'Date' },
                       { value: 'title', label: 'Titre' },
-                      { value: 'created', label: 'Date de création' },
+                      { value: 'created', label: 'Date d\'ajout' },
                     ]}
                   />
                   <SelectField
@@ -147,8 +147,8 @@ const AdvancedFilters = ({
                     value={localFilters.sortOrder}
                     onChange={(e) => handleFilterChange('sortOrder', e.target.value)}
                     options={[
-                      { value: 'desc', label: 'Décroissant' },
-                      { value: 'asc', label: 'Croissant' },
+                      { value: 'desc', label: 'Plus récent d\'abord' },
+                      { value: 'asc', label: 'Plus ancien d\'abord' },
                     ]}
                   />
                 </div>

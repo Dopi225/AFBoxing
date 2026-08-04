@@ -24,6 +24,7 @@ import { authApi, newsApi, palmaresApi, contactsApi, galleryApi } from '../../se
 import { NotificationProvider } from './NotificationSystem';
 import ThemeToggle from '../ThemeToggle';
 import { APP_TITLE, NAV_SECTIONS, NAV_ITEMS, ROLES } from '../../constants/adminCopy';
+import AdminOnboardingGuide from './AdminOnboardingGuide';
 import './AdminDashboard.scss';
 
 const AdminDashboard = () => {
@@ -40,6 +41,12 @@ const AdminDashboard = () => {
   });
   const [checkingAuth, setCheckingAuth] = useState(true);
   const [currentUser, setCurrentUser] = useState(null);
+  const [isGuideOpen, setIsGuideOpen] = useState(false);
+  const [hasSeenGuide, setHasSeenGuide] = useState(false);
+
+  useEffect(() => {
+    setHasSeenGuide(localStorage.getItem('afboxing_admin_guide_seen_v1') === 'true');
+  }, []);
 
   useEffect(() => {
     const initDashboard = async () => {
@@ -209,6 +216,14 @@ const AdminDashboard = () => {
           </nav>
 
           <div className="sidebar-footer">
+            <button
+              type="button"
+              className="help-btn"
+              onClick={() => setIsGuideOpen(true)}
+              title={hasSeenGuide ? 'Revoir le guide' : 'Démarrer le guide'}
+            >
+              <span>{hasSeenGuide ? 'Revoir le guide' : 'Aide guidée'}</span>
+            </button>
             <button type="button" className="logout-btn" onClick={handleLogout}>
               <FontAwesomeIcon icon={faSignOutAlt} aria-hidden />
               <span>Déconnexion</span>
@@ -229,6 +244,14 @@ const AdminDashboard = () => {
             </button>
             <h1>{APP_TITLE}</h1>
             <div className="header-user">
+              <button
+                type="button"
+                className="header-help-btn"
+                onClick={() => setIsGuideOpen(true)}
+                title={hasSeenGuide ? 'Revoir le guide' : 'Démarrer le guide'}
+              >
+                {hasSeenGuide ? 'Revoir le guide' : 'Aide'}
+              </button>
               <div className="admin-header__theme">
                 <ThemeToggle compact />
               </div>
@@ -248,6 +271,14 @@ const AdminDashboard = () => {
         {sidebarOpen ? (
           <div className="sidebar-overlay" onClick={() => setSidebarOpen(false)} role="presentation" />
         ) : null}
+        <AdminOnboardingGuide
+          isOpen={isGuideOpen}
+          onClose={() => {
+            setIsGuideOpen(false);
+            setHasSeenGuide(localStorage.getItem('afboxing_admin_guide_seen_v1') === 'true');
+          }}
+          role={currentUser?.role}
+        />
       </div>
     </NotificationProvider>
   );

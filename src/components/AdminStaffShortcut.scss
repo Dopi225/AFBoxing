@@ -1,24 +1,14 @@
-/* Porte dérobée : languette discrète sous la navbar (hors bandeau bas mobile + boutons flottants) */
+/* Accès admin discret : le texte « Tous droits réservés » sert de point d'entrée */
 .admin-staff-shortcut {
-  position: fixed;
-  top: calc(var(--navbar-height, 81px) + 4px);
-  right: 0;
-  left: auto;
-  bottom: auto;
-  width: 10px;
-  height: 48px;
-  z-index: 1250;
-  opacity: 0.07;
-  background: transparent;
-  border: 0;
-  padding: 0;
-  margin: 0;
-  cursor: pointer;
-  transition: opacity 0.2s ease;
-  -webkit-tap-highlight-color: transparent;
+  color: inherit;
+  text-decoration: none;
+  cursor: default;
+  border-radius: 4px;
+  transition: color var(--transition-fast), text-decoration-color var(--transition-fast);
 
   &:hover {
-    opacity: 0.35;
+    color: inherit;
+    text-decoration: none;
   }
 
   &:focus {
@@ -26,9 +16,10 @@
   }
 
   &:focus-visible {
-    opacity: 0.55;
-    width: 12px;
-    box-shadow: inset 2px 0 0 0 rgba(220, 0, 0, 0.65);
-    border-radius: 4px 0 0 4px;
+    outline: none;
+    color: var(--text-on-dark);
+    text-decoration: underline;
+    text-decoration-color: rgba(255, 255, 255, 0.6);
+    box-shadow: 0 0 0 2px rgba(220, 0, 0, 0.4);
   }
 }

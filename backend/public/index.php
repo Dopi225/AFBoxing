@@ -88,8 +88,12 @@ $router->get('/api/auth/me', [AuthController::class, 'me'])
     ->middleware($authAny);
 
 // News
+$router->get('/api/news/trash', [NewsController::class, 'trash'])
+    ->middleware($authStaff);
 $router->get('/api/news', [NewsController::class, 'index']);
 $router->get('/api/news/{id}', [NewsController::class, 'show']);
+$router->post('/api/news/{id}/restore', [NewsController::class, 'restore'])
+    ->middleware($authStaff);
 $router->post('/api/news', [NewsController::class, 'store'])
     ->middleware($authStaff);
 $router->put('/api/news/{id}', [NewsController::class, 'update'])
@@ -98,7 +102,11 @@ $router->delete('/api/news/{id}', [NewsController::class, 'destroy'])
     ->middleware($authStaff);
 
 // Gallery
+$router->get('/api/gallery/trash', [GalleryController::class, 'trash'])
+    ->middleware($authStaff);
 $router->get('/api/gallery', [GalleryController::class, 'index']);
+$router->post('/api/gallery/{id}/restore', [GalleryController::class, 'restore'])
+    ->middleware($authStaff);
 $router->post('/api/gallery', [GalleryController::class, 'store'])
     ->middleware($authStaff);
 $router->put('/api/gallery/{id}', [GalleryController::class, 'update'])
@@ -116,7 +124,11 @@ $router->delete('/api/schedule/{id}', [ScheduleController::class, 'destroy'])
     ->middleware($authStaff);
 
 // Palmares
+$router->get('/api/palmares/trash', [PalmaresController::class, 'trash'])
+    ->middleware($authStaff);
 $router->get('/api/palmares', [PalmaresController::class, 'index']);
+$router->post('/api/palmares/{id}/restore', [PalmaresController::class, 'restore'])
+    ->middleware($authStaff);
 $router->post('/api/palmares', [PalmaresController::class, 'store'])
     ->middleware($authStaff);
 $router->put('/api/palmares/{id}', [PalmaresController::class, 'update'])
@@ -126,7 +138,11 @@ $router->delete('/api/palmares/{id}', [PalmaresController::class, 'destroy'])
 
 // Contacts
 $router->post('/api/contact', [ContactController::class, 'submit']);
+$router->get('/api/contacts/trash', [ContactController::class, 'trash'])
+    ->middleware($authAdmin);
 $router->get('/api/contacts', [ContactController::class, 'index'])
+    ->middleware($authAdmin);
+$router->post('/api/contacts/{id}/restore', [ContactController::class, 'restore'])
     ->middleware($authAdmin);
 $router->put('/api/contacts/{id}/read', [ContactController::class, 'markAsRead'])
     ->middleware($authAdmin);
@@ -134,8 +150,12 @@ $router->delete('/api/contacts/{id}', [ContactController::class, 'destroy'])
     ->middleware($authAdmin);
 
 // Activities
+$router->get('/api/activities/trash', [ActivityController::class, 'trash'])
+    ->middleware($authStaff);
 $router->get('/api/activities', [ActivityController::class, 'index']);
 $router->get('/api/activities/{id}', [ActivityController::class, 'show']);
+$router->post('/api/activities/{id}/restore', [ActivityController::class, 'restore'])
+    ->middleware($authStaff);
 $router->post('/api/activities', [ActivityController::class, 'store'])
     ->middleware($authStaff);
 $router->put('/api/activities/{id}', [ActivityController::class, 'update'])
@@ -164,6 +184,8 @@ $router->get('/api/activity-log/count', [ActivityLogController::class, 'count'])
     ->middleware($authAdmin);
 
 // Pricing
+$router->get('/api/pricing/trash', [PricingController::class, 'trash'])
+    ->middleware($authAdmin);
 $router->get('/api/pricing', [PricingController::class, 'index']);
 $router->get('/api/pricing/catalog', [PricingController::class, 'catalog'])
     ->middleware($authStaff);
@@ -173,6 +195,8 @@ $router->get('/api/pricing/{key}', [PricingController::class, 'show']);
 $router->post('/api/pricing', [PricingController::class, 'store'])
     ->middleware($authAdmin);
 $router->put('/api/pricing/{key}', [PricingController::class, 'update'])
+    ->middleware($authAdmin);
+$router->post('/api/pricing/{key}/restore', [PricingController::class, 'restore'])
     ->middleware($authAdmin);
 $router->delete('/api/pricing/{key}', [PricingController::class, 'destroy'])
     ->middleware($authAdmin);

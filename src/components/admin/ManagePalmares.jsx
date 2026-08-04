@@ -1,12 +1,16 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlus, faEdit, faTrash, faCalendarAlt, faMapMarkerAlt, faUser, faTrophy } from '@fortawesome/free-solid-svg-icons';
 import { palmaresApi, uploadApi } from '../../services/apiService';
 import { useAdminNotify } from '../../hooks/useAdminNotify';
+import { useFormDraft } from '../../hooks/useFormDraft';
+import { useEntityTrash } from '../../hooks/useEntityTrash';
 import { todayISO } from '../../utils/adminAutoFill';
+import { validateRequired } from '../../utils/formValidation';
 import { PALMARES_CATEGORIES, PALMARES_RESULTS } from '../../constants/adminCopy';
 import ConfirmDialog from './ConfirmDialog';
+import TrashPanel, { TrashTabs } from './TrashPanel';
 import PageHeader from '../ui/PageHeader';
 import { TextInput, TextArea, SelectField } from '../ui/FormField';
 import { LoadingState, ErrorState } from '../PageStates';
@@ -14,6 +18,8 @@ import { WizardModal, ImageUploadField, EmptyStateGuided, HighlightableCard } fr
 import { adminBreadcrumbs } from '../../utils/adminBreadcrumbs';
 import { NAV_ITEMS } from '../../constants/adminCopy';
 import './ManagePalmares.scss';
+
+const DRAFT_KEY = 'afboxing_draft_palmares';
 
 const DEFAULT_FORM = {
   title: '',
@@ -39,19 +45,18 @@ const ManagePalmares = () => {
   const [uploading, setUploading] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [fieldErrors, setFieldErrors] = useState({});
 
-  useEffect(() => {
-    loadPalmares();
+  const restoreDraft = useCallback((data) => {
+    setFormData((prev) => ({ ...prev, ...data }));
   }, []);
 
-  useEffect(() => {
-    if (searchParams.get('action') === 'add') {
-      setShowModal(true);
-      setSearchParams({}, { replace: true });
-    }
-  }, [searchParams]);
+  const { clearDraft } = useFormDraft(DRAFT_KEY, formData, {
+    enabled: showModal && !editingItem,
+    onRestore: restoreDraft,
+  });
 
-  const loadPalmares = async () => {
+  const loadPalmares = useCallback(async () => {
     setLoading(true);
     setError('');
     try {
@@ -62,6 +67,37 @@ const ManagePalmares = () => {
     } finally {
       setLoading(false);
     }
+  }, []);
+
+  const {
+    view,
+    setView,
+    trashItems,
+    trashLoading,
+    restoringId,
+    restoreItem,
+    loadTrash,
+  } = useEntityTrash(palmaresApi, {
+    onReload: loadPalmares,
+    notifySuccess,
+    notifyError,
+    entityLabel: 'Palmarès',
+  });
+
+  useEffect(() => {
+    loadPalmares();
+    loadTrash();
+  }, [loadPalmares, loadTrash]);
+
+  useEffect(() => {
+    if (searchParams.get('action') === 'add') {
+      setShowModal(true);
+      setSearchParams({}, { replace: true });
+    }
+  }, [searchParams]);
+
+  const blurField = (field, label) => (e) => {
+    setFieldErrors((prev) => ({ ...prev, [field]: validateRequired(e.target.value, label) }));
   };
 
   const handleSubmit = async () => {
@@ -80,6 +116,7 @@ const ManagePalmares = () => {
         notifySuccess(`Palmarès « ${payload.title} » ajouté.`);
       }
       await loadPalmares();
+      clearDraft();
       handleCloseModal();
     } catch (err) {
       notifyError(err, 'Impossible d\'enregistrer ce palmarès.');
@@ -104,8 +141,9 @@ const ManagePalmares = () => {
     if (!deleteTarget?.id) return;
     try {
       await palmaresApi.remove(deleteTarget.id);
-      notifySuccess('Palmarès supprimé.');
+      notifySuccess('Palmarès déplacé en corbeille (conservation 30 jours).');
       await loadPalmares();
+      loadTrash();
     } catch (err) {
       notifyError(err, 'Impossible de supprimer ce palmarès.');
     } finally {
@@ -118,7 +156,29 @@ const ManagePalmares = () => {
     setEditingItem(null);
     setFormData({ ...DEFAULT_FORM, date: todayISO() });
     setFile(null);
+    setFieldErrors({});
   };
+
+  const getBlockedMessage = (step) => {
+    if (step === 1) {
+      if (!formData.title.trim()) return 'Indiquez le titre pour continuer.';
+      if (!formData.date) return 'Indiquez la date pour continuer.';
+      if (!formData.location.trim()) return 'Indiquez le lieu pour continuer.';
+    }
+    if (step === 2) {
+      if (!formData.boxer.trim()) return 'Indiquez le boxeur ou l\'équipe pour continuer.';
+    }
+    return '';
+  };
+
+  const isFormDirty = Boolean(
+    formData.title.trim() ||
+    formData.location.trim() ||
+    formData.boxer.trim() ||
+    formData.details.trim() ||
+    formData.image ||
+    file
+  );
 
   const canProceed = (step) => {
     if (step === 1) return formData.title.trim() && formData.date && formData.location.trim();
@@ -137,6 +197,8 @@ const ManagePalmares = () => {
             name="palmares-title"
             value={formData.title}
             onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+            onBlur={blurField('title', 'Le nom de la compétition')}
+            error={fieldErrors.title}
             required
             example="Championnat départemental 2025"
           />
@@ -146,6 +208,8 @@ const ManagePalmares = () => {
             type="date"
             value={formData.date}
             onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+            onBlur={blurField('date', 'La date')}
+            error={fieldErrors.date}
             required
           />
           <TextInput
@@ -153,6 +217,8 @@ const ManagePalmares = () => {
             name="palmares-location"
             value={formData.location}
             onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+            onBlur={blurField('location', 'Le lieu')}
+            error={fieldErrors.location}
             required
             example="Poitiers"
           />
@@ -185,6 +251,8 @@ const ManagePalmares = () => {
             name="palmares-boxer"
             value={formData.boxer}
             onChange={(e) => setFormData({ ...formData, boxer: e.target.value })}
+            onBlur={blurField('boxer', 'Le boxeur ou l\'équipe')}
+            error={fieldErrors.boxer}
             required
             example="Marie Dupont"
           />
@@ -232,6 +300,24 @@ const ManagePalmares = () => {
         }
       />
 
+      <TrashTabs
+        view={view}
+        onViewChange={setView}
+        activeCount={palmares.length}
+        trashCount={trashItems.length}
+      />
+
+      {view === 'trash' ? (
+        <TrashPanel
+          items={trashItems}
+          loading={trashLoading}
+          emptyMessage="Aucun palmarès en corbeille."
+          getItemLabel={(item) => item.title}
+          getItemMeta={(item) => item.boxer}
+          onRestore={restoreItem}
+          restoringId={restoringId}
+        />
+      ) : (
       <div className="palmares-list">
         {loading && <LoadingState label="Chargement des palmarès…" />}
         {error && !loading && (
@@ -270,6 +356,7 @@ const ManagePalmares = () => {
           </HighlightableCard>
         ))}
       </div>
+      )}
 
       <WizardModal
         isOpen={showModal}
@@ -279,6 +366,8 @@ const ManagePalmares = () => {
         onComplete={handleSubmit}
         isEdit={!!editingItem}
         canProceed={canProceed}
+        getBlockedMessage={getBlockedMessage}
+        isDirty={isFormDirty}
         completing={uploading}
       />
 
@@ -288,7 +377,10 @@ const ManagePalmares = () => {
         onConfirm={confirmDelete}
         title="Supprimer ce palmarès ?"
         itemLabel={deleteTarget?.title}
-        consequences={['Ce résultat disparaîtra de la page Palmarès du site.', 'Cette action ne peut pas être annulée.']}
+        consequences={[
+          'Ce résultat disparaîtra de la page Palmarès du site.',
+          'Il restera en corbeille 30 jours et pourra être restauré.',
+        ]}
         type="danger"
         confirmText="Supprimer"
         danger

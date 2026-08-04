@@ -14,7 +14,7 @@
   background: linear-gradient(
     110deg,
     var(--secondary-gray) 0%,
-    rgba(255, 255, 255, 0.85) 45%,
+    color-mix(in srgb, var(--surface-1) 85%, transparent) 45%,
     var(--secondary-gray) 90%
   );
   background-size: 200% 100%;
@@ -24,9 +24,9 @@
 :root[data-theme='dark'] .skeleton {
   background: linear-gradient(
     110deg,
-    rgba(255, 255, 255, 0.06) 0%,
-    rgba(255, 255, 255, 0.12) 45%,
-    rgba(255, 255, 255, 0.06) 90%
+    color-mix(in srgb, var(--text-on-dark) 6%, transparent) 0%,
+    color-mix(in srgb, var(--text-on-dark) 12%, transparent) 45%,
+    color-mix(in srgb, var(--text-on-dark) 6%, transparent) 90%
   );
   background-size: 200% 100%;
 }
@@ -38,7 +38,7 @@
   }
 
   :root[data-theme='dark'] .skeleton {
-    background: rgba(255, 255, 255, 0.08);
+    background: color-mix(in srgb, var(--text-on-dark) 8%, transparent);
   }
 }
 
@@ -132,7 +132,7 @@
   padding: var(--spacing-xl) var(--spacing-md);
   text-align: center;
   border-radius: var(--border-radius-xl);
-  border: 1px solid rgba(11, 11, 11, 0.08);
+  border: 1px solid var(--border-subtle);
   background: var(--surface-elevated);
   box-shadow: var(--shadow-sm);
 }
@@ -152,7 +152,7 @@
 }
 
 .afb-error-state {
-  border-color: rgba(220, 0, 0, 0.25);
+  border-color: var(--status-error-border);
   background: var(--status-error-bg);
 }
 
@@ -173,11 +173,11 @@
 :root[data-theme='dark'] .afb-empty-state,
 :root[data-theme='dark'] .afb-error-state {
   background: var(--surface-elevated);
-  border-color: rgba(255, 255, 255, 0.1);
+  border-color: var(--border-subtle);
 }
 
 :root[data-theme='dark'] .afb-error-state {
-  background: rgba(80, 20, 20, 0.35);
+  background: var(--status-error-bg);
 }
 
 :root[data-theme='dark'] .afb-empty-state__title {

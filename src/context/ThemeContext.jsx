@@ -15,11 +15,11 @@ export function applyTheme(mode) {
   if (mode === 'dark') {
     root.setAttribute('data-theme', 'dark');
     root.style.colorScheme = 'dark';
-    if (meta) meta.setAttribute('content', '#08080c');
+    if (meta) meta.setAttribute('content', '#0f1117');
   } else {
     root.removeAttribute('data-theme');
     root.style.colorScheme = 'light';
-    if (meta) meta.setAttribute('content', '#0b0b0b');
+    if (meta) meta.setAttribute('content', '#f7f7f8');
   }
 }
 

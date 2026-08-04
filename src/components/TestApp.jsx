@@ -6,18 +6,18 @@ const TestApp = () => {
   return (
     <div style={{ 
       padding: '20px', 
-      backgroundColor: '#f0f0f0', 
+      backgroundColor: 'var(--surface-base)', 
       minHeight: '100vh',
-      fontFamily: 'Arial, sans-serif'
+      fontFamily: 'var(--font-primary)'
     }}>
-      <h1 style={{ color: '#e60000' }}>🧪 Test AF Boxing Club</h1>
+      <h1 style={{ color: 'var(--primary-red)' }}>🧪 Test AF Boxing Club</h1>
       <p>Si vous voyez cette page, React fonctionne correctement.</p>
       <div style={{ 
-        backgroundColor: 'white', 
+        backgroundColor: 'var(--surface-elevated)', 
         padding: '20px', 
         borderRadius: '10px',
         marginTop: '20px',
-        boxShadow: '0 2px 10px rgba(0,0,0,0.1)'
+        boxShadow: 'var(--shadow-2)'
       }}>
         <h2>✅ Composants de base fonctionnels</h2>
         <ul>

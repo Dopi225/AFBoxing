@@ -11,12 +11,12 @@
     padding: 1.25rem;
     display: flex;
     gap: 1rem;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    box-shadow: var(--shadow-1);
     transition: all var(--transition-normal, 0.2s ease);
-    border-left: 4px solid var(--primary-red, #e60000);
+    border-left: 4px solid var(--primary-red);
 
     &:hover {
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      box-shadow: var(--shadow-2);
       transform: translateX(4px);
     }
 
@@ -24,11 +24,11 @@
       width: 48px;
       height: 48px;
       border-radius: var(--border-radius-md, 12px);
-      background: rgba(230, 0, 0, 0.1);
+      background: color-mix(in srgb, var(--primary-red) 10%, transparent);
       display: flex;
       align-items: center;
       justify-content: center;
-      color: var(--primary-red, #e60000);
+      color: var(--primary-red);
       font-size: 1.25rem;
       flex-shrink: 0;
     }
@@ -52,17 +52,17 @@
 
         .log-entity {
           padding: 0.25rem 0.75rem;
-          background: var(--secondary-gray, #f3f3f3);
+          background: var(--secondary-gray);
           border-radius: 12px;
-          font-size: 0.85rem;
+          font-size: 1rem;
           font-weight: 600;
-          color: var(--text-dark, #111);
+          color: var(--text-dark);
         }
       }
 
       .log-description {
         margin: 0.5rem 0;
-        color: var(--text-light, #555);
+        color: var(--text-light);
         line-height: 1.6;
       }
 
@@ -71,9 +71,9 @@
         gap: 1.5rem;
         margin-top: 0.75rem;
         padding-top: 0.75rem;
-        border-top: 1px solid var(--secondary-gray, #f3f3f3);
-        font-size: 0.85rem;
-        color: var(--text-muted, #888);
+        border-top: 1px solid var(--secondary-gray);
+        font-size: 1rem;
+        color: var(--text-muted);
 
         span {
           display: flex;

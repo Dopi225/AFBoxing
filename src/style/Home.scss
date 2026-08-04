@@ -5,6 +5,11 @@
 .hero-section {
   position: relative;
   min-height: 100vh;
+  /* Le parent .container-fluid réserve la hauteur de la navbar : on l'annule
+     pour un hero plein écran sous la navbar translucide, et on repousse le
+     contenu sous la navbar via le padding (box-sizing: border-box global). */
+  margin-top: calc(-1 * var(--navbar-height));
+  padding-top: var(--navbar-height);
   display: flex;
   align-items: center;
   overflow: hidden;

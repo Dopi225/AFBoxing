@@ -7,28 +7,28 @@
     gap: 0.5rem;
     padding: 0.75rem 1.25rem;
     background: var(--surface-elevated);
-    border: 2px solid var(--secondary-gray, #f3f3f3);
+    border: 2px solid var(--secondary-gray);
     border-radius: var(--border-radius-md, 12px);
     cursor: pointer;
     font-size: 0.95rem;
     font-weight: 500;
-    color: var(--text-dark, #111);
+    color: var(--text-dark);
     transition: all var(--transition-normal, 0.2s ease);
 
     &:hover {
-      border-color: var(--primary-red, #e60000);
-      color: var(--primary-red, #e60000);
+      border-color: var(--primary-red);
+      color: var(--primary-red);
     }
 
     &.active {
-      border-color: var(--primary-red, #e60000);
-      background: rgba(230, 0, 0, 0.05);
-      color: var(--primary-red, #e60000);
+      border-color: var(--primary-red);
+      background: color-mix(in srgb, var(--primary-red) 6%, transparent);
+      color: var(--primary-red);
     }
 
     .filter-badge {
-      background: var(--primary-red, #e60000);
-      color: white;
+      background: var(--primary-red);
+      color: var(--text-on-dark);
       padding: 0.2rem 0.5rem;
       border-radius: 12px;
       font-size: 0.75rem;
@@ -42,9 +42,9 @@
     margin-top: 1rem;
     background: var(--surface-elevated);
     border-radius: var(--border-radius-md, 12px);
-    border: 2px solid var(--secondary-gray, #f3f3f3);
+    border: 2px solid var(--secondary-gray);
     overflow: hidden;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    box-shadow: var(--shadow-2);
   }
 
   .filters-content {
@@ -63,11 +63,11 @@
         align-items: center;
         gap: 0.5rem;
         font-weight: 600;
-        color: var(--text-dark, #111);
+        color: var(--text-dark);
         font-size: 0.9rem;
 
         svg {
-          color: var(--primary-red, #e60000);
+          color: var(--primary-red);
           font-size: 0.9rem;
         }
       }
@@ -86,8 +86,8 @@
 
         &:focus {
           outline: none;
-          border-color: var(--primary-red, #e60000);
-          box-shadow: 0 0 0 3px rgba(230, 0, 0, 0.1);
+          border-color: var(--primary-red);
+          box-shadow: var(--focus-ring-shadow);
         }
 
         &::placeholder {
@@ -106,7 +106,7 @@
           }
 
           span {
-            color: var(--text-muted, #888);
+            color: var(--text-muted);
             font-size: 0.9rem;
             white-space: nowrap;
           }

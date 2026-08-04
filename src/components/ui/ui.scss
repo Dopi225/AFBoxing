@@ -276,7 +276,7 @@
 }
 
 .data-table tbody tr:hover {
-  background: rgba(220, 0, 0, 0.03);
+  background: color-mix(in srgb, var(--primary-red) 7%, transparent);
 }
 
 .data-table-cards {
@@ -321,9 +321,9 @@
 }
 
 :root[data-theme='dark'] {
-  .badge--success { color: #6dd99a; }
-  .badge--warning { color: #f0c060; }
-  .badge--info { color: #7ec8f0; }
+  .badge--success { color: var(--status-success-fg); }
+  .badge--warning { color: var(--status-warning-fg); }
+  .badge--info { color: var(--status-info-fg); }
 }
 
 /* Spinner */

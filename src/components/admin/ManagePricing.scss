@@ -58,7 +58,7 @@
 
     .form-hint {
       font-size: 0.85rem;
-      color: var(--text-light, #666);
+      color: var(--text-light);
       margin-top: 0.25rem;
       line-height: 1.45;
     }
@@ -76,7 +76,7 @@
     align-items: center;
     gap: 0.5rem;
     padding: 0.65rem 1.25rem;
-    background: var(--primary-red, #c41e3a);
+    background: var(--primary-red);
     color: var(--surface-elevated);
     border: none;
     border-radius: 8px;
@@ -130,7 +130,7 @@
 
     th {
       font-weight: 600;
-      color: var(--primary-black, #111);
+      color: var(--primary-black);
       background: var(--surface-muted);
     }
 
@@ -153,30 +153,30 @@
     margin-left: 0.35rem;
     border: none;
     border-radius: 8px;
-    background: #f0f0f0;
-    color: var(--primary-black, #111);
+    background: var(--surface-2);
+    color: var(--primary-black);
     cursor: pointer;
 
     &:hover {
-      background: #e4e4e4;
+      background: var(--surface-3);
     }
 
     &--danger {
-      color: #b00020;
+      color: var(--status-error-fg);
 
       &:hover {
-        background: #fde7ea;
+        background: var(--status-error-bg);
       }
     }
   }
 
   .muted {
     padding: 1.5rem;
-    color: var(--text-light, #666);
+    color: var(--text-light);
   }
 
   .error-text {
     padding: 1rem 1.5rem;
-    color: #b00020;
+    color: var(--status-error-fg);
   }
 }

@@ -33,7 +33,7 @@
 <link rel="manifest" href="/manifest.json">
 <meta name="msapplication-TileColor" content="#ffffff">
 <meta name="msapplication-TileImage" content="/ms-icon-144x144.png">
-<meta name="theme-color" content="#0b0b0b">
+<meta name="theme-color" content="#f7f7f8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>AF BOXING CLUB 86</title>
   </head>
@@ -42,7 +42,12 @@
       (function () {
         try {
           var t = localStorage.getItem('afboxing_theme');
-          if (t === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+          if (t === 'dark') {
+            document.documentElement.setAttribute('data-theme', 'dark');
+            document.documentElement.style.colorScheme = 'dark';
+          } else {
+            document.documentElement.style.colorScheme = 'light';
+          }
         } catch (e) {}
       })();
     </script>

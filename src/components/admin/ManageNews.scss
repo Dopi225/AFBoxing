@@ -8,7 +8,7 @@
 
       &.selected {
         border-color: var(--primary-red);
-        box-shadow: 0 0 0 3px var(--admin-accent-soft, rgba(220, 0, 0, 0.08)), var(--admin-shadow-card-hover, 0 8px 24px rgba(0, 0, 0, 0.08));
+        box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary-red) 10%, transparent), var(--shadow-2);
       }
 
       .news-select {
@@ -20,7 +20,7 @@
         .select-checkbox {
           width: 32px;
           height: 32px;
-          border: 2px solid var(--secondary-gray, #f3f3f3);
+          border: 2px solid var(--secondary-gray);
           border-radius: 6px;
           background: var(--surface-elevated);
           cursor: pointer;
@@ -30,12 +30,12 @@
           transition: all 0.2s ease;
 
           &:hover {
-            border-color: var(--primary-red, #e60000);
-            background: rgba(230, 0, 0, 0.05);
+            border-color: var(--primary-red);
+            background: color-mix(in srgb, var(--primary-red) 6%, transparent);
           }
 
           svg {
-            color: var(--primary-red, #e60000);
+            color: var(--primary-red);
             font-size: 1.1rem;
           }
         }

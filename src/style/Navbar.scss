@@ -2,7 +2,7 @@
 /* Version optimisée pour les performances */
 
 nav.navbar {
-  background: var(--surface-glass, rgba(255, 255, 255, 0.82));
+  background: var(--surface-glass);
   backdrop-filter: blur(20px) saturate(180%);
   -webkit-backdrop-filter: blur(20px) saturate(180%);
   display: flex;
@@ -14,8 +14,8 @@ nav.navbar {
   width: 100%;
   height: var(--navbar-height);
   z-index: var(--z-sticky);
-  box-shadow: 0 1px 0 rgba(11, 11, 11, 0.06), 0 12px 40px rgba(0, 0, 0, 0.06);
-  border-bottom: 1px solid rgba(11, 11, 11, 0.05);
+  box-shadow: 0 1px 0 var(--border-subtle), var(--shadow-2);
+  border-bottom: 1px solid var(--border-subtle);
   transition: background 0.35s var(--ease-premium, ease), box-shadow 0.35s ease;
 
   .logo {
@@ -56,7 +56,7 @@ nav.navbar {
       transition: background var(--transition-fast);
 
       &:hover {
-        background: rgba(230, 0, 0, 0.1);
+        background: color-mix(in srgb, var(--primary-red) 10%, transparent);
       }
 
       .menu-icon {
@@ -97,7 +97,7 @@ nav.navbar {
 
         &:hover {
           color: var(--primary-red);
-          background: rgba(230, 0, 0, 0.05);
+          background: color-mix(in srgb, var(--primary-red) 6%, transparent);
         }
 
         &.active {
@@ -130,7 +130,7 @@ nav.navbar {
           }
 
           &.active {
-            box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.35), 0 4px 14px rgba(0, 0, 0, 0.2);
+            box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--text-on-dark) 35%, transparent), var(--shadow-2);
             filter: brightness(1.05);
           }
         }
@@ -160,11 +160,11 @@ nav.navbar {
 
       &:hover {
         color: var(--primary-red);
-        background: rgba(230, 0, 0, 0.05);
+        background: color-mix(in srgb, var(--primary-red) 6%, transparent);
       }
 
       &:focus-visible {
-        outline: 3px solid rgba(230, 0, 0, 0.35);
+        outline: 3px solid color-mix(in srgb, var(--primary-red) 35%, transparent);
         outline-offset: 2px;
       }
     }
@@ -178,10 +178,10 @@ nav.navbar {
       margin: 0;
       list-style: none;
       border-radius: 14px;
-      background: rgba(255, 255, 255, 0.98);
+      background: var(--surface-overlay);
       backdrop-filter: blur(12px);
-      border: 1px solid rgba(0, 0, 0, 0.06);
-      box-shadow: 0 14px 40px rgba(0, 0, 0, 0.18);
+      border: 1px solid var(--border-subtle);
+      box-shadow: var(--shadow-3);
       display: none;
       z-index: 1100;
 
@@ -194,14 +194,18 @@ nav.navbar {
         &.active {
           color: var(--primary-red);
           font-weight: 600;
-          background: rgba(230, 0, 0, 0.07);
+          background: color-mix(in srgb, var(--primary-red) 9%, transparent);
           box-shadow: none;
         }
       }
     }
 
-    &:hover .nav-submenu {
-      display: block;
+    /* Ouverture au survol réservée aux pointeurs fins (souris) : sur écran
+       tactile le :hover « colle » et empêchait de refermer via le bouton. */
+    @media (hover: hover) and (pointer: fine) {
+      &:hover .nav-submenu {
+        display: block;
+      }
     }
 
     &.open {
@@ -219,8 +223,8 @@ nav.navbar {
 
 /* Menu ouvert : éviter le flash blanc en thème sombre (voir :root[data-theme] ci-dessous) */
 nav.navbar.mobile-open {
-  background: rgba(255, 255, 255, 0.98) !important;
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2) !important;
+  background: var(--surface-overlay) !important;
+  box-shadow: var(--shadow-3) !important;
 }
 
 // Media Queries
@@ -239,7 +243,7 @@ nav.navbar.mobile-open {
 
     .nav-menu {
       flex-direction: column;
-      background: rgba(255, 255, 255, 0.98);
+      background: var(--surface-overlay);
       backdrop-filter: blur(10px);
       position: absolute;
       top: 100%;
@@ -251,7 +255,7 @@ nav.navbar.mobile-open {
       align-items: stretch;
       display: none;
       padding: 1rem 0;
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      box-shadow: var(--shadow-2);
 
       &.active {
         display: flex;
@@ -275,7 +279,7 @@ nav.navbar.mobile-open {
           font-weight: 500;
 
           &:hover {
-            background: rgba(230, 0, 0, 0.1);
+            background: color-mix(in srgb, var(--primary-red) 10%, transparent);
             color: var(--primary-red) !important;
           }
 
@@ -311,8 +315,8 @@ nav.navbar.mobile-open {
         margin: 0.35rem 1rem 0.6rem;
         box-shadow: none;
         border-radius: 12px;
-        background: rgba(0, 0, 0, 0.03);
-        border: 1px solid rgba(0, 0, 0, 0.06);
+        background: var(--surface-2);
+        border: 1px solid var(--border-subtle);
 
         li a {
           justify-content: center;
@@ -335,19 +339,19 @@ nav.navbar.mobile-open {
 }
 
 :root[data-theme='dark'] nav.navbar {
-  background: var(--surface-glass, rgba(22, 22, 30, 0.88));
-  border-bottom-color: rgba(255, 255, 255, 0.08);
+  background: var(--surface-glass);
+  border-bottom-color: var(--border-subtle);
   box-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.05),
-    0 16px 48px rgba(0, 0, 0, 0.45),
-    0 0 80px rgba(220, 0, 0, 0.06);
+    0 1px 0 color-mix(in srgb, var(--text-on-dark) 8%, transparent),
+    var(--shadow-4),
+    0 0 80px color-mix(in srgb, var(--primary-red) 10%, transparent);
 
   .nav-menu li a,
   .nav-menu li span {
     color: var(--primary-black);
 
     &:hover {
-      background: rgba(220, 0, 0, 0.14);
+      background: color-mix(in srgb, var(--primary-red) 14%, transparent);
     }
 
     &.active {
@@ -356,7 +360,7 @@ nav.navbar.mobile-open {
   }
 
   .menu-toggle:hover {
-    background: rgba(220, 0, 0, 0.12);
+    background: color-mix(in srgb, var(--primary-red) 12%, transparent);
   }
 
   .menu-toggle .menu-icon {
@@ -368,46 +372,46 @@ nav.navbar.mobile-open {
     color: var(--primary-black);
 
     &:hover {
-      background: rgba(220, 0, 0, 0.1);
+      background: color-mix(in srgb, var(--primary-red) 10%, transparent);
     }
   }
 
   .nav-dropdown .nav-submenu {
-    background: linear-gradient(165deg, rgba(20, 20, 28, 0.98) 0%, rgba(12, 12, 18, 0.99) 100%);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: linear-gradient(165deg, var(--surface-overlay) 0%, var(--surface-page) 100%);
+    border: 1px solid var(--border-default);
     box-shadow:
-      0 24px 64px rgba(0, 0, 0, 0.55),
-      0 0 0 1px rgba(220, 0, 0, 0.14),
-      0 0 48px rgba(220, 0, 0, 0.08);
+      var(--shadow-4),
+      0 0 0 1px color-mix(in srgb, var(--primary-red) 14%, transparent),
+      0 0 48px color-mix(in srgb, var(--primary-red) 10%, transparent);
 
     li a {
       color: var(--primary-black);
 
       &:hover {
-        background: rgba(220, 0, 0, 0.12);
+        background: color-mix(in srgb, var(--primary-red) 12%, transparent);
       }
 
       &.active {
-        background: rgba(220, 0, 0, 0.16);
+        background: color-mix(in srgb, var(--primary-red) 16%, transparent);
       }
     }
   }
 
   @media (max-width: 768px) {
     .nav-menu {
-      background: linear-gradient(185deg, rgba(16, 16, 22, 0.98) 0%, rgba(8, 8, 12, 0.995) 100%);
-      border-top: 1px solid rgba(255, 255, 255, 0.07);
+      background: linear-gradient(185deg, var(--surface-overlay) 0%, var(--surface-page) 100%);
+      border-top: 1px solid var(--border-subtle);
       box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.04),
-        0 28px 90px rgba(0, 0, 0, 0.65),
-        0 0 60px rgba(220, 0, 0, 0.05);
+        inset 0 1px 0 color-mix(in srgb, var(--text-on-dark) 5%, transparent),
+        var(--shadow-4),
+        0 0 60px color-mix(in srgb, var(--primary-red) 8%, transparent);
 
       li a,
       li span {
-        color: rgba(244, 244, 245, 0.95) !important;
+        color: color-mix(in srgb, var(--text-on-dark) 95%, transparent) !important;
 
         &:hover {
-          background: rgba(220, 0, 0, 0.16) !important;
+          background: color-mix(in srgb, var(--primary-red) 16%, transparent) !important;
           color: var(--primary-white) !important;
         }
 
@@ -426,15 +430,15 @@ nav.navbar.mobile-open {
     }
 
     .nav-dropdown .nav-submenu {
-      background: rgba(255, 255, 255, 0.04);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      box-shadow: inset 0 0 24px rgba(220, 0, 0, 0.06);
+      background: color-mix(in srgb, var(--text-on-dark) 5%, transparent);
+      border: 1px solid var(--border-subtle);
+      box-shadow: inset 0 0 24px color-mix(in srgb, var(--primary-red) 10%, transparent);
 
       li a {
-        color: rgba(244, 244, 245, 0.92) !important;
+        color: color-mix(in srgb, var(--text-on-dark) 92%, transparent) !important;
 
         &:hover {
-          background: rgba(220, 0, 0, 0.12) !important;
+          background: color-mix(in srgb, var(--primary-red) 12%, transparent) !important;
         }
       }
     }
@@ -442,12 +446,12 @@ nav.navbar.mobile-open {
 }
 
 :root[data-theme='dark'] nav.navbar.mobile-open {
-  background: rgba(12, 12, 18, 0.97) !important;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  background: var(--surface-overlay) !important;
+  border-bottom: 1px solid var(--border-subtle);
   box-shadow:
-    0 8px 48px rgba(0, 0, 0, 0.55),
-    0 0 0 1px rgba(220, 0, 0, 0.12),
-    0 0 64px rgba(220, 0, 0, 0.08) !important;
+    var(--shadow-4),
+    0 0 0 1px color-mix(in srgb, var(--primary-red) 12%, transparent),
+    0 0 64px color-mix(in srgb, var(--primary-red) 8%, transparent) !important;
 }
 
 @media (max-width: 480px) {

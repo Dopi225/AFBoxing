@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AFBoxing\Models;
 
+use AFBoxing\Core\SoftDelete;
 use PDO;
 
 class Gallery
@@ -14,8 +15,18 @@ class Gallery
 
     public function all(): array
     {
-        $stmt = $this->pdo->query('SELECT * FROM gallery ORDER BY created_at DESC');
+        $where = SoftDelete::notDeletedClause();
+        $stmt = $this->pdo->query("SELECT * FROM gallery WHERE {$where} ORDER BY created_at DESC");
         return $stmt->fetchAll();
+    }
+
+    public function find(int $id): ?array
+    {
+        $where = SoftDelete::notDeletedClause();
+        $stmt = $this->pdo->prepare("SELECT * FROM gallery WHERE id = :id AND {$where}");
+        $stmt->execute(['id' => $id]);
+        $row = $stmt->fetch();
+        return $row ?: null;
     }
 
     public function create(array $data): array
@@ -32,9 +43,7 @@ class Gallery
         ]);
 
         $id = (int)$this->pdo->lastInsertId();
-        $stmt = $this->pdo->prepare('SELECT * FROM gallery WHERE id = :id');
-        $stmt->execute(['id' => $id]);
-        return $stmt->fetch() ?: [];
+        return $this->find($id) ?: [];
     }
 
     public function update(int $id, array $data): ?array
@@ -44,9 +53,8 @@ class Gallery
             title = :title,
             description = :description,
             image = :image,
-            category = :category,
-            updated_at = NOW()
-            WHERE id = :id'
+            category = :category
+            WHERE id = :id AND ' . SoftDelete::notDeletedClause()
         );
         
         $stmt->execute([
@@ -57,17 +65,23 @@ class Gallery
             'category' => $data['category'] ?? null,
         ]);
 
-        $stmt = $this->pdo->prepare('SELECT * FROM gallery WHERE id = :id');
-        $stmt->execute(['id' => $id]);
-        $result = $stmt->fetch();
-        return $result ?: null;
+        return $this->find($id);
     }
 
     public function delete(int $id): bool
     {
-        $stmt = $this->pdo->prepare('DELETE FROM gallery WHERE id = :id');
-        return $stmt->execute(['id' => $id]);
+        return SoftDelete::softDelete($this->pdo, 'gallery', 'id', $id);
+    }
+
+    public function trash(): array
+    {
+        $where = SoftDelete::inTrashClause();
+        $stmt = $this->pdo->query("SELECT * FROM gallery WHERE {$where} ORDER BY deleted_at DESC");
+        return $stmt->fetchAll();
+    }
+
+    public function restore(int $id): bool
+    {
+        return SoftDelete::restore($this->pdo, 'gallery', 'id', $id);
     }
 }
-
-

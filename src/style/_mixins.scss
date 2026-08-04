@@ -34,7 +34,7 @@ $bp-3xl: 1920px;
   &:focus-visible {
     outline: var(--focus-ring-width, 3px) solid var(--focus-ring-color, var(--primary-red));
     outline-offset: var(--focus-ring-offset, 2px);
-    box-shadow: var(--focus-ring-shadow, 0 0 0 3px rgba(220, 0, 0, 0.15));
+    box-shadow: var(--focus-ring-shadow, 0 0 0 3px color-mix(in srgb, var(--primary-red) 20%, transparent));
   }
 }
 
@@ -101,7 +101,7 @@ $bp-3xl: 1920px;
   }
 
   p {
-    color: rgba(255, 255, 255, 0.82);
+    color: var(--text-secondary);
   }
 
   .card__title,

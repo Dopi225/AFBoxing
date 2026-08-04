@@ -10,6 +10,8 @@ use AFBoxing\Models\Contact;
 
 class ContactController extends BaseController
 {
+    use TrashActions;
+
     private Contact $contacts;
     private RateLimiter $rateLimiter;
 
@@ -95,7 +97,18 @@ class ContactController extends BaseController
     {
         $id = (int)($params['id'] ?? 0);
         $this->contacts->delete($id);
-        $this->json(['message' => 'Message supprimé.']);
+        $this->json(['message' => 'Message déplacé en corbeille (30 jours).']);
+    }
+
+    public function trash(array $params): void
+    {
+        $this->trashList($this->contacts);
+    }
+
+    public function restore(array $params): void
+    {
+        $id = (int)($params['id'] ?? 0);
+        $this->restoreItem($this->contacts, $id);
     }
 }
 

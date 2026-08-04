@@ -6,27 +6,27 @@
   padding: 0.45rem 0.85rem;
   font-size: 0.85rem;
   font-weight: 600;
-  border: 1px solid rgba(0, 0, 0, 0.12);
+  border: 1px solid var(--border-default);
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.6);
+  background: color-mix(in srgb, var(--surface-1) 85%, transparent);
   cursor: pointer;
-  color: var(--text-dark, #333);
+  color: var(--text-dark);
   transition: background 0.2s ease, border-color 0.2s ease;
 
   &:hover {
-    background: rgba(255, 255, 255, 0.95);
-    border-color: var(--primary-red, #e60000);
+    background: color-mix(in srgb, var(--surface-1) 95%, transparent);
+    border-color: var(--primary-red);
   }
 }
 
 :root[data-theme='dark'] .theme-toggle {
-  background: rgba(255, 255, 255, 0.06);
-  border-color: rgba(255, 255, 255, 0.14);
-  color: var(--text-dark, #ececf1);
-  box-shadow: 0 0 0 1px rgba(220, 0, 0, 0.12);
+  background: color-mix(in srgb, var(--text-on-dark) 6%, transparent);
+  border-color: var(--border-default);
+  color: var(--text-dark);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--primary-red) 12%, transparent);
 
   &:hover {
-    background: rgba(220, 0, 0, 0.15);
-    border-color: rgba(255, 100, 100, 0.35);
+    background: color-mix(in srgb, var(--primary-red) 15%, transparent);
+    border-color: color-mix(in srgb, var(--primary-red) 35%, transparent);
   }
 }

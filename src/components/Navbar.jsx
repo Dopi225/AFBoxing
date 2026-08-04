@@ -2,13 +2,16 @@ import React, { useState, useEffect } from 'react';
 import { Link, NavLink, useLocation } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBars, faTimes, faChevronDown } from '@fortawesome/free-solid-svg-icons';
-import image2 from '../assets/logo-removeb.png';
+import logoLight from '../assets/logo-removeb.png';
+import logoDark from '../assets/logo-dark.png';
 import '../style/Navbar.scss';
 import { prefetchPublicRoute } from '../utils/routePrefetch';
+import { useTheme } from '../context/ThemeContext';
 
 const Navbar = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [clubOpen, setClubOpen] = useState(false);
+  const { dark } = useTheme();
   const location = useLocation();
 
   // Gérer scroll et classes CSS en fonction de l'ouverture du menu mobile
@@ -50,7 +53,7 @@ const Navbar = () => {
           aria-label="Accueil AF Boxing Club 86"
           onMouseEnter={() => prefetchPublicRoute('/')}
         >
-          <img src={image2} alt="" width={500} height={500} loading="lazy" decoding="async" />
+          <img src={dark ? logoDark : logoLight} alt="" width={500} height={500} loading="lazy" decoding="async" />
         </Link>
 
         <button

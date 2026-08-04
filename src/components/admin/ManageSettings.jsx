@@ -1,5 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useRequireAdmin } from '../../hooks/useRequireAdmin';
+import { useFormDraft } from '../../hooks/useFormDraft';
+import { useDirtyBeforeUnload } from '../../hooks/useDirtyBeforeUnload';
+import { validateEmail, validateUrl } from '../../utils/formValidation';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faSave,
@@ -22,6 +25,8 @@ import { adminBreadcrumbs } from '../../utils/adminBreadcrumbs';
 import { NAV_ITEMS } from '../../constants/adminCopy';
 import './ManageSettings.scss';
 
+const DRAFT_KEY = 'afboxing_draft_settings';
+
 const defaultSettings = {
   contact: {
     address: '2 rue Gabriel Morain, 86000 Poitiers',
@@ -40,12 +45,24 @@ const defaultSettings = {
 
 const ManageSettings = () => {
   const adminOk = useRequireAdmin();
-  const { notifySuccess, notifyError } = useAdminNotify('settings');
+  const { notifySuccess, notifyError, notifyInfo } = useAdminNotify('settings');
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [settings, setSettings] = useState(defaultSettings);
+  const savedBaselineRef = useRef(JSON.stringify(defaultSettings));
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [hasChanges, setHasChanges] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState({
+    email: '',
+    facebook: '',
+    instagram: '',
+  });
+
+  const hasChanges = JSON.stringify(settings) !== savedBaselineRef.current;
+  useDirtyBeforeUnload(hasChanges);
+
+  const { clearDraft } = useFormDraft(DRAFT_KEY, settings, {
+    enabled: !loading && hasChanges,
+  });
 
   useEffect(() => {
     if (!adminOk) return;
@@ -75,6 +92,19 @@ const ManageSettings = () => {
       };
       
       setSettings(loaded);
+      savedBaselineRef.current = JSON.stringify(loaded);
+      try {
+        const draftRaw = localStorage.getItem(DRAFT_KEY);
+        if (draftRaw) {
+          const draft = JSON.parse(draftRaw);
+          if (draft && JSON.stringify(draft) !== savedBaselineRef.current) {
+            setSettings(draft);
+            notifyInfo('Un brouillon des paramètres a été restauré. Enregistrez pour publier sur le site.');
+          }
+        }
+      } catch {
+        localStorage.removeItem(DRAFT_KEY);
+      }
     } catch (err) {
       notifyError(err, 'Impossible de charger les informations du club.');
       setSettings(defaultSettings);
@@ -84,6 +114,17 @@ const ManageSettings = () => {
   };
 
   const saveSettings = async () => {
+    const errors = {
+      email: validateEmail(settings.contact.email),
+      facebook: validateUrl(settings.social.facebook),
+      instagram: validateUrl(settings.social.instagram),
+    };
+    setFieldErrors(errors);
+    if (errors.email || errors.facebook || errors.instagram) {
+      notifyError(null, 'Corrigez les champs en erreur avant d\'enregistrer.');
+      return;
+    }
+
     setSaving(true);
     try {
       const settingsToSave = {
@@ -99,12 +140,21 @@ const ManageSettings = () => {
       await settingsApi.update(settingsToSave);
       logActivity('update', 'settings', 'Paramètres du site mis à jour');
       notifySuccess('Informations du club enregistrées.');
-      setHasChanges(false);
+      savedBaselineRef.current = JSON.stringify(settings);
+      clearDraft();
     } catch (err) {
       notifyError(err, 'Impossible d\'enregistrer. Vérifiez les champs et réessayez.');
     } finally {
       setSaving(false);
     }
+  };
+
+  const validateField = (field, value) => {
+    let err = '';
+    if (field === 'email') err = validateEmail(value);
+    else if (field === 'facebook' || field === 'instagram') err = validateUrl(value);
+    setFieldErrors((prev) => ({ ...prev, [field]: err }));
+    return err;
   };
 
   const updateSetting = (section, key, value) => {
@@ -115,7 +165,9 @@ const ManageSettings = () => {
         [key]: value
       }
     }));
-    setHasChanges(true);
+    if (['email', 'facebook', 'instagram'].includes(key) && fieldErrors[key]) {
+      setFieldErrors((prev) => ({ ...prev, [key]: '' }));
+    }
   };
 
   const resetToDefaults = () => {
@@ -124,7 +176,7 @@ const ManageSettings = () => {
 
   const confirmReset = () => {
     setSettings(defaultSettings);
-    setHasChanges(true);
+    setFieldErrors({ email: '', facebook: '', instagram: '' });
   };
 
   if (!adminOk) {
@@ -208,6 +260,8 @@ const ManageSettings = () => {
               type="email"
               value={settings.contact.email}
               onChange={(e) => updateSetting('contact', 'email', e.target.value)}
+              onBlur={(e) => validateField('email', e.target.value)}
+              error={fieldErrors.email}
               placeholder="contact@example.com"
             />
           </div>
@@ -231,6 +285,8 @@ const ManageSettings = () => {
               type="url"
               value={settings.social.facebook}
               onChange={(e) => updateSetting('social', 'facebook', e.target.value)}
+              onBlur={(e) => validateField('facebook', e.target.value)}
+              error={fieldErrors.facebook}
               placeholder="https://www.facebook.com/..."
             />
             <TextInput
@@ -239,6 +295,8 @@ const ManageSettings = () => {
               type="url"
               value={settings.social.instagram}
               onChange={(e) => updateSetting('social', 'instagram', e.target.value)}
+              onBlur={(e) => validateField('instagram', e.target.value)}
+              error={fieldErrors.instagram}
               placeholder="https://www.instagram.com/..."
             />
           </div>

@@ -8,6 +8,8 @@ use AFBoxing\Models\Gallery;
 
 class GalleryController extends BaseController
 {
+    use TrashActions;
+
     private Gallery $gallery;
 
     public function __construct()
@@ -125,10 +127,21 @@ class GalleryController extends BaseController
         }
         
         if ($this->gallery->delete($id)) {
-            $this->json(['message' => 'Image supprimée avec succès']);
+            $this->json(['message' => 'Photo déplacée en corbeille (30 jours).']);
         } else {
             $this->json(['error' => 'Erreur lors de la suppression'], 500);
         }
+    }
+
+    public function trash(array $params): void
+    {
+        $this->trashList($this->gallery);
+    }
+
+    public function restore(array $params): void
+    {
+        $id = (int)($params['id'] ?? 0);
+        $this->restoreItem($this->gallery, $id);
     }
 }
 

@@ -245,6 +245,17 @@ export const newsApi = {
       headers: buildHeaders()
     });
     return handleResponse(res);
+  },
+  listTrash: async () => {
+    const res = await fetch(`${API_BASE_URL}/api/news/trash`, { headers: buildHeaders() });
+    return handleResponse(res);
+  },
+  restore: async (id) => {
+    const res = await fetch(`${API_BASE_URL}/api/news/${id}/restore`, {
+      method: 'POST',
+      headers: buildHeaders()
+    });
+    return handleResponse(res);
   }
 };
 
@@ -273,6 +284,17 @@ export const palmaresApi = {
   remove: async (id) => {
     const res = await fetch(`${API_BASE_URL}/api/palmares/${id}`, {
       method: 'DELETE',
+      headers: buildHeaders()
+    });
+    return handleResponse(res);
+  },
+  listTrash: async () => {
+    const res = await fetch(`${API_BASE_URL}/api/palmares/trash`, { headers: buildHeaders() });
+    return handleResponse(res);
+  },
+  restore: async (id) => {
+    const res = await fetch(`${API_BASE_URL}/api/palmares/${id}/restore`, {
+      method: 'POST',
       headers: buildHeaders()
     });
     return handleResponse(res);
@@ -346,6 +368,17 @@ export const galleryApi = {
       headers: buildHeaders()
     });
     return handleResponse(res);
+  },
+  listTrash: async () => {
+    const res = await fetch(`${API_BASE_URL}/api/gallery/trash`, { headers: buildHeaders() });
+    return handleResponse(res);
+  },
+  restore: async (id) => {
+    const res = await fetch(`${API_BASE_URL}/api/gallery/${id}/restore`, {
+      method: 'POST',
+      headers: buildHeaders()
+    });
+    return handleResponse(res);
   }
 };
 
@@ -374,6 +407,17 @@ export const contactsApi = {
   remove: async (id) => {
     const res = await fetch(`${API_BASE_URL}/api/contacts/${id}`, {
       method: 'DELETE',
+      headers: buildHeaders()
+    });
+    return handleResponse(res);
+  },
+  listTrash: async () => {
+    const res = await fetch(`${API_BASE_URL}/api/contacts/trash`, { headers: buildHeaders() });
+    return handleResponse(res);
+  },
+  restore: async (id) => {
+    const res = await fetch(`${API_BASE_URL}/api/contacts/${id}/restore`, {
+      method: 'POST',
       headers: buildHeaders()
     });
     return handleResponse(res);
@@ -428,6 +472,17 @@ export const activitiesApi = {
   remove: async (id) => {
     const res = await fetch(`${API_BASE_URL}/api/activities/${id}`, {
       method: 'DELETE',
+      headers: buildHeaders()
+    });
+    return handleResponse(res);
+  },
+  listTrash: async () => {
+    const res = await fetch(`${API_BASE_URL}/api/activities/trash`, { headers: buildHeaders() });
+    return handleResponse(res);
+  },
+  restore: async (id) => {
+    const res = await fetch(`${API_BASE_URL}/api/activities/${id}/restore`, {
+      method: 'POST',
       headers: buildHeaders()
     });
     return handleResponse(res);
@@ -579,6 +634,17 @@ export const pricingApi = {
   remove: async (key) => {
     const res = await fetch(`${API_BASE_URL}/api/pricing/${key}`, {
       method: 'DELETE',
+      headers: buildHeaders()
+    });
+    return handleResponse(res);
+  },
+  listTrash: async () => {
+    const res = await fetch(`${API_BASE_URL}/api/pricing/trash`, { headers: buildHeaders() });
+    return handleResponse(res);
+  },
+  restore: async (key) => {
+    const res = await fetch(`${API_BASE_URL}/api/pricing/${key}/restore`, {
+      method: 'POST',
       headers: buildHeaders()
     });
     return handleResponse(res);

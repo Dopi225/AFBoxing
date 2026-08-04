@@ -28,8 +28,10 @@
       select {
         padding: 0.65rem 0.85rem;
         border-radius: 8px;
-        border: 1px solid #ddd;
+        border: 1px solid var(--field-border);
         font-size: 1rem;
+        background: var(--field-bg);
+        color: var(--field-fg);
       }
     }
 
@@ -46,7 +48,7 @@
     align-items: center;
     gap: 0.5rem;
     padding: 0.65rem 1.25rem;
-    background: var(--primary-red, #c41e3a);
+    background: var(--primary-red);
     color: var(--surface-elevated);
     border: none;
     border-radius: 8px;
@@ -84,12 +86,12 @@
 
   .muted {
     padding: 1.5rem;
-    color: var(--text-light, #666);
+    color: var(--text-light);
   }
 
   .error-text {
     padding: 1.5rem;
-    color: #b00020;
+    color: var(--status-error-fg);
   }
 
   .users-table {
@@ -119,17 +121,17 @@
     padding: 0.45rem 0.55rem;
     border: none;
     border-radius: 6px;
-    background: #f0f0f0;
+    background: var(--surface-2);
     cursor: pointer;
-    color: #333;
+    color: var(--text-dark);
 
     &:hover:not(:disabled) {
-      background: #e5e5e5;
+      background: var(--surface-3);
     }
 
     &.danger:hover:not(:disabled) {
-      background: #ffecec;
-      color: #c41e3a;
+      background: var(--status-error-bg);
+      color: var(--status-error-fg);
     }
 
     &:disabled {
@@ -147,13 +149,13 @@
     text-transform: lowercase;
 
     &--admin {
-      background: #1a1a1a;
-      color: var(--surface-elevated);
+      background: var(--surface-overlay);
+      color: var(--text-on-dark);
     }
 
     &--editor {
-      background: #e8f4ff;
-      color: #1565c0;
+      background: var(--status-info-bg);
+      color: var(--status-info-fg);
     }
   }
 

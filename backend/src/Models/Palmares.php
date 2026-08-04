@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AFBoxing\Models;
 
+use AFBoxing\Core\SoftDelete;
 use PDO;
 
 class Palmares
@@ -14,13 +15,15 @@ class Palmares
 
     public function all(): array
     {
-        $stmt = $this->pdo->query('SELECT * FROM palmares ORDER BY date DESC, id DESC');
+        $where = SoftDelete::notDeletedClause();
+        $stmt = $this->pdo->query("SELECT * FROM palmares WHERE {$where} ORDER BY date DESC, id DESC");
         return $stmt->fetchAll();
     }
 
     public function find(int $id): ?array
     {
-        $stmt = $this->pdo->prepare('SELECT * FROM palmares WHERE id = :id');
+        $where = SoftDelete::notDeletedClause();
+        $stmt = $this->pdo->prepare("SELECT * FROM palmares WHERE id = :id AND {$where}");
         $stmt->execute(['id' => $id]);
         $row = $stmt->fetch();
         return $row ?: null;
@@ -57,7 +60,7 @@ class Palmares
             'UPDATE palmares 
              SET title = :title, date = :date, location = :location, category = :category, 
                  result = :result, boxer = :boxer, details = :details, image = :image, year = :year
-             WHERE id = :id'
+             WHERE id = :id AND ' . SoftDelete::notDeletedClause()
         );
         $stmt->execute([
             'id' => $id,
@@ -77,9 +80,18 @@ class Palmares
 
     public function delete(int $id): bool
     {
-        $stmt = $this->pdo->prepare('DELETE FROM palmares WHERE id = :id');
-        return $stmt->execute(['id' => $id]);
+        return SoftDelete::softDelete($this->pdo, 'palmares', 'id', $id);
+    }
+
+    public function trash(): array
+    {
+        $where = SoftDelete::inTrashClause();
+        $stmt = $this->pdo->query("SELECT * FROM palmares WHERE {$where} ORDER BY deleted_at DESC");
+        return $stmt->fetchAll();
+    }
+
+    public function restore(int $id): bool
+    {
+        return SoftDelete::restore($this->pdo, 'palmares', 'id', $id);
     }
 }
-
-

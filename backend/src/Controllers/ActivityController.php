@@ -8,6 +8,8 @@ use AFBoxing\Models\Activity;
 
 class ActivityController extends BaseController
 {
+    use TrashActions;
+
     private Activity $activity;
 
     public function __construct()
@@ -117,10 +119,21 @@ class ActivityController extends BaseController
         }
 
         if ($this->activity->delete($id)) {
-            $this->json(['message' => 'Activité supprimée avec succès']);
+            $this->json(['message' => 'Activité déplacée en corbeille (30 jours).']);
         } else {
             $this->json(['error' => 'Erreur lors de la suppression'], 500);
         }
+    }
+
+    public function trash(array $params): void
+    {
+        $this->trashList($this->activity);
+    }
+
+    public function restore(array $params): void
+    {
+        $id = $params['id'] ?? '';
+        $this->restoreItem($this->activity, $id);
     }
 }
 

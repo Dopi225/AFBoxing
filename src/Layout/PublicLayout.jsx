@@ -1,10 +1,9 @@
 // layouts/PublicLayout.jsx
-import React, { Suspense } from 'react';
+import React from 'react';
 import Navbar from '../components/Navbar';
 import { Outlet, useLocation } from 'react-router-dom';
 import Footer from '../components/Footer';
 import { Helmet } from 'react-helmet-async';
-const AdminStaffShortcut = React.lazy(() => import('../components/AdminStaffShortcut'));
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { PREMIUM_EASE } from '../components/OptimizedMotion';
 
@@ -43,9 +42,6 @@ const PublicLayout = () => {
         </motion.main>
       </AnimatePresence>
       <Footer />
-      <Suspense fallback={null}>
-        <AdminStaffShortcut />
-      </Suspense>
     </>
   );
 };

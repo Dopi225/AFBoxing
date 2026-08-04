@@ -1,5 +1,5 @@
 /**
- * AF Boxing — tokens design (source unique)
+ * AF Boxing — design tokens (source unique)
  * Importé en premier dans main.jsx avant index.css et App.scss
  */
 :root {
@@ -7,36 +7,104 @@
   --font-primary: "Plus Jakarta Sans", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
   --font-display: "Playfair Display", Georgia, "Times New Roman", serif;
 
-  /* Couleurs charte */
-  --primary-red: #dc0000;
-  --primary-red-dark: #a80000;
-  --primary-black: #0b0b0b;
-  --primary-white: #ffffff;
-  --white: #ffffff;
+  /* Primitifs */
+  --gray-0: #ffffff;
+  --gray-25: #fcfcfd;
+  --gray-50: #f7f7f8;
+  --gray-100: #f0f0f2;
+  --gray-150: #ececef;
+  --gray-200: #e3e3e7;
+  --gray-300: #d5d5dc;
+  --gray-400: #b2b2bd;
+  --gray-500: #8a8a96;
+  --gray-600: #646471;
+  --gray-700: #474753;
+  --gray-800: #2f2f3a;
+  --gray-900: #1b1b24;
+  --gray-950: #0e0e14;
 
-  /* Surfaces */
-  --surface-base: #f7f7f8;
-  --surface-elevated: #ffffff;
-  --surface-glass: rgba(255, 255, 255, 0.72);
+  --brand-500: #dc0000;
+  --brand-600: #b80000;
+  --brand-700: #8f0000;
+  --brand-400: #e73333;
 
-  /* Neutres */
-  --secondary-gray: #f0f0f2;
-  --secondary-dark: #222222;
-  --secondary-light: #e5e5e5;
+  /* Couleurs sémantiques */
+  --surface-page: var(--gray-50);
+  --surface-1: var(--gray-0);
+  --surface-2: var(--gray-100);
+  --surface-3: var(--gray-150);
+  --surface-overlay: var(--gray-0);
+  --surface-glass: color-mix(in srgb, var(--gray-0) 78%, transparent);
+  --surface-hover: var(--gray-150);
+  --surface-muted: #f4f4f6;
 
-  /* Texte */
-  --text-dark: #111111;
-  --text-light: #555555;
-  --text-muted: #888888;
+  --text-primary: #111118;
+  --text-secondary: #50505d;
+  --text-tertiary: #787887;
+  --text-inverse: #fbfbfd;
+  --text-link: var(--brand-500);
+  --text-link-hover: #a80000;
 
-  /* Champs (surfaces claires forcées — ne s'inversent pas en thème sombre) */
-  --field-bg: var(--color-white-fixed);
-  --field-fg: var(--text-on-light);
-  --field-border: #e5e5ea;
-  --field-placeholder: rgba(0, 0, 0, 0.45);
-  --field-bg-disabled: #f0f0f2;
+  --border-subtle: color-mix(in srgb, #0b0b0b 8%, transparent);
+  --border-default: color-mix(in srgb, #0b0b0b 13%, transparent);
+  --border-strong: color-mix(in srgb, #0b0b0b 22%, transparent);
+
+  --overlay-scrim: color-mix(in srgb, #000000 68%, transparent);
+  --overlay-soft: color-mix(in srgb, #000000 42%, transparent);
+  --overlay-brand-soft: color-mix(in srgb, var(--brand-500) 16%, transparent);
+  --overlay-brand-strong: color-mix(in srgb, var(--brand-500) 30%, transparent);
+
+  --shadow-1: 0 1px 2px color-mix(in srgb, #000000 10%, transparent), 0 4px 12px color-mix(in srgb, #000000 8%, transparent);
+  --shadow-2: 0 4px 8px color-mix(in srgb, #000000 10%, transparent), 0 14px 30px color-mix(in srgb, #000000 13%, transparent);
+  --shadow-3: 0 10px 20px color-mix(in srgb, #000000 12%, transparent), 0 26px 54px color-mix(in srgb, #000000 15%, transparent);
+  --shadow-4: 0 16px 30px color-mix(in srgb, #000000 15%, transparent), 0 34px 80px color-mix(in srgb, #000000 18%, transparent);
+  --shadow-brand: 0 10px 28px color-mix(in srgb, var(--brand-500) 32%, transparent);
+
+  --field-bg: var(--surface-1);
+  --field-fg: var(--text-primary);
+  --field-border: color-mix(in srgb, #0b0b0b 12%, transparent);
+  --field-placeholder: color-mix(in srgb, var(--text-secondary) 78%, transparent);
+  --field-bg-disabled: var(--surface-2);
   --input-fg: var(--field-fg);
   --input-placeholder: var(--field-placeholder);
+
+  --status-error-bg: #fff5f5;
+  --status-error-fg: #8b1212;
+  --status-error-border: color-mix(in srgb, #dc0000 28%, transparent);
+  --status-warning-bg: #fff8e6;
+  --status-warning-fg: #8a6200;
+  --status-warning-border: color-mix(in srgb, #c88c00 38%, transparent);
+  --status-success-bg: #eefaf2;
+  --status-success-fg: #0a7a42;
+  --status-success-border: color-mix(in srgb, #229650 35%, transparent);
+  --status-info-bg: color-mix(in srgb, #0078c8 10%, transparent);
+  --status-info-fg: #0a6ea8;
+  --status-info-border: color-mix(in srgb, #0078c8 30%, transparent);
+
+  /* Compatibilité legacy (alias) */
+  --primary-red: var(--brand-500);
+  --primary-red-dark: var(--brand-600);
+  --primary-black: var(--text-primary);
+  --primary-white: var(--gray-0);
+  --white: var(--gray-0);
+  --surface-base: var(--surface-page);
+  --surface-elevated: var(--surface-1);
+  --secondary-gray: var(--surface-2);
+  --secondary-dark: var(--gray-800);
+  --secondary-light: var(--gray-200);
+  --text-dark: var(--text-primary);
+  --text-light: var(--text-secondary);
+  --text-muted: var(--text-tertiary);
+  --btn-secondary-bg: var(--color-white-fixed);
+  --btn-secondary-fg: var(--brand-500);
+  --btn-on-dark-fg: var(--text-on-dark);
+  --btn-on-dark-border: color-mix(in srgb, var(--text-inverse) 35%, transparent);
+  --border-medium: var(--border-default);
+  --shadow-sm: var(--shadow-1);
+  --shadow-md: var(--shadow-2);
+  --shadow-lg: var(--shadow-3);
+  --shadow-xl: var(--shadow-4);
+  --shadow-red: var(--shadow-brand);
 
   /* Accent admin */
   --admin-accent: var(--primary-red);
@@ -52,13 +120,6 @@
   --spacing-xl: 3rem;
   --spacing-xxl: 4rem;
 
-  /* Ombres (premium + compat index) */
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04), 0 4px 12px rgba(0, 0, 0, 0.06);
-  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.04), 0 12px 32px rgba(0, 0, 0, 0.1);
-  --shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.06), 0 24px 56px rgba(0, 0, 0, 0.12);
-  --shadow-xl: 0 12px 24px rgba(0, 0, 0, 0.08), 0 32px 80px rgba(0, 0, 0, 0.14);
-  --shadow-red: 0 4px 20px rgba(230, 0, 0, 0.3);
-
   /* Transitions (alignées MotionConfig ~0.28s) */
   --transition-fast: 0.15s var(--ease-premium);
   --transition-normal: 0.22s var(--ease-premium);
@@ -70,18 +131,6 @@
   --border-radius-lg: 16px;
   --border-radius-xl: 20px;
   --border-radius-xxl: 24px;
-
-  /* Dégradés */
-  --gradient-primary: linear-gradient(135deg, var(--primary-red), var(--primary-red-dark));
-  --gradient-dark: linear-gradient(135deg, #000000, #111111, #222222);
-  --gradient-light: linear-gradient(180deg, #f4f4f6 0%, #fafafb 45%, #ffffff 100%);
-  --gradient-hero: linear-gradient(135deg, var(--primary-black), var(--primary-red));
-  --gradient-shimmer-surface: linear-gradient(45deg, #ffffff, #f0f0f2, #ffffff);
-  --gradient-page-fade: linear-gradient(180deg, #f8f9fa 0%, #ffffff 100%);
-
-  /* Bordures (cartes, séparateurs) */
-  --border-subtle: rgba(0, 0, 0, 0.06);
-  --border-medium: rgba(0, 0, 0, 0.1);
 
   /* Breakpoints (référence CSS + JS) */
   --bp-xs: 320px;
@@ -120,17 +169,13 @@
   --input-height: 44px;
   --touch-target-min: 44px;
 
-  /* Contraste fixe (ne s'inverse pas en thème sombre) */
-  --text-on-light: #111111;
-  --text-on-dark: #ffffff;
+  /* Contraste fixe */
+  --text-on-light: var(--text-primary);
+  --text-on-dark: var(--text-inverse);
   --heading-on-light: var(--text-on-light);
   --heading-on-dark: var(--text-on-dark);
   --color-white-fixed: #ffffff;
   --color-black-fixed: #0b0b0b;
-  --btn-secondary-bg: var(--color-white-fixed);
-  --btn-secondary-fg: var(--primary-red);
-  --btn-on-dark-fg: var(--text-on-dark);
-  --btn-on-dark-border: rgba(255, 255, 255, 0.35);
 
   /* Z-index */
   --z-dropdown: 100;
@@ -143,32 +188,14 @@
   --focus-ring-color: var(--primary-red);
   --focus-ring-width: 3px;
   --focus-ring-offset: 2px;
-  --focus-ring-shadow: 0 0 0 3px rgba(220, 0, 0, 0.15);
-
-  /* Surfaces étendues */
-  --surface-muted: #f4f4f6;
-  --surface-hover: #ececef;
+  --focus-ring-shadow: 0 0 0 3px color-mix(in srgb, var(--primary-red) 20%, transparent);
 
   /* Bordures champs */
-  --border-input: #e5e5ea;
+  --border-input: var(--field-border);
   --border-input-focus: var(--primary-red);
 
-  /* États sémantiques */
-  --status-error-bg: #fff5f5;
-  --status-error-fg: var(--primary-red-dark);
-  --status-error-border: rgba(220, 0, 0, 0.2);
-  --status-warning-bg: #fff8e6;
-  --status-warning-fg: #8a6200;
-  --status-warning-border: rgba(200, 140, 0, 0.35);
-  --status-success-bg: #eefaf2;
-  --status-success-fg: #0a7a42;
-  --status-success-border: rgba(34, 150, 80, 0.3);
-  --status-info-bg: rgba(0, 120, 200, 0.08);
-  --status-info-fg: #0a6ea8;
-  --status-info-border: rgba(0, 120, 200, 0.25);
-
   /* Shell admin */
-  --admin-shell-bg: linear-gradient(160deg, var(--secondary-gray) 0%, var(--surface-base) 55%, #eef0f3 100%);
+  --admin-shell-bg: linear-gradient(160deg, var(--surface-2) 0%, var(--surface-page) 55%, #eef0f3 100%);
 
   /* Rythme vertical & layout */
   --section-padding-y: 5rem;
@@ -177,70 +204,94 @@
   --card-padding: 2rem;
   --page-max-width: 1280px;
 
-  /* Footer (toujours sombre) */
-  --footer-bg: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+  /* Dégradés */
+  --gradient-primary: linear-gradient(135deg, var(--primary-red), var(--primary-red-dark));
+  --gradient-dark: linear-gradient(135deg, var(--gray-900), var(--gray-800), var(--gray-700));
+  --gradient-light: linear-gradient(180deg, #f4f4f6 0%, #fafafb 45%, #ffffff 100%);
+  --gradient-hero: linear-gradient(135deg, var(--primary-black), var(--primary-red));
+  --gradient-shimmer-surface: linear-gradient(45deg, var(--surface-1), var(--surface-2), var(--surface-1));
+  --gradient-page-fade: linear-gradient(180deg, #f8f9fa 0%, #ffffff 100%);
+
+  /* Footer adaptatif */
+  --footer-bg: linear-gradient(180deg, var(--surface-2) 0%, var(--surface-1) 100%);
+  --footer-text: var(--text-secondary);
+  --footer-title: var(--text-primary);
+  --footer-border: var(--border-subtle);
 }
 
 /* Thème sombre — ThemeContext / ThemeToggle */
 :root[data-theme="dark"] {
   color-scheme: dark;
-  --primary-black: #f4f4f5;
-  --primary-red: #e81e1e;
-  --primary-red-dark: #b80000;
-  --text-dark: #ececf1;
-  --text-light: #b4b4c0;
-  --text-muted: #8e8e9a;
-  --secondary-gray: #1e1e24;
-  --secondary-light: #2a2a32;
-  --white: #0e0e12;
-  --surface-base: #08080c;
-  --surface-elevated: #12121a;
-  --surface-glass: rgba(22, 22, 30, 0.82);
+  --brand-500: #c52828;
+  --brand-600: #a01c1c;
+  --brand-700: #841515;
 
-  /* Dégradés lisibles sans « flash » clair */
-  --gradient-light: linear-gradient(180deg, #07070b 0%, #0c0c12 48%, #09090e 100%);
-  --gradient-dark: linear-gradient(135deg, #020208, #0c0c12, #181822);
-  --gradient-shimmer-surface: linear-gradient(45deg, #1a1a24, #13131a, #1a1a24);
-  --gradient-page-fade: linear-gradient(180deg, #0e0e14 0%, #12121a 100%);
+  --surface-page: #0f1117;
+  --surface-1: #161922;
+  --surface-2: #1e2330;
+  --surface-3: #272d3d;
+  --surface-overlay: #1b2030;
+  --surface-glass: color-mix(in srgb, #1b2030 80%, transparent);
+  --surface-muted: #1c2130;
+  --surface-hover: #252b3a;
 
-  --border-subtle: rgba(255, 255, 255, 0.08);
-  --border-medium: rgba(255, 255, 255, 0.14);
+  --text-primary: #f3f5fb;
+  --text-secondary: #c4cad9;
+  --text-tertiary: #8f97ac;
+  --text-inverse: #101319;
+  --text-on-dark: var(--text-primary);
+  --heading-on-dark: var(--text-primary);
+  --btn-on-dark-fg: var(--text-primary);
+  --btn-secondary-fg: #e02323;
 
-  /* Ombres plus profondes, moins de halo gris */
-  --shadow-sm: 0 1px 0 rgba(255, 255, 255, 0.04), 0 4px 18px rgba(0, 0, 0, 0.42);
-  --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.38), 0 14px 36px rgba(0, 0, 0, 0.38);
-  --shadow-lg: 0 10px 20px rgba(0, 0, 0, 0.45), 0 26px 56px rgba(0, 0, 0, 0.42);
-  --shadow-xl: 0 14px 28px rgba(0, 0, 0, 0.48), 0 36px 80px rgba(0, 0, 0, 0.45);
-  --shadow-red: 0 4px 24px rgba(220, 40, 40, 0.35);
+  --text-link: #ff7070;
+  --text-link-hover: #ff9696;
 
-  --surface-muted: #16161e;
-  --surface-hover: #1e1e28;
-  --border-input: rgba(255, 255, 255, 0.14);
-  --border-input-focus: var(--primary-red);
+  --border-subtle: color-mix(in srgb, #ffffff 10%, transparent);
+  --border-default: color-mix(in srgb, #ffffff 18%, transparent);
+  --border-strong: color-mix(in srgb, #ffffff 28%, transparent);
 
-  --status-error-bg: rgba(72, 22, 22, 0.42);
-  --status-error-fg: #ffc9c9;
-  --status-error-border: rgba(220, 100, 100, 0.35);
-  --status-warning-bg: rgba(120, 60, 0, 0.28);
-  --status-warning-fg: #f0c060;
-  --status-warning-border: rgba(255, 180, 80, 0.35);
-  --status-success-bg: rgba(22, 72, 42, 0.38);
-  --status-success-fg: #c4f5d8;
-  --status-success-border: rgba(90, 200, 130, 0.35);
-  --status-info-bg: rgba(30, 90, 160, 0.22);
-  --status-info-fg: #7ec8f0;
-  --status-info-border: rgba(120, 170, 230, 0.35);
+  --overlay-scrim: color-mix(in srgb, #000000 72%, transparent);
+  --overlay-soft: color-mix(in srgb, #000000 55%, transparent);
+  --overlay-brand-soft: color-mix(in srgb, var(--brand-500) 20%, transparent);
+  --overlay-brand-strong: color-mix(in srgb, var(--brand-500) 34%, transparent);
 
-  --admin-shell-bg: linear-gradient(160deg, #0a0a10 0%, var(--surface-base) 55%, #101018 100%);
+  --shadow-1: 0 1px 0 color-mix(in srgb, #ffffff 8%, transparent), 0 4px 14px color-mix(in srgb, #000000 44%, transparent);
+  --shadow-2: 0 4px 8px color-mix(in srgb, #000000 42%, transparent), 0 14px 36px color-mix(in srgb, #000000 44%, transparent);
+  --shadow-3: 0 10px 20px color-mix(in srgb, #000000 46%, transparent), 0 28px 60px color-mix(in srgb, #000000 48%, transparent);
+  --shadow-4: 0 14px 28px color-mix(in srgb, #000000 52%, transparent), 0 36px 80px color-mix(in srgb, #000000 52%, transparent);
+  --shadow-brand: 0 8px 26px color-mix(in srgb, var(--brand-500) 35%, transparent);
 
-  /* Champs lisibles sur cartes admin sombres */
-  --field-bg: var(--color-white-fixed);
-  --field-fg: var(--text-on-light);
-  --field-border: #d8d8de;
-  --field-placeholder: rgba(0, 0, 0, 0.45);
-  --field-bg-disabled: #ececef;
-  --input-fg: var(--field-fg);
-  --input-placeholder: var(--field-placeholder);
+  --field-bg: var(--surface-2);
+  --field-fg: var(--text-primary);
+  --field-border: var(--border-default);
+  --field-placeholder: color-mix(in srgb, var(--text-tertiary) 88%, transparent);
+  --field-bg-disabled: var(--surface-3);
+
+  --status-error-bg: color-mix(in srgb, #ff5a5a 16%, transparent);
+  --status-error-fg: #ffc6c6;
+  --status-error-border: color-mix(in srgb, #ff7a7a 42%, transparent);
+  --status-warning-bg: color-mix(in srgb, #ffb347 18%, transparent);
+  --status-warning-fg: #ffd893;
+  --status-warning-border: color-mix(in srgb, #ffbe5e 40%, transparent);
+  --status-success-bg: color-mix(in srgb, #4dd18a 16%, transparent);
+  --status-success-fg: #c0f3d8;
+  --status-success-border: color-mix(in srgb, #65df9c 40%, transparent);
+  --status-info-bg: color-mix(in srgb, #73b5ff 18%, transparent);
+  --status-info-fg: #b8dbff;
+  --status-info-border: color-mix(in srgb, #88c2ff 40%, transparent);
+
+  --admin-shell-bg: linear-gradient(160deg, #0d1018 0%, var(--surface-page) 55%, #121729 100%);
+  --gradient-light: linear-gradient(180deg, #10131c 0%, #151a25 48%, #111521 100%);
+  --gradient-dark: linear-gradient(135deg, #090c13, #111827, #1b2436);
+  --gradient-shimmer-surface: linear-gradient(45deg, #1f2533, #151a27, #1f2533);
+  --gradient-page-fade: linear-gradient(180deg, #10141d 0%, #161d2b 100%);
+  --gradient-hero: linear-gradient(135deg, #121726, var(--primary-red));
+
+  --footer-bg: linear-gradient(180deg, #111622 0%, #161d2b 100%);
+  --footer-text: var(--text-secondary);
+  --footer-title: var(--text-primary);
+  --footer-border: var(--border-default);
 
   --section-padding-y: 4rem;
   --section-padding-y-compact: 2.5rem;
@@ -249,38 +300,38 @@
 :root[data-theme="dark"] body {
   background-color: var(--surface-base);
   background-image:
-    radial-gradient(ellipse 100% 60% at 50% -15%, rgba(220, 0, 0, 0.14), transparent 55%),
-    radial-gradient(ellipse 80% 50% at 100% 50%, rgba(80, 20, 20, 0.08), transparent 45%),
-    radial-gradient(ellipse 50% 40% at 0% 100%, rgba(40, 10, 10, 0.12), transparent 50%);
+    radial-gradient(ellipse 100% 60% at 50% -15%, var(--overlay-brand-soft), transparent 55%),
+    radial-gradient(ellipse 80% 50% at 100% 50%, color-mix(in srgb, #2a3550 24%, transparent), transparent 45%),
+    radial-gradient(ellipse 50% 40% at 0% 100%, color-mix(in srgb, #192033 30%, transparent), transparent 50%);
   color: var(--text-dark);
-  scrollbar-color: rgba(255, 255, 255, 0.22) var(--surface-base);
+  scrollbar-color: color-mix(in srgb, #ffffff 25%, transparent) var(--surface-base);
 }
 
 :root[data-theme="dark"] a:hover {
-  color: #ff6b6b;
+  color: var(--text-link-hover);
 }
 
 :root[data-theme="dark"] .modal-box {
-  background: var(--surface-elevated);
+  background: var(--surface-overlay);
   color: var(--text-dark);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--border-subtle);
 }
 
 :root[data-theme="dark"] .modal-close {
-  background: rgba(255, 255, 255, 0.08);
+  background: color-mix(in srgb, #ffffff 10%, transparent);
   color: var(--text-light);
 }
 
 :root[data-theme="dark"] .modal-header {
-  border-bottom-color: rgba(255, 255, 255, 0.08);
+  border-bottom-color: var(--border-subtle);
 }
 
 ::selection {
-  background: rgba(220, 0, 0, 0.18);
+  background: color-mix(in srgb, var(--brand-500) 20%, transparent);
   color: inherit;
 }
 
 :root[data-theme="dark"] ::selection {
-  background: rgba(220, 90, 90, 0.38);
-  color: #fdfdfd;
+  background: color-mix(in srgb, var(--brand-400) 36%, transparent);
+  color: var(--text-primary);
 }

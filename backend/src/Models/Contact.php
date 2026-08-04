@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AFBoxing\Models;
 
+use AFBoxing\Core\SoftDelete;
 use PDO;
 
 class Contact
@@ -14,7 +15,8 @@ class Contact
 
     public function all(): array
     {
-        $stmt = $this->pdo->query('SELECT * FROM contacts ORDER BY created_at DESC');
+        $where = SoftDelete::notDeletedClause();
+        $stmt = $this->pdo->query("SELECT * FROM contacts WHERE {$where} ORDER BY created_at DESC");
         return $stmt->fetchAll();
     }
 
@@ -38,15 +40,26 @@ class Contact
 
     public function markAsRead(int $id): bool
     {
-        $stmt = $this->pdo->prepare('UPDATE contacts SET is_read = 1 WHERE id = :id');
+        $stmt = $this->pdo->prepare(
+            'UPDATE contacts SET is_read = 1 WHERE id = :id AND ' . SoftDelete::notDeletedClause()
+        );
         return $stmt->execute(['id' => $id]);
     }
 
     public function delete(int $id): bool
     {
-        $stmt = $this->pdo->prepare('DELETE FROM contacts WHERE id = :id');
-        return $stmt->execute(['id' => $id]);
+        return SoftDelete::softDelete($this->pdo, 'contacts', 'id', $id);
+    }
+
+    public function trash(): array
+    {
+        $where = SoftDelete::inTrashClause();
+        $stmt = $this->pdo->query("SELECT * FROM contacts WHERE {$where} ORDER BY deleted_at DESC");
+        return $stmt->fetchAll();
+    }
+
+    public function restore(int $id): bool
+    {
+        return SoftDelete::restore($this->pdo, 'contacts', 'id', $id);
     }
 }
-
-

@@ -4,10 +4,13 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faMoneyBillWave, faTrash, faPen, faPlus, faTimes } from '@fortawesome/free-solid-svg-icons';
 import { authApi, activitiesApi, pricingApi } from '../../services/apiService';
 import { useAdminNotify } from '../../hooks/useAdminNotify';
+import { useEntityTrash } from '../../hooks/useEntityTrash';
+import { validateAmount } from '../../utils/formValidation';
 import { preparePricingPayload } from '../../utils/adminAutoFill';
 import { PERIOD_LABELS, NAV_ITEMS } from '../../constants/adminCopy';
 import { adminBreadcrumbs } from '../../utils/adminBreadcrumbs';
 import ConfirmDialog from './ConfirmDialog';
+import TrashPanel, { TrashTabs } from './TrashPanel';
 import DataTable from '../ui/DataTable';
 import PageHeader from '../ui/PageHeader';
 import { TextInput, TextArea, SelectField, CheckboxField } from '../ui/FormField';
@@ -38,6 +41,7 @@ const ManagePricing = () => {
   const [form, setForm] = useState(emptyForm);
   const [editingKey, setEditingKey] = useState(null);
   const [deleteRow, setDeleteRow] = useState(null);
+  const [fieldErrors, setFieldErrors] = useState({});
 
   const enabledActivities = useMemo(
     () => (activities || []).filter((a) => a.enabled !== false),
@@ -82,9 +86,21 @@ const ManagePricing = () => {
     if (ready) load();
   }, [ready, load]);
 
+  const trash = useEntityTrash(pricingApi, {
+    onReload: load,
+    notifySuccess,
+    notifyError,
+    entityLabel: 'Tarif',
+  });
+
+  const handleAmountBlur = () => {
+    setFieldErrors((prev) => ({ ...prev, amount: validateAmount(form.amount) }));
+  };
+
   const resetForm = () => {
     setForm(emptyForm());
     setEditingKey(null);
+    setFieldErrors({});
   };
 
   const startEdit = (r) => {
@@ -145,11 +161,13 @@ const ManagePricing = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const amountNum = Number(String(form.amount).replace(',', '.'));
-    if (Number.isNaN(amountNum) || amountNum < 0) {
-      notifyError('Indiquez un montant valide en euros.');
+    const amountError = validateAmount(form.amount);
+    if (amountError) {
+      setFieldErrors((prev) => ({ ...prev, amount: amountError }));
+      notifyError(amountError);
       return;
     }
+    const amountNum = Number(String(form.amount).replace(',', '.'));
     const existingKeys = rows.map((r) => r.priceKey);
     const prepared = preparePricingPayload(
       { ...form, amount: amountNum },
@@ -193,7 +211,7 @@ const ManagePricing = () => {
     if (!deleteRow?.priceKey) return;
     try {
       await pricingApi.remove(deleteRow.priceKey);
-      notifySuccess('Tarif supprimé.');
+      notifySuccess('Tarif déplacé en corbeille.');
       if (editingKey === deleteRow.priceKey) resetForm();
       load();
     } catch (err) {
@@ -215,6 +233,7 @@ const ManagePricing = () => {
 
       <HelpTip text="Vous n'avez pas besoin de référence technique : donnez simplement un nom au tarif et le montant." />
 
+      {trash.view === 'active' ? (
       <section className="pricing-form-card modern-card">
         <h3>{editingKey ? `Modifier : ${form.label}` : 'Ajouter un tarif'}</h3>
         <form onSubmit={handleSubmit} className="pricing-form">
@@ -234,6 +253,8 @@ const ManagePricing = () => {
               inputMode="decimal"
               value={form.amount}
               onChange={(ev) => setForm((f) => ({ ...f, amount: ev.target.value }))}
+              onBlur={handleAmountBlur}
+              error={fieldErrors.amount}
               required
             />
             <SelectField
@@ -284,7 +305,16 @@ const ManagePricing = () => {
           </div>
         </form>
       </section>
+      ) : null}
 
+      <TrashTabs
+        view={trash.view}
+        onViewChange={trash.setView}
+        activeCount={rows.length}
+        trashCount={trash.trashItems.length}
+      />
+
+      {trash.view === 'active' ? (
       <section className="pricing-table-wrap modern-card" aria-busy={loading}>
         {loading ? <p className="admin-state--loading"><span className="admin-state__spinner" aria-hidden />Chargement…</p> : null}
         {error && !loading ? <div className="admin-state--error" role="alert">{error}</div> : null}
@@ -292,6 +322,16 @@ const ManagePricing = () => {
           <DataTable columns={pricingColumns} data={rows} rowKey="priceKey" emptyMessage="Aucun tarif pour le moment." className="pricing-table" />
         ) : null}
       </section>
+      ) : (
+        <TrashPanel
+          items={trash.trashItems}
+          loading={trash.trashLoading}
+          emptyMessage="Aucun tarif en corbeille."
+          getItemLabel={(row) => row.label}
+          onRestore={trash.restoreItem}
+          restoringId={trash.restoringId}
+        />
+      )}
 
       <ConfirmDialog
         isOpen={!!deleteRow}
@@ -300,8 +340,9 @@ const ManagePricing = () => {
         title="Supprimer ce tarif ?"
         itemLabel={deleteRow?.label}
         consequences={[
-          'Le tarif disparaîtra de la page Tarifs.',
-          'Les activités liées n\'afficheront plus ce montant.',
+          'Le tarif sera déplacé en corbeille pendant 30 jours.',
+          'Il disparaîtra de la page Tarifs pendant ce délai.',
+          'Vous pourrez le restaurer depuis la corbeille.',
         ]}
         type="danger"
         danger

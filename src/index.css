@@ -16,7 +16,7 @@ body {
   line-height: 1.65;
   letter-spacing: -0.01em;
   color: var(--text-dark);
-  background-color: var(--surface-base, #f7f7f8);
+  background-color: var(--surface-base);
   overflow-x: hidden;
 }
 
@@ -54,7 +54,7 @@ a {
 }
 
 a:hover {
-  color: var(--primary-black);
+  color: var(--text-link-hover);
 }
 
 /* Utilitaires */

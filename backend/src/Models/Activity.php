@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AFBoxing\Models;
 
+use AFBoxing\Core\SoftDelete;
 use PDO;
 
 class Activity
@@ -14,7 +15,8 @@ class Activity
 
     public function all(): array
     {
-        $stmt = $this->pdo->query('SELECT * FROM activities ORDER BY kind, title');
+        $where = SoftDelete::notDeletedClause();
+        $stmt = $this->pdo->query("SELECT * FROM activities WHERE {$where} ORDER BY kind, title");
         $results = $stmt->fetchAll();
         
         return array_map([$this, 'formatActivity'], $results);
@@ -22,7 +24,8 @@ class Activity
 
     public function find(string $id): ?array
     {
-        $stmt = $this->pdo->prepare('SELECT * FROM activities WHERE id = :id');
+        $where = SoftDelete::notDeletedClause();
+        $stmt = $this->pdo->prepare("SELECT * FROM activities WHERE id = :id AND {$where}");
         $stmt->execute(['id' => $id]);
         $row = $stmt->fetch();
         
@@ -80,7 +83,7 @@ class Activity
             icon = :icon,
             image = :image,
             enabled = :enabled
-            WHERE id = :id'
+            WHERE id = :id AND ' . SoftDelete::notDeletedClause()
         );
         
         $meta = $data['meta'] ?? [];
@@ -106,9 +109,19 @@ class Activity
 
     public function delete(string $id): bool
     {
-        $stmt = $this->pdo->prepare('DELETE FROM activities WHERE id = :id');
-        $stmt->execute(['id' => $id]);
-        return $stmt->rowCount() > 0;
+        return SoftDelete::softDelete($this->pdo, 'activities', 'id', $id);
+    }
+
+    public function trash(): array
+    {
+        $where = SoftDelete::inTrashClause();
+        $stmt = $this->pdo->query("SELECT * FROM activities WHERE {$where} ORDER BY deleted_at DESC");
+        return array_map([$this, 'formatActivity'], $stmt->fetchAll());
+    }
+
+    public function restore(string $id): bool
+    {
+        return SoftDelete::restore($this->pdo, 'activities', 'id', $id);
     }
 
     private function formatActivity(array $row): array

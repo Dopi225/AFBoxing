@@ -8,6 +8,8 @@ use AFBoxing\Models\News;
 
 class NewsController extends BaseController
 {
+    use TrashActions;
+
     private News $news;
 
     public function __construct()
@@ -160,7 +162,18 @@ class NewsController extends BaseController
         }
 
         $this->news->delete($id);
-        $this->json(['message' => 'Actualité supprimée.']);
+        $this->json(['message' => 'Actualité déplacée en corbeille (30 jours).']);
+    }
+
+    public function trash(array $params): void
+    {
+        $this->trashList($this->news);
+    }
+
+    public function restore(array $params): void
+    {
+        $id = (int)($params['id'] ?? 0);
+        $this->restoreItem($this->news, $id);
     }
 }
 

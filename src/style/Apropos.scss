@@ -159,6 +159,7 @@
 .activities-section {
   padding: var(--section-padding-y) 0;
   background: var(--surface-elevated);
+  overflow-x: clip;
 
   h2 {
     text-align: center;
@@ -335,8 +336,16 @@
     gap: var(--spacing-lg);
   }
 
-  .activities-grid {
-    grid-template-columns: 1fr;
+  .activities-section .activities-grid {
+    grid-template-columns: minmax(0, 1fr);
+    width: 100%;
+
+    .activity-card {
+      width: 100%;
+      max-width: 100%;
+      min-width: 0;
+      box-sizing: border-box;
+    }
   }
 
   .cta-grid {

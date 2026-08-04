@@ -78,8 +78,17 @@
     display: block;
   }
 
-  body {
-    padding-bottom: 90px;
+  /* Le CTA fixe recouvre le bas de l'écran : on prolonge le fond du footer
+     sous le bouton pour supprimer la bande vide entre le footer et le CTA.
+     Uniquement quand le CTA est présent (absent sur /tarif et /admin). */
+  body:has(.sticky-tarif-cta) .footer {
+    padding-bottom: calc(2rem + 68px + env(safe-area-inset-bottom));
+  }
+}
+
+@media (max-width: 480px) {
+  body:has(.sticky-tarif-cta) .footer {
+    padding-bottom: calc(1.5rem + 68px + env(safe-area-inset-bottom));
   }
 }
 

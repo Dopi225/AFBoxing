@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AFBoxing\Models;
 
+use AFBoxing\Core\SoftDelete;
 use PDO;
 
 class News
@@ -14,13 +15,15 @@ class News
 
     public function all(): array
     {
-        $stmt = $this->pdo->query('SELECT * FROM news ORDER BY date DESC, created_at DESC');
+        $where = SoftDelete::notDeletedClause();
+        $stmt = $this->pdo->query("SELECT * FROM news WHERE {$where} ORDER BY date DESC, created_at DESC");
         return $stmt->fetchAll();
     }
 
     public function countAll(): int
     {
-        $stmt = $this->pdo->query('SELECT COUNT(*) FROM news');
+        $where = SoftDelete::notDeletedClause();
+        $stmt = $this->pdo->query("SELECT COUNT(*) FROM news WHERE {$where}");
         return (int) $stmt->fetchColumn();
     }
 
@@ -30,8 +33,9 @@ class News
     public function paginate(int $page, int $perPage): array
     {
         $offset = max(0, ($page - 1) * $perPage);
+        $where = SoftDelete::notDeletedClause();
         $stmt = $this->pdo->prepare(
-            'SELECT * FROM news ORDER BY date DESC, created_at DESC LIMIT :limit OFFSET :offset'
+            "SELECT * FROM news WHERE {$where} ORDER BY date DESC, created_at DESC LIMIT :limit OFFSET :offset"
         );
         $stmt->bindValue(':limit', $perPage, \PDO::PARAM_INT);
         $stmt->bindValue(':offset', $offset, \PDO::PARAM_INT);
@@ -42,7 +46,8 @@ class News
 
     public function find(int $id): ?array
     {
-        $stmt = $this->pdo->prepare('SELECT * FROM news WHERE id = :id');
+        $where = SoftDelete::notDeletedClause();
+        $stmt = $this->pdo->prepare("SELECT * FROM news WHERE id = :id AND {$where}");
         $stmt->execute(['id' => $id]);
         $row = $stmt->fetch();
         return $row ?: null;
@@ -86,8 +91,19 @@ class News
 
     public function delete(int $id): bool
     {
-        $stmt = $this->pdo->prepare('DELETE FROM news WHERE id = :id');
-        return $stmt->execute(['id' => $id]);
+        return SoftDelete::softDelete($this->pdo, 'news', 'id', $id);
+    }
+
+    public function trash(): array
+    {
+        $where = SoftDelete::inTrashClause();
+        $stmt = $this->pdo->query("SELECT * FROM news WHERE {$where} ORDER BY deleted_at DESC");
+        return $stmt->fetchAll();
+    }
+
+    public function restore(int $id): bool
+    {
+        return SoftDelete::restore($this->pdo, 'news', 'id', $id);
     }
 }
 
